@@ -86,7 +86,7 @@ public class VodMenuPage extends ExpandableListActivity {
         try {
             this.api.getAuth(login, password);
             this.VodMenu = new LevtvStruct();
-            this.api.KeepAlive();
+            this.api.KeepAlive(true);
             this.VodMenu = this.api.getVodMenu();
             this.iptvServiceId = this.VodMenu.Iptv_menu_str.service;
             this.VodMeunuItemsCount = this.VodMenu.Iptv_menu_str.IPTVMenuItems.id.size();
@@ -98,6 +98,7 @@ public class VodMenuPage extends ExpandableListActivity {
                 }
             }
             ganre_viev();
+            api.KeepAlive(false);
         } catch (IOException e) {
             e.printStackTrace();
         }

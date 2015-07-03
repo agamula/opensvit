@@ -165,7 +165,7 @@ public class TvMenuPage extends ExpandableListActivity {
         try {
             this.iptvMenu = new LevtvStruct();
             this.api.getAuth(login, password);
-            this.api.KeepAlive();
+            this.api.KeepAlive(true);
             this.iptvMenu = this.api.getIptvMenu();
             this.iptvServiceId = this.iptvMenu.Iptv_menu_str.service;
             this.iptvMeunuItemsCount = this.iptvMenu.Iptv_menu_str.IPTVMenuItems.id.size();
@@ -177,6 +177,7 @@ public class TvMenuPage extends ExpandableListActivity {
                 }
                 ganre_viev();
             }
+            api.KeepAlive(false);
         } catch (IOException e) {
             e.printStackTrace();
         }

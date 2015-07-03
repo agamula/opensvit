@@ -16,8 +16,6 @@ public class MainMenu extends ListActivity {
         super.onCreate(paramBundle);
         setListAdapter(new ArrayAdapter<>(this, R.layout.display_item, new String[]{"TV", "VoD",
                 "About"}));
-        onContentChanged();
-        getListView().setFocusable(false);
     }
 
     @Override

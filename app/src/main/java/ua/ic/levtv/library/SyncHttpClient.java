@@ -9,12 +9,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.impl.client.DefaultConnectionKeepAliveStrategy;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.protocol.HttpContext;
 
 import io.vov.vitamio.utils.IOUtils;
 
@@ -47,12 +51,28 @@ public class SyncHttpClient
         return res.toString();
     }
 
+    private boolean mSetAlive;
+
+    public void keepAlive(final boolean keepAlive) {
+        mSetAlive = true;
+        System.setProperty("http.keepAlive", "" + keepAlive);
+        httpclient.setReuseStrategy(new ConnectionReuseStrategy() {
+            @Override
+            public boolean keepAlive(HttpResponse httpResponse, HttpContext httpContext) {
+                return keepAlive;
+            }
+        });
+    }
+
     public SyncHttpClient clone()
             throws CloneNotSupportedException {
         return (SyncHttpClient) super.clone();
     }
 
     public String get(String paramString) throws IOException {
+        if(!mSetAlive) {
+            httpclient.setReuseStrategy(null);
+        }
         StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitAll().build());
         this.httpclient.setCookieStore(this.cookieStore);
         String res = null;

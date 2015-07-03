@@ -66,10 +66,31 @@ public class LevtvDbApi {
         }
     }
 
-    public void KeepAlive() {
+    public void KeepAlive(boolean keepAlive) {
+        gets.keepAlive(keepAlive);
         new Thread() {
             /* Error */
             public void run() {
+
+                SyncHttpClient client = null;
+                try {
+                    client = gets.clone();
+                } catch (CloneNotSupportedException e) {
+                    e.printStackTrace();
+                }
+
+                if(client != null) {
+                    try {
+                        Thread.sleep(0);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        client.get(applicationPath);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
                 // Byte code:
                 //   0: new 27	ua/ic/levtv/library/SyncHttpClient
                 //   3: dup
@@ -233,7 +254,7 @@ public class LevtvDbApi {
 
     public LevtvStruct getFilms(int param) throws IOException {
         LevtvStruct res = new LevtvStruct();
-        String url = this.applicationPathVod + "/ws/GetFilms?perPage=0&page=0&genreId=" +
+        String url = this.applicationPathVod + "ws/GetFilms?perPage=0&page=0&genreId=" +
                 param;
         this.httpOut = this.gets.get(url);
         try {
