@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest package="ua.ic.levtv_ott"
+          xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application
+        android:name=".MyApplication"
+        android:icon="@drawable/ic_launcher"
+        android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
+        <activity
+            android:name=".LevTv"
+            android:label="@string/title_activity_lev_tv">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        <activity android:name="ua.ic.levtv_ott.TvMenuPage"/>
+        <activity android:name=".EpgView"/>
+        <activity android:name=".MainMenu"/>
+        <activity android:name=".VideoViewDemo"/>
+        <activity
+            android:name=".VideoViewPlayer"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|smallestScreenSize"
+            android:screenOrientation="sensorLandscape"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+            </intent-filter>
+        </activity>
+        <activity android:name=".FilmAct"/>
+        <activity android:name=".VodMenuPage"/>
+        <activity android:name=".IcAbout"/>
+        <activity
+            android:name="io.vov.vitamio.activity.InitActivity"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|smallestScreenSize"
+            android:launchMode="singleTop"
+            android:theme="@android:style/Theme.NoTitleBar"
+            android:windowSoftInputMode="stateAlwaysHidden"/>
+    </application>
+
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+
+</manifest>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    android:id="@id/child_lay"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+
+  <ImageView
+      android:id="@id/imageView_play"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"/>
+
+  <TextView
+      android:id="@id/child_time"
+      android:layout_width="63.0dip"
+      android:layout_height="wrap_content"
+      android:layout_weight="0.03"
+      android:textAppearance="?android:textAppearanceMedium"
+      android:textStyle="italic"/>
+
+  <TextView
+      android:id="@id/child_title"
+      android:layout_width="400.0dip"
+      android:layout_height="wrap_content"
+      android:layout_weight="0.41"
+      android:focusable="false"
+      android:textAppearance="?android:textAppearanceMedium"
+      android:textStyle="italic"/>
+</LinearLayout>
