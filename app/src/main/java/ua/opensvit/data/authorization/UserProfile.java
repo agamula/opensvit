@@ -1,9 +1,9 @@
-package ua.levtv.library;
+package ua.opensvit.data.authorization;
 
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import ua.utils.ParcelUtils;
+import ua.opensvit.utils.ParcelUtils;
 
 public class UserProfile implements Parcelable {
     public static final String JSON_NAME = "profile";

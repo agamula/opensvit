@@ -1,4 +1,4 @@
-package ua.levtv.library;
+package ua.opensvit.api;
 
 import android.os.StrictMode;
 import android.util.Log;

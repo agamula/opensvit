@@ -1,4 +1,4 @@
-package ua.levtv.library;
+package ua.opensvit.api;
 
 import java.util.Vector;
 

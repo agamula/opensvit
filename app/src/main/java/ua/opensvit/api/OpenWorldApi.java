@@ -1,4 +1,4 @@
-package ua.levtv.library;
+package ua.opensvit.api;
 
 import java.io.IOException;
 
@@ -7,7 +7,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import ua.opensvit.data.ApiConstants;
-import ua.utils.Utils;
+import ua.opensvit.data.authorization.AuthorizationInfo;
+import ua.opensvit.data.authorization.UserInfo;
+import ua.opensvit.data.authorization.UserProfile;
+import ua.opensvit.utils.ApiUtils;
 
 public class OpenWorldApi {
     private String applicationPathVod = new String("http://195.22.112.90:34000/levtvsv_pc/");
@@ -18,7 +21,7 @@ public class OpenWorldApi {
     private final String mApiPath;
 
     public OpenWorldApi() {
-        mApiPath = Utils.getApiUrl();
+        mApiPath = ApiUtils.getBaseUrl();
     }
 
     public String GetArchiveUrl(int param1, int param2) throws IOException, JSONException {
@@ -170,7 +173,7 @@ public class OpenWorldApi {
     public AuthorizationInfo getAuth(String paramString1, String paramString2)
             throws IOException {
         AuthorizationInfo res = new AuthorizationInfo();
-        String url = Utils.getApiUrl(ApiConstants.LOGIN_URL, paramString1, paramString2);
+        String url = ApiUtils.getApiUrl(ApiConstants.LOGIN_URL, paramString1, paramString2);
         this.httpOut = this.gets.get(url);
         boolean isAuthenticated = false;
         try {

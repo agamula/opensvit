@@ -14,8 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
-import ua.levtv.library.OpenWorldApi;
-import ua.levtv.library.LevtvStruct;
+import ua.opensvit.api.OpenWorldApi;
+import ua.opensvit.api.LevtvStruct;
 import ua.opensvit.data.Film;
 
 public class VodMenuPage extends ExpandableListActivity {

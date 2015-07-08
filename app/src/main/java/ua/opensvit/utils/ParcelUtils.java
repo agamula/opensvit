@@ -1,4 +1,4 @@
-package ua.utils;
+package ua.opensvit.utils;
 
 import android.os.Parcel;
 import android.os.Parcelable;

@@ -11,8 +11,8 @@ import java.io.IOException;
 
 import org.json.JSONException;
 
-import ua.levtv.library.OpenWorldApi;
-import ua.levtv.library.LevtvStruct;
+import ua.opensvit.api.OpenWorldApi;
+import ua.opensvit.api.LevtvStruct;
 
 public class VideoViewPlayer extends Activity {
     private OpenWorldApi api = new OpenWorldApi();

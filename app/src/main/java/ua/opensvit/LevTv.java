@@ -14,9 +14,8 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import ua.levtv.library.AuthorizationInfo;
-import ua.levtv.library.OpenWorldApi;
-import ua.levtv.library.LevtvStruct;
+import ua.opensvit.data.authorization.AuthorizationInfo;
+import ua.opensvit.api.OpenWorldApi;
 import ua.opensvit.data.PassLoginStorage;
 
 @SuppressLint({"NewApi"})

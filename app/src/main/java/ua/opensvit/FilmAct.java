@@ -20,8 +20,8 @@ import java.net.URL;
 
 import org.json.JSONException;
 
-import ua.levtv.library.OpenWorldApi;
-import ua.levtv.library.LevtvStruct;
+import ua.opensvit.api.OpenWorldApi;
+import ua.opensvit.api.LevtvStruct;
 
 @SuppressLint({"NewApi"})
 public class FilmAct extends Activity {

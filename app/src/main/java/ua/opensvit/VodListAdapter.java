@@ -18,7 +18,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 
-import ua.levtv.library.OpenWorldApi;
+import ua.opensvit.api.OpenWorldApi;
 import ua.opensvit.data.Film;
 
 @SuppressLint({"NewApi"})

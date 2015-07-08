@@ -15,7 +15,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import ua.levtv.library.OpenWorldApi;
+import ua.opensvit.api.OpenWorldApi;
 import ua.opensvit.data.EpgItem;
 
 @SuppressLint({"SimpleDateFormat"})

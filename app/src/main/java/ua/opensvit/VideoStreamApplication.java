@@ -1,7 +1,7 @@
 package ua.opensvit;
 
 import android.app.Application;
-import ua.levtv.library.OpenWorldApi;
+import ua.opensvit.api.OpenWorldApi;
 
 public class VideoStreamApplication extends Application {
 
