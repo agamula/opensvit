@@ -14,13 +14,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
-import ua.levtv.library.LevtvDbApi;
+import ua.levtv.library.OpenWorldApi;
 import ua.levtv.library.LevtvStruct;
+import ua.opensvit.data.Film;
 
 public class VodMenuPage extends ExpandableListActivity {
     LevtvStruct VodMenu;
     int VodMeunuItemsCount;
-    LevtvDbApi api = new LevtvDbApi();
+    OpenWorldApi api = new OpenWorldApi();
     String[] channelsArh;
     int context;
     String[] epgArh;
@@ -81,7 +82,6 @@ public class VodMenuPage extends ExpandableListActivity {
         String login = getIntent().getExtras().getString("user_login");
         String password = getIntent().getExtras().getString("user_password");
         VideoStreamApplication.getInstance().setDbApi(this.api);
-        VideoStreamApplication.getInstance().setVodPage(this);
         try {
             this.api.getAuth(login, password);
             this.VodMenu = new LevtvStruct();

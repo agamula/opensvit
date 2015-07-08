@@ -22,21 +22,22 @@ import java.util.ArrayList;
 
 import org.json.JSONException;
 
-import ua.levtv.library.LevtvDbApi;
+import ua.levtv.library.OpenWorldApi;
+import ua.opensvit.data.Channel;
 
 @SuppressLint({"NewApi"})
 public class ChannelListAdapter extends BaseExpandableListAdapter {
-    private LevtvDbApi api;
+    private OpenWorldApi api;
     private ArrayList<ArrayList<Channel>> channels;
     private Context context;
     private ArrayList<String> groups;
     private LayoutInflater inflater;
 
-    public ChannelListAdapter(Context paramContext, ArrayList<String> paramArrayList, ArrayList<ArrayList<Channel>> paramArrayList1, LevtvDbApi paramLevtvDbApi) {
+    public ChannelListAdapter(Context paramContext, ArrayList<String> paramArrayList, ArrayList<ArrayList<Channel>> paramArrayList1, OpenWorldApi paramOpenWorldApi) {
         this.context = paramContext;
         this.groups = paramArrayList;
         this.channels = paramArrayList1;
-        this.api = paramLevtvDbApi;
+        this.api = paramOpenWorldApi;
         this.inflater = LayoutInflater.from(paramContext);
     }
 
@@ -72,7 +73,7 @@ public class ChannelListAdapter extends BaseExpandableListAdapter {
             screenWidth = display.getWidth();
             screenHeight = display.getHeight();
         }
-        imageUrl = this.api.getApplicationPath() + "/" + localChannel.logo;
+        imageUrl = this.api.getApiPath() + "/" + localChannel.getLogo();
 
 
         for (; ; ) {

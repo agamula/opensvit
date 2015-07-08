@@ -15,6 +15,8 @@ import java.util.ArrayList;
 
 import org.json.JSONException;
 
+import ua.opensvit.data.EpgItem;
+
 public class EpgListApapter extends BaseExpandableListAdapter {
     private Context context;
     private ArrayList<ArrayList<EpgItem>> epgItems;
@@ -65,22 +67,22 @@ public class EpgListApapter extends BaseExpandableListAdapter {
                 if (localEpgItem.getIsArchive()) {
                     System.out.println("isArchive");
                     try {
-                        String archiveUrl = VideoStreamApplication.getInstance().getDbApi().GetArchiveUrl
-                                (Integer.valueOf(VideoStreamApplication.getInstance().getChId()), Integer.valueOf(localEpgItem.getTimestamp()));
+                        String archiveUrl = VideoStreamApplication.getInstance().getApi().GetArchiveUrl
+                                (Integer.valueOf(VideoStreamApplication.getInstance().getChannelId()), Integer.valueOf(localEpgItem.getTimestamp()));
                         if (archiveUrl.contains("error")) {
-                            Toast.makeText(VideoStreamApplication.getInstance().getUserPage(), "No " +
+                            Toast.makeText(context, "No " +
                                     "entry in the archive", Toast.LENGTH_SHORT).show();
                             return;
                         }
                         Intent localIntent = new Intent();
-                        localIntent.setClass(VideoStreamApplication.getInstance().getUserPage(), VideoViewPlayer.class);
+                        localIntent.setClass(context, VideoViewPlayer.class);
                         localIntent.putExtra("ch_path", archiveUrl);
                         localIntent.putExtra("ch_name", localEpgItem.getTitle());
-                        localIntent.putExtra("ch_id", VideoStreamApplication.getInstance().getChId());
+                        localIntent.putExtra("ch_id", VideoStreamApplication.getInstance().getChannelId());
                         localIntent.putExtra("type", 2);
-                        localIntent.putExtra("service_id", VideoStreamApplication.getInstance().getUserPage().iptvServiceId);
+                        localIntent.putExtra("service_id", VideoStreamApplication.getInstance().getIpTvServiceId());
                         localIntent.putExtra("timestamp", localEpgItem.getTimestamp());
-                        VideoStreamApplication.getInstance().getUserPage().startActivity(localIntent);
+                        context.startActivity(localIntent);
                     } catch (IOException e) {
                         e.printStackTrace();
                     } catch (JSONException e) {

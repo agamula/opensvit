@@ -14,7 +14,9 @@ public class IcAbout
         super.onCreate(bundle);
         setContentView(R.layout.ic_about);
         TextView paramBundle = (TextView) findViewById(R.id.textAbout);
-        paramBundle.setText("Developed by Inform Consult (UA).\n\nUrl: http://www.iconsult.com.ua \n\nUrl: http://www.levtv.net \n\nE-mail: Info@iconsult.com.ua\n\nVer.: 0.17. LevTvSvit(prototype)\n\nInform Consult 2013(c)");
+        paramBundle.setText("Developed by Inform Consult (UA).\n\nUrl: http://www.iconsult.com" +
+                ".ua \n\nUrl: http://www.levtv.net \n\nE-mail: Info@iconsult.com.ua\n\nVer.: 0" +
+                ".17. LevTvSvit(prototype)\n\nInform Consult 2013(c)");
         Linkify.addLinks(paramBundle, 15);
     }
 }

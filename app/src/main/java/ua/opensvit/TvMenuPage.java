@@ -2,6 +2,7 @@ package ua.opensvit;
 
 import android.app.AlertDialog;
 import android.app.ExpandableListActivity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -17,11 +18,12 @@ import java.util.Vector;
 
 import org.json.JSONException;
 
-import ua.levtv.library.LevtvDbApi;
+import ua.levtv.library.OpenWorldApi;
 import ua.levtv.library.LevtvStruct;
+import ua.opensvit.data.Film;
 
 public class TvMenuPage extends ExpandableListActivity {
-    LevtvDbApi api = new LevtvDbApi();
+    OpenWorldApi api = new OpenWorldApi();
     String[] channelsArh;
     int context;
     String[] epgArh;
@@ -50,9 +52,9 @@ public class TvMenuPage extends ExpandableListActivity {
             public void onClick(DialogInterface paramAnonymousDialogInterface, int paramAnonymousInt) {
                 try {
                     LevtvStruct struct = TvMenuPage.this.iptvChannels.get(paramInt1);
-                    TvMenuPage.this.playChannel(struct.Iptv_channels.IptvChanelsItems.id
+                    playChannel(struct.Iptv_channels.IptvChanelsItems.id
                             .get(paramInt2), struct.Iptv_channels
-                            .IptvChanelsItems.name.get(paramInt2));
+                            .IptvChanelsItems.name.get(paramInt2), TvMenuPage.this);
                     return;
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -101,7 +103,7 @@ public class TvMenuPage extends ExpandableListActivity {
 
 
     public void getEpgChannel(int paramInt, String paramString, Boolean paramBoolean) {
-        VideoStreamApplication.getInstance().setChId(paramInt);
+        VideoStreamApplication.getInstance().setChannelId(paramInt);
         LevtvStruct struct = null;
         try {
             struct = this.api.GetEpg(Integer.valueOf(this.iptvServiceId), Integer
@@ -158,13 +160,13 @@ public class TvMenuPage extends ExpandableListActivity {
         String login = getIntent().getExtras().getString("user_login");
         String password = getIntent().getExtras().getString("user_password");
         VideoStreamApplication.getInstance().setDbApi(this.api);
-        VideoStreamApplication.getInstance().setUserPage(this);
         try {
             this.iptvMenu = new LevtvStruct();
             this.api.getAuth(login, password);
             this.api.KeepAlive(true);
             this.iptvMenu = this.api.getIptvMenu();
             this.iptvServiceId = this.iptvMenu.Iptv_menu_str.service;
+            VideoStreamApplication.getInstance().setIpTvServiceId(iptvServiceId);
             this.iptvMeunuItemsCount = this.iptvMenu.Iptv_menu_str.IPTVMenuItems.id.size();
             this.lvArrNew = new String[this.iptvMenu.Iptv_menu_str.IPTVMenuItems.id.size()];
             if (this.iptvMenu.Iptv_menu_str.success) {
@@ -180,18 +182,22 @@ public class TvMenuPage extends ExpandableListActivity {
         }
     }
 
-    public void playChannel(int paramInt, String paramString)
+    public static void playChannel(int paramInt, String paramString, Context context)
             throws IOException, JSONException {
-        VideoStreamApplication.getInstance().setChId(paramInt);
+
+        VideoStreamApplication app = VideoStreamApplication.getInstance();
+
+        app.setChannelId(paramInt);
         Intent localIntent = new Intent();
-        localIntent.setClass(this, VideoViewPlayer.class);
+        localIntent.setClass(context, VideoViewPlayer.class);
         try {
-            localIntent.putExtra("ch_path", this.api.GetChannelIp(Integer.valueOf(paramInt)));
+            localIntent.putExtra("ch_path", app.getApi().GetChannelIp(Integer.valueOf
+                    (paramInt)));
             localIntent.putExtra("ch_name", paramString);
             localIntent.putExtra("ch_id", paramInt);
             localIntent.putExtra("type", 0);
-            localIntent.putExtra("service_id", Integer.valueOf(this.iptvServiceId));
-            startActivity(localIntent);
+            localIntent.putExtra("service_id", Integer.valueOf(app.getIpTvServiceId()));
+            context.startActivity(localIntent);
             return;
         } catch (IOException e) {
             e.printStackTrace();

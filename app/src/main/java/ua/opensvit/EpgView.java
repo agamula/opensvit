@@ -15,11 +15,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import ua.levtv.library.LevtvDbApi;
+import ua.levtv.library.OpenWorldApi;
+import ua.opensvit.data.EpgItem;
 
 @SuppressLint({"SimpleDateFormat"})
 public class EpgView extends ExpandableListActivity {
-    LevtvDbApi api = new LevtvDbApi();
+    OpenWorldApi api = new OpenWorldApi();
     Boolean archive;
     int chId;
     String chName;
@@ -121,7 +122,7 @@ public class EpgView extends ExpandableListActivity {
             return false;
         }
         try {
-            VideoStreamApplication.getInstance().getUserPage().playChannel(this.chId, this.chName);
+            TvMenuPage.playChannel(this.chId, this.chName, this);
             return true;
         } catch (IOException e) {
             e.printStackTrace();
@@ -133,7 +134,7 @@ public class EpgView extends ExpandableListActivity {
 
     public void onCreate(Bundle paramBundle) {
         super.onCreate(paramBundle);
-        this.api = VideoStreamApplication.getInstance().getDbApi();
+        this.api = VideoStreamApplication.getInstance().getApi();
         this.chId = getIntent().getExtras().getInt("ch_id");
         this.chName = getIntent().getExtras().getString("ch_name");
         this.epgGo = getIntent().getExtras().getString("epg_go");

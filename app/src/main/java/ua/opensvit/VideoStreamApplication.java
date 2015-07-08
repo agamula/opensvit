@@ -1,15 +1,15 @@
 package ua.opensvit;
 
 import android.app.Application;
-import ua.levtv.library.LevtvDbApi;
+import ua.levtv.library.OpenWorldApi;
 
 public class VideoStreamApplication extends Application {
 
-    private static VideoStreamApplication instance;
+    private static VideoStreamApplication sInstance;
     private static boolean IS_TEST = false;
 
     public static VideoStreamApplication getInstance() {
-        return instance;
+        return sInstance;
     }
 
     public static boolean isTest() {
@@ -18,51 +18,35 @@ public class VideoStreamApplication extends Application {
 
     public final void onCreate() {
         super.onCreate();
-        instance = this;
+        sInstance = this;
     }
 
-    private LevtvDbApi apiDb;
-    private int channelId = 0;
-    private TvMenuPage page;
-    private VodMenuPage vodPage;
+    private OpenWorldApi mApi;
+    private int mChannelId = 0;
+    private int mIpTvServiceId;
 
-    public int getChId()
+    public int getChannelId()
     {
-        return this.channelId;
+        return this.mChannelId;
     }
 
-    public LevtvDbApi getDbApi()
-    {
-        return this.apiDb;
+    public OpenWorldApi getApi() {
+        return this.mApi;
     }
 
-    public TvMenuPage getUserPage()
-    {
-        return this.page;
+    public void setChannelId(int paramInt) {
+        this.mChannelId = paramInt;
     }
 
-    public VodMenuPage getVodPage()
-    {
-        return this.vodPage;
+    public void setDbApi(OpenWorldApi paramOpenWorldApi) {
+        this.mApi = paramOpenWorldApi;
     }
 
-    public void setChId(int paramInt)
-    {
-        this.channelId = paramInt;
+    public void setIpTvServiceId(int mIpTvServiceId) {
+        this.mIpTvServiceId = mIpTvServiceId;
     }
 
-    public void setDbApi(LevtvDbApi paramLevtvDbApi)
-    {
-        this.apiDb = paramLevtvDbApi;
-    }
-
-    public void setUserPage(TvMenuPage paramTvMenuPage)
-    {
-        this.page = paramTvMenuPage;
-    }
-
-    public void setVodPage(VodMenuPage paramVodMenuPage)
-    {
-        this.vodPage = paramVodMenuPage;
+    public int getIpTvServiceId() {
+        return mIpTvServiceId;
     }
 }

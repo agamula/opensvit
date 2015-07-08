@@ -14,8 +14,9 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import ua.levtv.library.LevtvDbApi;
+import ua.levtv.library.OpenWorldApi;
 import ua.levtv.library.LevtvStruct;
+import ua.opensvit.data.PassLoginStorage;
 
 @SuppressLint({"NewApi"})
 public class LevTv extends Activity implements View.OnClickListener {
@@ -50,7 +51,7 @@ public class LevTv extends Activity implements View.OnClickListener {
                 login = "310807";
                 password = "123321";
             }
-            LevtvDbApi api = new LevtvDbApi();
+            OpenWorldApi api = new OpenWorldApi();
             try {
                 LevtvStruct authStruct = api.getAuth(login, password);
                 if (authStruct.Auth_str.error != null) {

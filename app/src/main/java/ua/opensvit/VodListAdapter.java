@@ -18,21 +18,22 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 
-import ua.levtv.library.LevtvDbApi;
+import ua.levtv.library.OpenWorldApi;
+import ua.opensvit.data.Film;
 
 @SuppressLint({"NewApi"})
 public class VodListAdapter extends BaseExpandableListAdapter {
-    private LevtvDbApi api;
+    private OpenWorldApi api;
     private ArrayList<ArrayList<Film>> channels;
     private Context context;
     private ArrayList<String> groups;
     private LayoutInflater inflater;
 
-    public VodListAdapter(Context paramContext, ArrayList<String> paramArrayList, ArrayList<ArrayList<Film>> paramArrayList1, LevtvDbApi paramLevtvDbApi) {
+    public VodListAdapter(Context paramContext, ArrayList<String> paramArrayList, ArrayList<ArrayList<Film>> paramArrayList1, OpenWorldApi paramOpenWorldApi) {
         this.context = paramContext;
         this.groups = paramArrayList;
         this.channels = paramArrayList1;
-        this.api = paramLevtvDbApi;
+        this.api = paramOpenWorldApi;
         this.inflater = LayoutInflater.from(paramContext);
     }
 
@@ -65,19 +66,20 @@ public class VodListAdapter extends BaseExpandableListAdapter {
         }
         TextView year = (TextView) paramView.findViewById(R.id.year);
         if (year != null) {
-            year.setText(String.valueOf(((Film) localObject1).year));
+            year.setText(String.valueOf(((Film) localObject1).getYear()));
         }
 
         try {
             ImageView logoView = (ImageView) paramView.findViewById(R.id.imageView1);
-            String logoUrl = this.api.applicationPathVod + "/" + ((Film) localObject1).logo;
+            String logoUrl = this.api.getApplicationPathVod() + "/" + ((Film) localObject1).getLogo();
             logoView.setImageDrawable(grabImageFromUrl(logoUrl));
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         Point screenSize = new Point();
-        WindowManager localWindowManager = VideoStreamApplication.getInstance().getVodPage().getWindowManager();
+        WindowManager localWindowManager = (WindowManager) VideoStreamApplication.getInstance()
+                .getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
         Display display = localWindowManager.getDefaultDisplay();
         if (Build.VERSION.SDK_INT >= 11) {
             display.getSize(screenSize);

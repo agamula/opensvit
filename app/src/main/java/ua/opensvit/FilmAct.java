@@ -20,12 +20,12 @@ import java.net.URL;
 
 import org.json.JSONException;
 
-import ua.levtv.library.LevtvDbApi;
+import ua.levtv.library.OpenWorldApi;
 import ua.levtv.library.LevtvStruct;
 
 @SuppressLint({"NewApi"})
 public class FilmAct extends Activity {
-    LevtvDbApi api = new LevtvDbApi();
+    OpenWorldApi api = new OpenWorldApi();
     int chId;
     String filmName = new String();
     int type = 1;
@@ -41,7 +41,7 @@ public class FilmAct extends Activity {
     public void onCreate(Bundle bundle) {
         super.onCreate(bundle);
         setContentView(R.layout.vod_activitivod);
-        this.api = VideoStreamApplication.getInstance().getDbApi();
+        this.api = VideoStreamApplication.getInstance().getApi();
         this.chId = getIntent().getExtras().getInt("ch_id");
         LevtvStruct struct = null;
         try {
@@ -49,7 +49,7 @@ public class FilmAct extends Activity {
             if(struct == null) {
                 return;
             }
-            String imageUrl = this.api.applicationPathVod + "/" + struct
+            String imageUrl = this.api.getApplicationPathVod() + "/" + struct
                     .Film_struct.logo;
             WindowManager localWindowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
             final int screenWidth, screenHeight;

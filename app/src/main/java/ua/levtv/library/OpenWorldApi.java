@@ -1,26 +1,26 @@
-package ua.ic.levtv.library;
+package ua.levtv.library;
 
 import java.io.IOException;
-import java.io.PrintStream;
-import java.util.Vector;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import ua.utils.Utils;
 
-public class LevtvDbApi {
-    public String applicationPath = new String("http://iptv.opensvit.ua/pc/");
-    public String applicationPathVod = new String("http://195.22.112.90:34000/levtvsv_pc/");
+public class OpenWorldApi {
+    private String applicationPathVod = new String("http://195.22.112.90:34000/levtvsv_pc/");
     SyncHttpClient gets = new SyncHttpClient();
     String httpOut = new String();
     public Object kostyl;
     String pub_error = new String();
+    private final String mApiPath;
 
-    public LevtvDbApi() {
+    public OpenWorldApi() {
+        mApiPath = Utils.getApiUrl();
     }
 
     public String GetArchiveUrl(int param1, int param2) throws IOException, JSONException {
-        String url = this.applicationPath + "/ws/GetArchiveUrl?id=" + param1 + "&timestamp=" +
+        String url = this.mApiPath + "/ws/GetArchiveUrl?id=" + param1 + "&timestamp=" +
                 param2;
         this.httpOut = this.gets.get(url);
         JSONObject res = new JSONObject(this.httpOut);
@@ -32,7 +32,7 @@ public class LevtvDbApi {
 
     public String GetChannelIp(int param) throws IOException, JSONException {
 
-        String url = this.applicationPath + "/ws/GetChannelIp?id=" + param;
+        String url = this.mApiPath + "/ws/GetChannelIp?id=" + param;
         this.httpOut = this.gets.get(url);
         JSONObject localJSONObject = new JSONObject(this.httpOut);
         String res = null;
@@ -45,7 +45,7 @@ public class LevtvDbApi {
     public LevtvStruct GetEpg(int param1, int param2, int param3, int param4)
             throws IOException, JSONException {
         LevtvStruct res = new LevtvStruct();
-        String url = this.applicationPath + "/ws/GetEpg?serviceId=" + param1 +
+        String url = this.mApiPath + "/ws/GetEpg?serviceId=" + param1 +
                 "&channelId=" + param2 + "&perPage=1&page=" + param4;
         this.httpOut = this.gets.get(url);
 
@@ -55,7 +55,7 @@ public class LevtvDbApi {
             res.Iptv_epg.dayOfWeek = jsonObj.getInt("dayOfWeek");
             if (!jsonObj.has("description")) {
                 res.Iptv_epg.total = jsonObj.getInt("total");
-                url = this.applicationPath + "/ws/GetEpg?serviceId=" + param1 + "&channelId=" +
+                url = this.mApiPath + "/ws/GetEpg?serviceId=" + param1 + "&channelId=" +
                         param2 + "&perPage=" + res.Iptv_epg.total + "&page=" + param4;
                 this.httpOut = this.gets.get(url);
 
@@ -79,14 +79,14 @@ public class LevtvDbApi {
                     e.printStackTrace();
                 }
 
-                if(client != null) {
+                if (client != null) {
                     try {
                         Thread.sleep(0);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                     try {
-                        client.get(applicationPath);
+                        client.get(mApiPath);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -111,7 +111,7 @@ public class LevtvDbApi {
                 //   34: dup
                 //   35: aload_0
                 //   36: getfield 15	ua/ic/levtv/library/LevtvDbApi$1:this$0	Lua/ic/levtv/library/LevtvDbApi;
-                //   39: getfield 50	ua/ic/levtv/library/LevtvDbApi:applicationPath	Ljava/lang/String;
+                //   39: getfield 50	ua/ic/levtv/library/LevtvDbApi:mApiPath	Ljava/lang/String;
                 //   42: invokestatic 54	java/lang/String:valueOf	(Ljava/lang/Object;)Ljava/lang/String;
                 //   45: invokespecial 57	java/lang/StringBuilder:<init>	(Ljava/lang/String;)V
                 //   48: ldc 59
@@ -160,7 +160,7 @@ public class LevtvDbApi {
     }
 
     public boolean ToggleIptvFavorites(int param) throws IOException, JSONException {
-        String url = this.applicationPath + "/ws/ToggleIptvFavorites?iptvId=" + param;
+        String url = this.mApiPath + "/ws/ToggleIptvFavorites?iptvId=" + param;
         this.httpOut = this.gets.get(url);
         return new JSONObject(this.httpOut).getBoolean("success");
     }
@@ -168,48 +168,42 @@ public class LevtvDbApi {
     public LevtvStruct getAuth(String paramString1, String paramString2)
             throws IOException {
         LevtvStruct res = new LevtvStruct();
-        String url = this.applicationPath + "/ws/Auth?login=" + paramString1 + "&password=" +
+        String url = this.mApiPath + "/ws/Auth?login=" + paramString1 + "&password=" +
                 paramString2;
         this.httpOut = this.gets.get(url);
-        for (; ; ) {
-            try {
-                JSONObject jsonObj = new JSONObject(this.httpOut);
-                if (jsonObj.has("error")) {
-                    res.Auth_str.error = jsonObj.get("error").toString();
+        res.Auth_str.isActive = false;
+        res.Auth_str.isAuthenticated = false;
+        try {
+            JSONObject jsonObj = new JSONObject(this.httpOut);
+            if (jsonObj.has("error")) {
+                res.Auth_str.error = jsonObj.get("error").toString();
+            } else if (jsonObj.getBoolean("isActive")) {
+                res.Auth_str.isActive = true;
+                if (jsonObj.getBoolean("isAuthenticated")) {
+                    res.Auth_str.isAuthenticated = true;
                 }
-                if (jsonObj.getBoolean("isActive")) {
-                    res.Auth_str.isActive = true;
-                    if (jsonObj.getBoolean("isAuthenticated")) {
-                        res.Auth_str.isAuthenticated = true;
-                        if ((!res.Auth_str.isAuthenticated) || (!res.Auth_str.isActive)) {
-                            break;
-                        }
-                        JSONObject jsonObj1 = new JSONObject(jsonObj.get("user").toString());
-                        res.Auth_str.user_s.balance = jsonObj1.getInt("balance");
-                        res.Auth_str.user_s.name = jsonObj1.get("name").toString();
-                        jsonObj = new JSONObject(jsonObj.get("profile").toString());
-                        res.Auth_str.user_prof.transparency = jsonObj.getInt("transparency");
-                        res.Auth_str.user_prof.id = jsonObj.getInt("id");
-                        res.Auth_str.user_prof.reminder = jsonObj.getInt("reminder");
-                        res.Auth_str.user_prof.volume = jsonObj.getInt("volume");
-                        res.Auth_str.user_prof.ratio = jsonObj.get("ratio").toString();
-                        res.Auth_str.user_prof.resolution = jsonObj.get("resolution").toString();
-                        res.Auth_str.user_prof.language = jsonObj.get("language").toString();
-                        res.Auth_str.user_prof.startPage = jsonObj.get("startPage").toString();
-                        res.Auth_str.user_prof.type = jsonObj.get("type").toString();
-                        res.Auth_str.user_prof.skin = jsonObj.get("skin").toString();
-                        res.Auth_str.user_prof.showWelcome = jsonObj.getBoolean("showWelcome");
-                        return res;
-                    }
-                } else {
-                    res.Auth_str.isActive = false;
-                    continue;
-                }
-                res.Auth_str.isAuthenticated = false;
-            } catch (JSONException e) {
-                e.printStackTrace();
+            }
+            if ((!res.Auth_str.isAuthenticated) || (!res.Auth_str.isActive)) {
                 return res;
             }
+            JSONObject jsonObj1 = new JSONObject(jsonObj.get("user").toString());
+            res.Auth_str.user_s.balance = jsonObj1.getInt("balance");
+            res.Auth_str.user_s.name = jsonObj1.get("name").toString();
+            jsonObj = new JSONObject(jsonObj.get("profile").toString());
+            res.Auth_str.user_prof.transparency = jsonObj.getInt("transparency");
+            res.Auth_str.user_prof.id = jsonObj.getInt("id");
+            res.Auth_str.user_prof.reminder = jsonObj.getInt("reminder");
+            res.Auth_str.user_prof.volume = jsonObj.getInt("volume");
+            res.Auth_str.user_prof.ratio = jsonObj.get("ratio").toString();
+            res.Auth_str.user_prof.resolution = jsonObj.get("resolution").toString();
+            res.Auth_str.user_prof.language = jsonObj.get("language").toString();
+            res.Auth_str.user_prof.startPage = jsonObj.get("startPage").toString();
+            res.Auth_str.user_prof.type = jsonObj.get("type").toString();
+            res.Auth_str.user_prof.skin = jsonObj.get("skin").toString();
+            res.Auth_str.user_prof.showWelcome = jsonObj.getBoolean("showWelcome");
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return res;
         }
         return res;
     }
@@ -286,7 +280,7 @@ public class LevtvDbApi {
 
     public LevtvStruct getIptvChannels(String param) throws IOException {
         LevtvStruct res = new LevtvStruct();
-        String url = this.applicationPath +
+        String url = this.mApiPath +
                 "/ws/GetChannels?perPage=0&page=0&genreId=" + param;
         this.httpOut = this.gets.get(url);
         try {
@@ -332,7 +326,7 @@ public class LevtvDbApi {
 
     public LevtvStruct getIptvMenu() throws IOException {
         LevtvStruct res = new LevtvStruct();
-        String url = this.applicationPath + "/ws/AuthService?type=iptv";
+        String url = this.mApiPath + "/ws/AuthService?type=iptv";
         this.httpOut = this.gets.get(url);
         try {
             JSONObject jsonObj = new JSONObject(this.httpOut);
@@ -431,7 +425,7 @@ public class LevtvDbApi {
 
     public LevtvStruct getOsd(int param1, int param2) throws IOException, JSONException {
         LevtvStruct res = new LevtvStruct();
-        String url = this.applicationPath + "/ws/GetChannelOsd?channelId=" + param1 +
+        String url = this.mApiPath + "/ws/GetChannelOsd?channelId=" + param1 +
                 "&serviceId=" + param2;
         this.httpOut = this.gets.get(url);
         JSONObject jsonObj = new JSONObject(this.httpOut);
@@ -458,7 +452,7 @@ public class LevtvDbApi {
     public LevtvStruct getOsdArch(String param1, String param2, Integer paramInteger)
             throws IOException, JSONException {
         LevtvStruct res = new LevtvStruct();
-        String url = this.applicationPath + "/ws/GetChannelOsd?channelId=" +
+        String url = this.mApiPath + "/ws/GetChannelOsd?channelId=" +
                 param1 + "&serviceId=" + param2 + "&timestamp=" + paramInteger;
         this.httpOut = this.gets.get(url);
         JSONObject jsonObj = new JSONObject(this.httpOut);
@@ -518,7 +512,11 @@ public class LevtvDbApi {
         return res;
     }
 
-    public void setAppPath(String paramString) {
-        this.applicationPath = paramString;
+    public String getApiPath() {
+        return mApiPath;
+    }
+
+    public String getApplicationPathVod() {
+        return applicationPathVod;
     }
 }
