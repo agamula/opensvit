@@ -33,11 +33,12 @@ public class ChannelListAdapter extends BaseExpandableListAdapter {
     private ArrayList<String> groups;
     private LayoutInflater inflater;
 
-    public ChannelListAdapter(Context paramContext, ArrayList<String> paramArrayList, ArrayList<ArrayList<Channel>> paramArrayList1, OpenWorldApi paramOpenWorldApi) {
+    public ChannelListAdapter(Context paramContext, ArrayList<String> groups,
+                              ArrayList<ArrayList<Channel>> channels, OpenWorldApi api) {
         this.context = paramContext;
-        this.groups = paramArrayList;
-        this.channels = paramArrayList1;
-        this.api = paramOpenWorldApi;
+        this.groups = groups;
+        this.channels = channels;
+        this.api = api;
         this.inflater = LayoutInflater.from(paramContext);
     }
 

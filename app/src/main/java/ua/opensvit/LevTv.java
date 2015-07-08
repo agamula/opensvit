@@ -14,6 +14,8 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import org.json.JSONObject;
+
 import ua.opensvit.data.authorization.AuthorizationInfo;
 import ua.opensvit.api.OpenWorldApi;
 import ua.opensvit.data.PassLoginStorage;
@@ -54,13 +56,15 @@ public class LevTv extends Activity implements View.OnClickListener {
                 password = "123321";
             }
             OpenWorldApi api = new OpenWorldApi();
+            VideoStreamApplication.getInstance().setDbApi(api);
             try {
-                AuthorizationInfo authorizationInfo = api.getAuth(login, password);
+                AuthorizationInfo authorizationInfo = api.getAuthorizationInfo(login, password);
                 if (authorizationInfo.getError() != null) {
                     Toast.makeText(this, authorizationInfo.getError(), Toast.LENGTH_SHORT).show();
                 }
                 if (authorizationInfo.isActive() && authorizationInfo
                         .isAuthenticated()) {
+
                     Intent localIntent = new Intent(this, MainMenu.class);
                     localIntent.putExtra(AUTHORIZATION_INFO_TAG, authorizationInfo);
                     startActivity(localIntent);

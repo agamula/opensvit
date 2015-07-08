@@ -17,22 +17,32 @@ import java.util.Vector;
 import ua.opensvit.api.OpenWorldApi;
 import ua.opensvit.api.LevtvStruct;
 import ua.opensvit.data.Film;
+import ua.opensvit.data.iptv.base.TvMenuInfo;
+import ua.opensvit.data.iptv.base.TvMenuItem;
+import ua.opensvit.data.iptv.films.FilmItem;
+import ua.opensvit.data.iptv.films.FilmsInfo;
 
 public class VodMenuPage extends ExpandableListActivity {
-    LevtvStruct VodMenu;
-    int VodMeunuItemsCount;
-    OpenWorldApi api = new OpenWorldApi();
-    String[] channelsArh;
-    int context;
-    String[] epgArh;
+    private TvMenuInfo VodMenu;
     private VodListAdapter expListAdapter;
-    LevtvStruct iptvEpg;
-    Vector<LevtvStruct> iptvFilms = new Vector(0);
-    int iptvServiceId;
-    ListView lv1;
-    String[] lvArrNew;
+    private OpenWorldApi api;
 
     public VodMenuPage() {
+    }
+
+    public void onCreate(Bundle bundle) {
+        super.onCreate(bundle);
+        api = VideoStreamApplication.getInstance().getApi();
+        try {
+            this.api.KeepAlive(true);
+            this.VodMenu = this.api.getVodMenu();
+            if (this.VodMenu.isSuccess()) {
+                ganre_viev();
+            }
+            api.KeepAlive(false);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void getNoEpgToast() {
@@ -41,65 +51,37 @@ public class VodMenuPage extends ExpandableListActivity {
     }
 
     public void ganre_viev() throws IOException {
-        ArrayList localArrayList1 = new ArrayList();
-        for (int i = 0; i < VodMeunuItemsCount; i++) {
-            localArrayList1.add(lvArrNew[i]);
+        ArrayList<String> tvGroupNames = new ArrayList<>();
+        List<TvMenuItem> tvItems = VodMenu.getUnmodifiableTVItems();
+        for (int i = 0; i < tvItems.size(); i++) {
+            tvGroupNames.add(tvItems.get(i).getName());
         }
 
-        ArrayList localArrayList2 = new ArrayList(localArrayList1.size());
-        for (int i = 0; i < localArrayList1.size(); i++) {
-            LevtvStruct struct = this.api.getFilms(this.VodMenu.Iptv_menu_str.IPTVMenuItems.id.get
-                    (i));
+        ArrayList localArrayList2 = new ArrayList(tvGroupNames.size());
+        for (int i = 0; i < tvGroupNames.size(); i++) {
+            FilmsInfo filmsInfo = this.api.getFilms(tvItems.get(i).getId());
             List<Film> films = new ArrayList<>();
-            for (int j = 0; j < struct.Films_struct.total; j++) {
-                films.add(new Film(struct.Films_struct
-                        .IptvFilmsItems.name.get(j), struct.Films_struct.IptvFilmsItems.logo.get
-                        (j), struct.Films_struct.IptvFilmsItems.id.get(j), struct.Films_struct
-                        .IptvFilmsItems.year.get(j), "0", struct.Films_struct
-                        .IptvFilmsItems.origin.get(j)));
+            List<FilmItem> filmItems = filmsInfo.getUnmodifiableFilms();
+            for (int j = 0; j < filmsInfo.getTotal(); j++) {
+                FilmItem filmItem = filmItems.get(j);
+                Film film = new Film(filmItem.getName(), filmItem.getLogo(), filmItem.getId(),
+                        filmItem.getYear(), filmItem.getGenre(), filmItem.getOrigin());
+                films.add(film);
             }
             localArrayList2.add(films);
         }
 
-        this.expListAdapter = new VodListAdapter(this, localArrayList1, localArrayList2, this.api);
+        this.expListAdapter = new VodListAdapter(this, tvGroupNames, localArrayList2, this.api);
         setListAdapter(this.expListAdapter);
     }
 
     public boolean onChildClick(ExpandableListView paramExpandableListView, View paramView, int paramInt1, int paramInt2, long paramLong) {
         Intent intent = new Intent();
         intent.setClass(this, FilmAct.class);
-        intent.putExtra("ch_id", (Serializable) ((LevtvStruct) this.iptvFilms.get(paramInt1)).Films_struct.IptvFilmsItems.id.get(paramInt2));
+        //TODO uncomment
+        //intent.putExtra("ch_id", (Serializable) ((LevtvStruct) this.iptvFilms.get(paramInt1))
+        //        .Films_struct.IptvFilmsItems.id.get(paramInt2));
         startActivity(intent);
         return true;
-    }
-
-    public void onContentChanged() {
-        super.onContentChanged();
-    }
-
-    public void onCreate(Bundle bundle) {
-        super.onCreate(bundle);
-        String login = getIntent().getExtras().getString("user_login");
-        String password = getIntent().getExtras().getString("user_password");
-        VideoStreamApplication.getInstance().setDbApi(this.api);
-        try {
-            this.api.getAuth(login, password);
-            this.VodMenu = new LevtvStruct();
-            this.api.KeepAlive(true);
-            this.VodMenu = this.api.getVodMenu();
-            this.iptvServiceId = this.VodMenu.Iptv_menu_str.service;
-            this.VodMeunuItemsCount = this.VodMenu.Iptv_menu_str.IPTVMenuItems.id.size();
-            this.lvArrNew = new String[this.VodMenu.Iptv_menu_str.IPTVMenuItems.id.size()];
-            if (this.VodMenu.Iptv_menu_str.success) {
-                System.out.println(this.VodMenu.Iptv_menu_str.IPTVMenuItems.id.size());
-                for (int i = 0; i < this.VodMenu.Iptv_menu_str.IPTVMenuItems.id.size(); i++) {
-                    this.lvArrNew[i] = this.VodMenu.Iptv_menu_str.IPTVMenuItems.name.get(i);
-                }
-            }
-            ganre_viev();
-            api.KeepAlive(false);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 }

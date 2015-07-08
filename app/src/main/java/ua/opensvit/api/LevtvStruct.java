@@ -4,10 +4,8 @@ import java.util.Vector;
 
 public class LevtvStruct {
     public IptvFilmStruct Film_struct = new IptvFilmStruct();
-    public IptvFilmsStruct Films_struct = new IptvFilmsStruct();
     public IptvChStruct Iptv_channels = new IptvChStruct();
     public IptvEpgStruct Iptv_epg = new IptvEpgStruct();
-    public IptvMenuStruct Iptv_menu_str = new IptvMenuStruct();
     public IptvOsdStruct Osd_struct = new IptvOsdStruct();
 
     public LevtvStruct() {
@@ -66,44 +64,6 @@ public class LevtvStruct {
         public int year;
 
         public IptvFilmStruct() {
-        }
-    }
-
-    public class IptvFilmsStruct {
-        public items IptvFilmsItems = new items();
-        public boolean success;
-        public int total;
-
-        public IptvFilmsStruct() {
-        }
-
-        public class items {
-            public Vector<String> genre = new Vector(0);
-            public Vector<Integer> id = new Vector(0);
-            public Vector<String> logo = new Vector(0);
-            public Vector<String> name = new Vector(0);
-            public Vector<String> origin = new Vector(0);
-            public Vector<Integer> year = new Vector(0);
-
-            public items() {
-            }
-        }
-    }
-
-    public class IptvMenuStruct {
-        public items IPTVMenuItems = new items();
-        public int service;
-        public boolean success;
-
-        public IptvMenuStruct() {
-        }
-
-        public class items {
-            public Vector<Integer> id = new Vector(0);
-            public Vector<String> name = new Vector(0);
-
-            public items() {
-            }
         }
     }
 

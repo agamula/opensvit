@@ -8,35 +8,46 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ExpandableListView;
-import android.widget.ListView;
 import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import org.json.JSONException;
 
 import ua.opensvit.api.OpenWorldApi;
 import ua.opensvit.api.LevtvStruct;
 import ua.opensvit.data.Film;
+import ua.opensvit.data.iptv.base.TvMenuInfo;
+import ua.opensvit.data.iptv.base.TvMenuItem;
+import ua.opensvit.data.iptv.films.FilmItem;
+import ua.opensvit.data.iptv.films.FilmsInfo;
 
 public class TvMenuPage extends ExpandableListActivity {
-    OpenWorldApi api = new OpenWorldApi();
-    String[] channelsArh;
-    int context;
-    String[] epgArh;
+    private OpenWorldApi api;
     private ChannelListAdapter expListAdapter;
-    Vector<LevtvStruct> iptvChannels = new Vector(0);
-    LevtvStruct iptvEpg;
-    LevtvStruct iptvMenu;
-    int iptvMeunuItemsCount;
-    int iptvServiceId;
-    ListView lv1;
-    String[] lvArrNew;
+    private TvMenuInfo tvMenuInfo;
 
     public TvMenuPage() {
+    }
+
+    public void onCreate(Bundle paramBundle) {
+        super.onCreate(paramBundle);
+        api = VideoStreamApplication.getInstance().getApi();
+        try {
+            this.api.KeepAlive(true);
+            tvMenuInfo = this.api.getAuthService();
+            //this.iptvServiceId = this.iptvMenu.Iptv_menu_str.service;
+            VideoStreamApplication.getInstance().setIpTvServiceId(tvMenuInfo.getService());
+            //this.iptvMeunuItemsCount = this.iptvMenu.Iptv_menu_str.IPTVMenuItems.id.size();
+            if (tvMenuInfo.isSuccess()) {
+                ganre_viev();
+            }
+            api.KeepAlive(false);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void getNoEpgToast() {
@@ -44,17 +55,20 @@ public class TvMenuPage extends ExpandableListActivity {
                 .show();
     }
 
-    private void showChannelPopUp(final int paramInt1, final int paramInt2) {
+    private void showChannelPopUp(final int groupPosition, final int channelPosition) {
         AlertDialog.Builder localBuilder = new AlertDialog.Builder(this);
-        localBuilder.setTitle((String) ((LevtvStruct) this.iptvChannels.get(paramInt1)).Iptv_channels.IptvChanelsItems.name.get(paramInt2));
+        //TODO uncomment
+        //localBuilder.setTitle((String) ((LevtvStruct) this.iptvChannels.get(groupPosition))
+         //       .Iptv_channels.IptvChanelsItems.name.get(channelPosition));
         localBuilder.setMessage("Please select action");
         localBuilder.setNegativeButton("Play", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface paramAnonymousDialogInterface, int paramAnonymousInt) {
                 try {
-                    LevtvStruct struct = TvMenuPage.this.iptvChannels.get(paramInt1);
+                    LevtvStruct struct = new LevtvStruct();//TvMenuPage.this.iptvChannels.get
+                            //(groupPosition);
                     playChannel(struct.Iptv_channels.IptvChanelsItems.id
-                            .get(paramInt2), struct.Iptv_channels
-                            .IptvChanelsItems.name.get(paramInt2), TvMenuPage.this);
+                            .get(channelPosition), struct.Iptv_channels
+                            .IptvChanelsItems.name.get(channelPosition), TvMenuPage.this);
                     return;
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -66,38 +80,39 @@ public class TvMenuPage extends ExpandableListActivity {
         });
         localBuilder.setPositiveButton("EPG", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface paramAnonymousDialogInterface, int paramAnonymousInt) {
-                LevtvStruct struct = TvMenuPage.this.iptvChannels.get(paramInt1);
+                LevtvStruct struct = new LevtvStruct();//TvMenuPage.this.iptvChannels.get
+                // (groupPosition);
                 TvMenuPage.this.getEpgChannel(struct.Iptv_channels.IptvChanelsItems.id.get
-                        (paramInt2), struct.Iptv_channels.IptvChanelsItems.name
-                        .get(paramInt2), struct.Iptv_channels.IptvChanelsItems.archive.get
-                        (paramInt2));
+                        (channelPosition), struct.Iptv_channels.IptvChanelsItems.name
+                        .get(channelPosition), struct.Iptv_channels.IptvChanelsItems.archive.get
+                        (channelPosition));
             }
         });
         localBuilder.create().show();
     }
 
     public void ganre_viev() throws IOException {
-        ArrayList localArrayList1 = new ArrayList();
-        for (int i = 0; i < iptvMeunuItemsCount; i++) {
-            localArrayList1.add(lvArrNew[i]);
+        List<TvMenuItem> tvMenuItems = tvMenuInfo.getUnmodifiableTVItems();
+        ArrayList<String> groupsList = new ArrayList<>();
+        for (int i = 0; i < tvMenuItems.size(); i++) {
+            groupsList.add(tvMenuItems.get(i).getName());
         }
 
-        ArrayList localArrayList2 = new ArrayList(localArrayList1.size());
-        for (int i = 0; i < localArrayList1.size(); i++) {
-            LevtvStruct struct = this.api.getFilms(this.iptvMenu.Iptv_menu_str.IPTVMenuItems.id.get
-                    (i));
+        ArrayList localArrayList2 = new ArrayList(groupsList.size());
+        for (int i = 0; i < groupsList.size(); i++) {
+            FilmsInfo filmsInfo = this.api.getFilms(tvMenuItems.get(i).getId());
             List<Film> films = new ArrayList<>();
-            for (int j = 0; j < struct.Films_struct.total; j++) {
-                films.add(new Film(struct.Films_struct
-                        .IptvFilmsItems.name.get(j), struct.Films_struct.IptvFilmsItems.logo.get
-                        (j), struct.Films_struct.IptvFilmsItems.id.get(j), struct.Films_struct
-                        .IptvFilmsItems.year.get(j), "0", struct.Films_struct
-                        .IptvFilmsItems.origin.get(j)));
+            List<FilmItem> filmItems = filmsInfo.getUnmodifiableFilms();
+            for (int j = 0; j < filmsInfo.getTotal(); j++) {
+                FilmItem filmItem = filmItems.get(j);
+                Film film = new Film(filmItem.getName(), filmItem.getLogo(), filmItem.getId(),
+                        filmItem.getYear(), filmItem.getGenre(), filmItem.getOrigin());
+                films.add(film);
             }
             localArrayList2.add(films);
         }
 
-        this.expListAdapter = new ChannelListAdapter(this, localArrayList1, localArrayList2, this.api);
+        this.expListAdapter = new ChannelListAdapter(this, groupsList, localArrayList2, this.api);
         setListAdapter(this.expListAdapter);
     }
 
@@ -106,7 +121,7 @@ public class TvMenuPage extends ExpandableListActivity {
         VideoStreamApplication.getInstance().setChannelId(paramInt);
         LevtvStruct struct = null;
         try {
-            struct = this.api.GetEpg(Integer.valueOf(this.iptvServiceId), Integer
+            struct = this.api.GetEpg(Integer.valueOf(tvMenuInfo.getService()), Integer
                             .valueOf
                                     (paramInt),
                     Integer.valueOf(0), Integer.valueOf(-1));
@@ -119,7 +134,9 @@ public class TvMenuPage extends ExpandableListActivity {
         }
         if (struct == null) {
             try {
-                struct = this.api.GetEpg(Integer.valueOf(this.iptvServiceId), Integer.valueOf(paramInt), Integer.valueOf(0), Integer.valueOf(0));
+                struct = this.api.GetEpg(tvMenuInfo.getService(), Integer.valueOf(paramInt),
+                        Integer
+                        .valueOf(0), Integer.valueOf(0));
             } catch (IOException e) {
                 e.printStackTrace();
                 struct = null;
@@ -145,41 +162,10 @@ public class TvMenuPage extends ExpandableListActivity {
         }
     }
 
-    public boolean onChildClick(ExpandableListView paramExpandableListView, View paramView, int paramInt1, int paramInt2, long paramLong) {
-        System.out.println(paramInt1);
-        showChannelPopUp(paramInt1, paramInt2);
+    public boolean onChildClick(ExpandableListView paramExpandableListView, View paramView, int
+            groupPosition, int childPosition, long paramLong) {
+        showChannelPopUp(groupPosition, childPosition);
         return true;
-    }
-
-    public void onContentChanged() {
-        super.onContentChanged();
-    }
-
-    public void onCreate(Bundle paramBundle) {
-        super.onCreate(paramBundle);
-        String login = getIntent().getExtras().getString("user_login");
-        String password = getIntent().getExtras().getString("user_password");
-        VideoStreamApplication.getInstance().setDbApi(this.api);
-        try {
-            this.iptvMenu = new LevtvStruct();
-            this.api.getAuth(login, password);
-            this.api.KeepAlive(true);
-            this.iptvMenu = this.api.getIptvMenu();
-            this.iptvServiceId = this.iptvMenu.Iptv_menu_str.service;
-            VideoStreamApplication.getInstance().setIpTvServiceId(iptvServiceId);
-            this.iptvMeunuItemsCount = this.iptvMenu.Iptv_menu_str.IPTVMenuItems.id.size();
-            this.lvArrNew = new String[this.iptvMenu.Iptv_menu_str.IPTVMenuItems.id.size()];
-            if (this.iptvMenu.Iptv_menu_str.success) {
-                System.out.println(this.iptvMenu.Iptv_menu_str.IPTVMenuItems.id.size());
-                for (int i = 0; i < this.iptvMenu.Iptv_menu_str.IPTVMenuItems.id.size(); i++) {
-                    this.lvArrNew[i] = this.iptvMenu.Iptv_menu_str.IPTVMenuItems.name.get(i);
-                }
-                ganre_viev();
-            }
-            api.KeepAlive(false);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     public static void playChannel(int paramInt, String paramString, Context context)
@@ -188,8 +174,7 @@ public class TvMenuPage extends ExpandableListActivity {
         VideoStreamApplication app = VideoStreamApplication.getInstance();
 
         app.setChannelId(paramInt);
-        Intent localIntent = new Intent();
-        localIntent.setClass(context, VideoViewPlayer.class);
+        Intent localIntent = new Intent(context, VideoViewPlayer.class);
         try {
             localIntent.putExtra("ch_path", app.getApi().GetChannelIp(Integer.valueOf
                     (paramInt)));

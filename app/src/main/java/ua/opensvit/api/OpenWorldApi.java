@@ -10,6 +10,10 @@ import ua.opensvit.data.ApiConstants;
 import ua.opensvit.data.authorization.AuthorizationInfo;
 import ua.opensvit.data.authorization.UserInfo;
 import ua.opensvit.data.authorization.UserProfile;
+import ua.opensvit.data.iptv.base.TvMenuInfo;
+import ua.opensvit.data.iptv.base.TvMenuItem;
+import ua.opensvit.data.iptv.films.FilmItem;
+import ua.opensvit.data.iptv.films.FilmsInfo;
 import ua.opensvit.utils.ApiUtils;
 
 public class OpenWorldApi {
@@ -22,6 +26,92 @@ public class OpenWorldApi {
 
     public OpenWorldApi() {
         mApiPath = ApiUtils.getBaseUrl();
+    }
+
+    public AuthorizationInfo getAuthorizationInfo(String login, String password) throws
+            IOException {
+        AuthorizationInfo res = new AuthorizationInfo();
+        String url = ApiUtils.getApiUrl(ApiConstants.AUTH_URL, login, password);
+        this.httpOut = this.gets.get(url);
+        boolean isAuthenticated = false;
+        try {
+            JSONObject jsonObj = new JSONObject(this.httpOut);
+            if (jsonObj.has(AuthorizationInfo.ERROR)) {
+                res.setError(jsonObj.getString(AuthorizationInfo.ERROR));
+            } else if (jsonObj.getBoolean(AuthorizationInfo.IS_ACTIVE)) {
+                res.setIsActive(true);
+                if (jsonObj.getBoolean(AuthorizationInfo.IS_AUTHENTICATED)) {
+                    res.setIsAuthenticated(true);
+                    isAuthenticated = true;
+                }
+            }
+            if (!isAuthenticated) {
+                return res;
+            }
+            JSONObject userInfoObj = jsonObj.getJSONObject(UserInfo.JSON_NAME);
+            UserInfo userInfo = new UserInfo();
+            userInfo.setBalance(userInfoObj.getInt(UserInfo.BALANCE));
+            userInfo.setName(userInfoObj.getString(UserInfo.NAME));
+            res.setUserInfo(userInfo);
+            JSONObject userProfileObj = jsonObj.getJSONObject(UserProfile.JSON_NAME);
+            UserProfile userProfile = new UserProfile();
+            userProfile.setTransparency(userProfileObj.getInt(UserProfile.TRANSPARENCY));
+            userProfile.setId(userProfileObj.getInt(UserProfile.ID));
+            userProfile.setReminder(userProfileObj.getInt(UserProfile.REMINDER));
+            userProfile.setVolume(userProfileObj.getInt(UserProfile.VOLUME));
+            userProfile.setRatio(userProfileObj.getString(UserProfile.RATIO));
+            userProfile.setResolution(userProfileObj.getString(UserProfile.RESOLUTION));
+            userProfile.setLanguage(userProfileObj.getString(UserProfile.LANGUAGE));
+            userProfile.setStartPage(userProfileObj.getString(UserProfile.START_PAGE));
+            userProfile.setType(userProfileObj.getString(UserProfile.TYPE));
+            userProfile.setSkin(userProfileObj.getString(UserProfile.SKIN));
+            userProfile.setShowWelcome(userProfileObj.getBoolean(UserProfile.SHOW_WELCOME));
+            res.setUserProfile(userProfile);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return res;
+        }
+        return res;
+    }
+
+    public TvMenuInfo getAuthService() throws IOException {
+        String url = ApiUtils.getApiUrl(ApiConstants.AUTH_SERVICE_URL, ApiConstants
+                .AUTH_SERVICE_IP_TV);
+        this.httpOut = this.gets.get(url);
+
+        return parseJsonTvMenuInfo(httpOut);
+    }
+
+    public FilmsInfo getFilms(int genreId) throws IOException {
+        FilmsInfo res = new FilmsInfo();
+        String url = ApiUtils.getApiUrl(ApiConstants.GET_FILMS_URL, "" + genreId, "" + 0, "" + 0);
+        this.httpOut = this.gets.get(url);
+        try {
+            JSONObject jsonObj = new JSONObject(this.httpOut);
+            boolean isSuccess = jsonObj.getBoolean(FilmsInfo.SUCCESS);
+            res.setSuccess(isSuccess);
+            if (isSuccess) {
+                res.setTotal(jsonObj.getInt(FilmsInfo.TOTAL));
+
+                JSONArray filmsArr = jsonObj.getJSONArray(FilmItem.JSON_NAME);
+                for (int i = 0; i < filmsArr.length(); i++) {
+                    JSONObject filmJson = filmsArr.getJSONObject(i);
+                    FilmItem filmItem = new FilmItem();
+                    filmItem.setId(filmJson.getInt(FilmItem.ID));
+                    filmItem.setName(filmJson.getString(FilmItem.NAME));
+                    filmItem.setLogo(filmJson.getString(FilmItem.LOGO));
+                    filmItem.setYear(filmJson.getInt(FilmItem.YEAR));
+                    filmItem.setOrigin(filmJson.getString(FilmItem.ORIGIN));
+                    filmItem.setGenre(filmJson.getString(FilmItem.GENRE));
+                    res.addFilmItem(filmItem);
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+            res.setSuccess(false);
+            return res;
+        }
+        return res;
     }
 
     public String GetArchiveUrl(int param1, int param2) throws IOException, JSONException {
@@ -72,12 +162,12 @@ public class OpenWorldApi {
     }
 
     public void KeepAlive(boolean keepAlive) {
-        gets.keepAlive(keepAlive);
+        //gets.keepAlive(keepAlive);
         new Thread() {
             /* Error */
             public void run() {
 
-                SyncHttpClient client = null;
+                /*SyncHttpClient client = null;
                 try {
                     client = gets.clone();
                 } catch (CloneNotSupportedException e) {
@@ -95,7 +185,7 @@ public class OpenWorldApi {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                }
+                }      */
                 // Byte code:
                 //   0: new 27	ua/ic/levtv/library/SyncHttpClient
                 //   3: dup
@@ -170,52 +260,6 @@ public class OpenWorldApi {
         return new JSONObject(this.httpOut).getBoolean("success");
     }
 
-    public AuthorizationInfo getAuth(String paramString1, String paramString2)
-            throws IOException {
-        AuthorizationInfo res = new AuthorizationInfo();
-        String url = ApiUtils.getApiUrl(ApiConstants.LOGIN_URL, paramString1, paramString2);
-        this.httpOut = this.gets.get(url);
-        boolean isAuthenticated = false;
-        try {
-            JSONObject jsonObj = new JSONObject(this.httpOut);
-            if (jsonObj.has(AuthorizationInfo.ERROR)) {
-                res.setError(jsonObj.getString(AuthorizationInfo.ERROR));
-            } else if (jsonObj.getBoolean(AuthorizationInfo.IS_ACTIVE)) {
-                res.setIsActive(true);
-                if (jsonObj.getBoolean(AuthorizationInfo.IS_AUTHENTICATED)) {
-                    res.setIsAuthenticated(true);
-                    isAuthenticated = true;
-                }
-            }
-            if (!isAuthenticated) {
-                return res;
-            }
-            JSONObject userInfoObj = jsonObj.getJSONObject(UserInfo.JSON_NAME);
-            UserInfo userInfo = new UserInfo();
-            userInfo.setBalance(userInfoObj.getInt(UserInfo.BALANCE));
-            userInfo.setName(userInfoObj.getString(UserInfo.NAME));
-            res.setUserInfo(userInfo);
-            JSONObject userProfileObj = jsonObj.getJSONObject(UserProfile.JSON_NAME);
-            UserProfile userProfile = new UserProfile();
-            userProfile.setTransparency(userProfileObj.getInt(UserProfile.TRANSPARENCY));
-            userProfile.setId(userProfileObj.getInt(UserProfile.ID));
-            userProfile.setReminder(userProfileObj.getInt(UserProfile.REMINDER));
-            userProfile.setVolume(userProfileObj.getInt(UserProfile.VOLUME));
-            userProfile.setRatio(userProfileObj.getString(UserProfile.RATIO));
-            userProfile.setResolution(userProfileObj.getString(UserProfile.RESOLUTION));
-            userProfile.setLanguage(userProfileObj.getString(UserProfile.LANGUAGE));
-            userProfile.setStartPage(userProfileObj.getString(UserProfile.START_PAGE));
-            userProfile.setType(userProfileObj.getString(UserProfile.TYPE));
-            userProfile.setSkin(userProfileObj.getString(UserProfile.SKIN));
-            userProfile.setShowWelcome(userProfileObj.getBoolean(UserProfile.SHOW_WELCOME));
-            res.setUserProfile(userProfile);
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return res;
-        }
-        return res;
-    }
-
     public void getAuthVod() {
         String str = new String(this.applicationPathVod + "/ws/AuthStb?sn=CS1630K8080A3211116000357&mac=00:1a:d0:07:a1:62");
         try {
@@ -233,7 +277,8 @@ public class OpenWorldApi {
             this.httpOut = this.gets.get(url);
             JSONObject jsonObj = new JSONObject(this.httpOut);
             if (jsonObj.getBoolean("success")) {
-                res.Films_struct.success = true;
+                //TODO uncomment
+                //res.Films_struct.success = true;
                 res.Film_struct.id = jsonObj.getInt("id");
                 res.Film_struct.year = jsonObj.getInt("year");
                 res.Film_struct.price = jsonObj.getInt("price");
@@ -248,40 +293,9 @@ public class OpenWorldApi {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            res.Films_struct.success = false;
+            //TODO uncomment
+            //res.Films_struct.success = false;
             System.out.println("is Active false");
-        }
-        return res;
-    }
-
-    public LevtvStruct getFilms(int param) throws IOException {
-        LevtvStruct res = new LevtvStruct();
-        String url = this.applicationPathVod + "ws/GetFilms?perPage=0&page=0&genreId=" +
-                param;
-        this.httpOut = this.gets.get(url);
-        try {
-            JSONObject jsonObj = new JSONObject(this.httpOut);
-            if (jsonObj.getBoolean("success")) {
-                res.Films_struct.success = true;
-                res.Films_struct.total = jsonObj.getInt("total");
-
-                JSONArray itemsArr = jsonObj.getJSONArray("items");
-                for (int i = 0; i < itemsArr.length(); i++) {
-                    JSONObject localJSONObject = itemsArr.getJSONObject(i);
-                    res.Films_struct.IptvFilmsItems.id.addElement(Integer.valueOf(localJSONObject.getInt("id")));
-                    res.Films_struct.IptvFilmsItems.name.addElement(localJSONObject.getString("name"));
-                    res.Films_struct.IptvFilmsItems.logo.addElement(localJSONObject.getString("logo"));
-                    res.Films_struct.IptvFilmsItems.year.addElement(Integer.valueOf(localJSONObject.getInt("year")));
-                    res.Films_struct.IptvFilmsItems.origin.addElement(localJSONObject.getString("origin"));
-                }
-            } else {
-                res.Films_struct.success = false;
-                System.out.println("is Active false");
-            }
-        } catch (JSONException paramObject) {
-            paramObject.printStackTrace();
-            res.Films_struct.success = false;
-            return res;
         }
         return res;
     }
@@ -327,37 +341,6 @@ public class OpenWorldApi {
         } catch (JSONException paramObject) {
             paramObject.printStackTrace();
             res.Iptv_channels.success = false;
-            return res;
-        }
-        return res;
-    }
-
-    public LevtvStruct getIptvMenu() throws IOException {
-        LevtvStruct res = new LevtvStruct();
-        String url = this.mApiPath + "/ws/AuthService?type=iptv";
-        this.httpOut = this.gets.get(url);
-        try {
-            JSONObject jsonObj = new JSONObject(this.httpOut);
-            if (jsonObj.getBoolean("success")) {
-                res.Iptv_menu_str.success = true;
-                res.Iptv_menu_str.service = jsonObj.getInt("service");
-                JSONArray jsonArr = jsonObj.getJSONArray("items");
-                System.out.println(jsonArr.length());
-                for (int i = 0; i < jsonArr.length(); i++) {
-                    JSONObject localJSONObject = jsonArr.getJSONObject(i);
-                    res.Iptv_menu_str.IPTVMenuItems.id.addElement(Integer.valueOf
-                            (localJSONObject.getInt("id")));
-                    res.Iptv_menu_str.IPTVMenuItems.name.addElement(localJSONObject
-                            .getString("name"));
-                }
-            } else {
-                res.Iptv_menu_str.success = false;
-                System.out.println("is Active false");
-            }
-
-        } catch (JSONException localJSONException) {
-            localJSONException.printStackTrace();
-            res.Iptv_menu_str.success = false;
             return res;
         }
         return res;
@@ -487,34 +470,36 @@ public class OpenWorldApi {
         return res;
     }
 
-    public LevtvStruct getVodMenu() throws IOException {
-        LevtvStruct res = new LevtvStruct();
-        String url = this.applicationPathVod + "/ws/VodMenu";
+    public TvMenuInfo getVodMenu() throws IOException {
+        String url = ApiUtils.getApiUrl(ApiConstants.VOD_MENU_URL);
         this.httpOut = this.gets.get(url);
+        TvMenuInfo res = parseJsonTvMenuInfo(httpOut);
+        res.setService(1);
+        return res;
+    }
+
+    private TvMenuInfo parseJsonTvMenuInfo(String tvInfoJsonString) {
+        TvMenuInfo res = new TvMenuInfo();
         try {
-            JSONObject jsonObj = new JSONObject(this.httpOut);
-            if (jsonObj.getBoolean("success")) {
-                res.Iptv_menu_str.success = true;
-                res.Iptv_menu_str.service = 1;
-                JSONArray jsonArr = jsonObj.getJSONArray("items");
-                System.out.println(jsonArr.length());
-                for (int i = 0; i < jsonArr.length(); i++) {
-                    JSONObject localJSONObject = jsonArr.getJSONObject(i);
-                    res.Iptv_menu_str.IPTVMenuItems.id.addElement(Integer.valueOf
-                            (localJSONObject.getInt("id")));
-                    res.Iptv_menu_str.IPTVMenuItems.name.addElement(localJSONObject.getString
-                            ("name"));
-                    if (!res.Iptv_menu_str.success) {
-                        break;
-                    }
+            JSONObject jsonObj = new JSONObject(tvInfoJsonString);
+            boolean isSuccess = jsonObj.getBoolean(TvMenuInfo.SUCCESS);
+            res.setSuccess(isSuccess);
+            if (isSuccess) {
+                if(jsonObj.has(TvMenuInfo.SERVICE)) {
+                    res.setService(jsonObj.getInt(TvMenuInfo.SERVICE));
                 }
-            } else {
-                res.Iptv_menu_str.success = false;
-                System.out.println("is Active false");
+                JSONArray ipTvItemsArr = jsonObj.getJSONArray(TvMenuItem.JSON_NAME);
+                for (int i = 0; i < ipTvItemsArr.length(); i++) {
+                    JSONObject localJSONObject = ipTvItemsArr.getJSONObject(i);
+                    TvMenuItem item = new TvMenuItem();
+                    item.setId(localJSONObject.getInt(TvMenuItem.ID));
+                    item.setName(localJSONObject.getString(TvMenuItem.NAME));
+                    res.addItem(item);
+                }
             }
-        } catch (JSONException localJSONException) {
-            localJSONException.printStackTrace();
-            res.Iptv_menu_str.success = false;
+        } catch (JSONException e) {
+            e.printStackTrace();
+            res.setSuccess(false);
             return res;
         }
         return res;
