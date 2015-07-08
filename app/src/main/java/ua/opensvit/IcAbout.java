@@ -1,4 +1,4 @@
-package ua.ic.levtv_ott;
+package ua.opensvit;
 
 import android.app.Activity;
 import android.os.Bundle;

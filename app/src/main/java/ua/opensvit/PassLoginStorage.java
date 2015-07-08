@@ -1,8 +1,7 @@
-package ua.ic.levtv_ott;
+package ua.opensvit;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 
 public class PassLoginStorage {
     public static final String STORAGE_NAME = new String("ic_storage");

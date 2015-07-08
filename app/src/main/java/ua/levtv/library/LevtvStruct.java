@@ -1,4 +1,4 @@
-package ua.ic.levtv.library;
+package ua.levtv.library;
 
 import java.util.Vector;
 

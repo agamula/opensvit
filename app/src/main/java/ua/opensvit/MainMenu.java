@@ -1,4 +1,4 @@
-package ua.ic.levtv_ott;
+package ua.opensvit;
 
 import android.app.ListActivity;
 import android.content.Intent;

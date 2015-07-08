@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest package="ua.ic.levtv_ott"
+<manifest package="ua.opensvit"
           xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application
-        android:name=".MyApplication"
+        android:name=".VideoStreamApplication"
         android:icon="@drawable/ic_launcher"
         android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
         <activity
-            android:name=".LevTv"
+            android:name="ua.opensvit.LevTv"
             android:label="@string/title_activity_lev_tv">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name="ua.ic.levtv_ott.TvMenuPage"/>
-        <activity android:name=".EpgView"/>
-        <activity android:name=".MainMenu"/>
-        <activity android:name=".VideoViewDemo"/>
+        <activity android:name="ua.opensvit.TvMenuPage"/>
+        <activity android:name="ua.opensvit.EpgView"/>
+        <activity android:name="ua.opensvit.MainMenu"/>
+        <activity android:name="ua.opensvit.VideoViewDemo"/>
         <activity
-            android:name=".VideoViewPlayer"
+            android:name="ua.opensvit.VideoViewPlayer"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|smallestScreenSize"
             android:screenOrientation="sensorLandscape"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
@@ -27,9 +27,9 @@
                 <action android:name="android.intent.action.MAIN"/>
             </intent-filter>
         </activity>
-        <activity android:name=".FilmAct"/>
-        <activity android:name=".VodMenuPage"/>
-        <activity android:name=".IcAbout"/>
+        <activity android:name="ua.opensvit.FilmAct"/>
+        <activity android:name="ua.opensvit.VodMenuPage"/>
+        <activity android:name="ua.opensvit.IcAbout"/>
         <activity
             android:name="io.vov.vitamio.activity.InitActivity"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|smallestScreenSize"

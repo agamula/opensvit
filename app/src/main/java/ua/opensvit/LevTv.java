@@ -1,4 +1,4 @@
-package ua.ic.levtv_ott;
+package ua.opensvit;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -7,23 +7,15 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
-import android.os.Build.VERSION;
 import android.os.Bundle;
-import android.text.Editable;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import java.io.PrintStream;
-
-import ua.ic.levtv.library.LevtvDbApi;
-import ua.ic.levtv.library.LevtvStruct;
-import ua.ic.levtv.library.LevtvStruct.AuthStruct;
-import ua.ic.levtv.library.LevtvStruct.AuthStruct.profile;
-import ua.ic.levtv.library.LevtvStruct.AuthStruct.user;
+import ua.levtv.library.LevtvDbApi;
+import ua.levtv.library.LevtvStruct;
 
 @SuppressLint({"NewApi"})
 public class LevTv extends Activity implements View.OnClickListener {

@@ -11,4 +11,6 @@
     <string name="hello_world">Hello world!</string>
     <string name="menu_settings">Settings</string>
     <string name="title_activity_lev_tv">LevTv</string>
+    <string name="api_live_url">http://iptv.opensvit.ua/pc</string>
+    <string name="api_test_url">http://iptv.opensvit.ua/levtvo/pc</string>
 </resources>
