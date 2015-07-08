@@ -5,6 +5,8 @@ import java.io.IOException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import ua.opensvit.data.ApiConstants;
 import ua.utils.Utils;
 
 public class OpenWorldApi {
@@ -165,42 +167,45 @@ public class OpenWorldApi {
         return new JSONObject(this.httpOut).getBoolean("success");
     }
 
-    public LevtvStruct getAuth(String paramString1, String paramString2)
+    public AuthorizationInfo getAuth(String paramString1, String paramString2)
             throws IOException {
-        LevtvStruct res = new LevtvStruct();
-        String url = this.mApiPath + "/ws/Auth?login=" + paramString1 + "&password=" +
-                paramString2;
+        AuthorizationInfo res = new AuthorizationInfo();
+        String url = Utils.getApiUrl(ApiConstants.LOGIN_URL, paramString1, paramString2);
         this.httpOut = this.gets.get(url);
-        res.Auth_str.isActive = false;
-        res.Auth_str.isAuthenticated = false;
+        boolean isAuthenticated = false;
         try {
             JSONObject jsonObj = new JSONObject(this.httpOut);
-            if (jsonObj.has("error")) {
-                res.Auth_str.error = jsonObj.get("error").toString();
-            } else if (jsonObj.getBoolean("isActive")) {
-                res.Auth_str.isActive = true;
-                if (jsonObj.getBoolean("isAuthenticated")) {
-                    res.Auth_str.isAuthenticated = true;
+            if (jsonObj.has(AuthorizationInfo.ERROR)) {
+                res.setError(jsonObj.getString(AuthorizationInfo.ERROR));
+            } else if (jsonObj.getBoolean(AuthorizationInfo.IS_ACTIVE)) {
+                res.setIsActive(true);
+                if (jsonObj.getBoolean(AuthorizationInfo.IS_AUTHENTICATED)) {
+                    res.setIsAuthenticated(true);
+                    isAuthenticated = true;
                 }
             }
-            if ((!res.Auth_str.isAuthenticated) || (!res.Auth_str.isActive)) {
+            if (!isAuthenticated) {
                 return res;
             }
-            JSONObject jsonObj1 = new JSONObject(jsonObj.get("user").toString());
-            res.Auth_str.user_s.balance = jsonObj1.getInt("balance");
-            res.Auth_str.user_s.name = jsonObj1.get("name").toString();
-            jsonObj = new JSONObject(jsonObj.get("profile").toString());
-            res.Auth_str.user_prof.transparency = jsonObj.getInt("transparency");
-            res.Auth_str.user_prof.id = jsonObj.getInt("id");
-            res.Auth_str.user_prof.reminder = jsonObj.getInt("reminder");
-            res.Auth_str.user_prof.volume = jsonObj.getInt("volume");
-            res.Auth_str.user_prof.ratio = jsonObj.get("ratio").toString();
-            res.Auth_str.user_prof.resolution = jsonObj.get("resolution").toString();
-            res.Auth_str.user_prof.language = jsonObj.get("language").toString();
-            res.Auth_str.user_prof.startPage = jsonObj.get("startPage").toString();
-            res.Auth_str.user_prof.type = jsonObj.get("type").toString();
-            res.Auth_str.user_prof.skin = jsonObj.get("skin").toString();
-            res.Auth_str.user_prof.showWelcome = jsonObj.getBoolean("showWelcome");
+            JSONObject userInfoObj = jsonObj.getJSONObject(UserInfo.JSON_NAME);
+            UserInfo userInfo = new UserInfo();
+            userInfo.setBalance(userInfoObj.getInt(UserInfo.BALANCE));
+            userInfo.setName(userInfoObj.getString(UserInfo.NAME));
+            res.setUserInfo(userInfo);
+            JSONObject userProfileObj = jsonObj.getJSONObject(UserProfile.JSON_NAME);
+            UserProfile userProfile = new UserProfile();
+            userProfile.setTransparency(userProfileObj.getInt(UserProfile.TRANSPARENCY));
+            userProfile.setId(userProfileObj.getInt(UserProfile.ID));
+            userProfile.setReminder(userProfileObj.getInt(UserProfile.REMINDER));
+            userProfile.setVolume(userProfileObj.getInt(UserProfile.VOLUME));
+            userProfile.setRatio(userProfileObj.getString(UserProfile.RATIO));
+            userProfile.setResolution(userProfileObj.getString(UserProfile.RESOLUTION));
+            userProfile.setLanguage(userProfileObj.getString(UserProfile.LANGUAGE));
+            userProfile.setStartPage(userProfileObj.getString(UserProfile.START_PAGE));
+            userProfile.setType(userProfileObj.getString(UserProfile.TYPE));
+            userProfile.setSkin(userProfileObj.getString(UserProfile.SKIN));
+            userProfile.setShowWelcome(userProfileObj.getBoolean(UserProfile.SHOW_WELCOME));
+            res.setUserProfile(userProfile);
         } catch (JSONException e) {
             e.printStackTrace();
             return res;

@@ -8,6 +8,8 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import ua.levtv.library.AuthorizationInfo;
+
 public class MainMenu extends ListActivity {
     public MainMenu() {
     }
@@ -24,11 +26,8 @@ public class MainMenu extends ListActivity {
         super.onListItemClick(paramListView, paramView, position, paramLong);
         switch (position) {
             case 0:
-                Intent intent = new Intent();
-                intent.setClass(this, TvMenuPage.class);
-                String login = getIntent().getExtras().getString("user_login");
-                intent.putExtra("user_password", getIntent().getExtras().getString("user_password"));
-                intent.putExtra("user_login", login);
+                Intent intent = new Intent(this, TvMenuPage.class);
+                intent.putExtras(getIntent());
                 startActivity(intent);
                 break;
             case 1:

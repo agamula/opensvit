@@ -3,7 +3,6 @@ package ua.levtv.library;
 import java.util.Vector;
 
 public class LevtvStruct {
-    public AuthStruct Auth_str = new AuthStruct();
     public IptvFilmStruct Film_struct = new IptvFilmStruct();
     public IptvFilmsStruct Films_struct = new IptvFilmsStruct();
     public IptvChStruct Iptv_channels = new IptvChStruct();
@@ -12,42 +11,6 @@ public class LevtvStruct {
     public IptvOsdStruct Osd_struct = new IptvOsdStruct();
 
     public LevtvStruct() {
-    }
-
-    public class AuthStruct {
-        public String error;
-        public boolean isActive;
-        public boolean isAuthenticated;
-        public profile user_prof = new profile();
-        public user user_s = new user();
-
-        public AuthStruct() {
-        }
-
-        public class profile {
-            public int id;
-            public String language;
-            public String ratio;
-            public int reminder;
-            public String resolution;
-            public boolean showWelcome;
-            public String skin;
-            public String startPage;
-            public int transparency;
-            public String type;
-            public int volume;
-
-            public profile() {
-            }
-        }
-
-        public class user {
-            public int balance;
-            public String name;
-
-            public user() {
-            }
-        }
     }
 
     public class IptvChStruct {
