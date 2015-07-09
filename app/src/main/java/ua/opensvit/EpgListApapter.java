@@ -67,8 +67,8 @@ public class EpgListApapter extends BaseExpandableListAdapter {
                 if (localEpgItem.getIsArchive()) {
                     System.out.println("isArchive");
                     try {
-                        String archiveUrl = VideoStreamApplication.getInstance().getApi().GetArchiveUrl
-                                (Integer.valueOf(VideoStreamApplication.getInstance().getChannelId()), Integer.valueOf(localEpgItem.getTimestamp()));
+                        String archiveUrl = VideoStreamApp.getInstance().getApi().GetArchiveUrl
+                                (Integer.valueOf(VideoStreamApp.getInstance().getChannelId()), Integer.valueOf(localEpgItem.getTimestamp()));
                         if (archiveUrl.contains("error")) {
                             Toast.makeText(context, "No " +
                                     "entry in the archive", Toast.LENGTH_SHORT).show();
@@ -78,9 +78,9 @@ public class EpgListApapter extends BaseExpandableListAdapter {
                         localIntent.setClass(context, VideoViewPlayer.class);
                         localIntent.putExtra("ch_path", archiveUrl);
                         localIntent.putExtra("ch_name", localEpgItem.getTitle());
-                        localIntent.putExtra("ch_id", VideoStreamApplication.getInstance().getChannelId());
+                        localIntent.putExtra("ch_id", VideoStreamApp.getInstance().getChannelId());
                         localIntent.putExtra("type", 2);
-                        localIntent.putExtra("service_id", VideoStreamApplication.getInstance().getIpTvServiceId());
+                        localIntent.putExtra("service_id", VideoStreamApp.getInstance().getIpTvServiceId());
                         localIntent.putExtra("timestamp", localEpgItem.getTimestamp());
                         context.startActivity(localIntent);
                     } catch (IOException e) {

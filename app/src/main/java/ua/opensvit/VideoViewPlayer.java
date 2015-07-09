@@ -44,7 +44,7 @@ public class VideoViewPlayer extends Activity {
         this.service_id = getIntent().getExtras().getInt("service_id");
         this.type = getIntent().getExtras().getInt("type");
         int i = getIntent().getExtras().getInt("timestamp");
-        this.api = VideoStreamApplication.getInstance().getApi();
+        this.api = VideoStreamApp.getInstance().getApi();
         if (this.type == 0) {
         }
         this.osd = new LevtvStruct();

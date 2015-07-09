@@ -5,7 +5,7 @@ import android.os.Parcelable;
 
 import ua.opensvit.utils.ParcelUtils;
 
-public class UserProfile implements Parcelable {
+public class UserProfileBase implements Parcelable {
     public static final String JSON_NAME = "profile";
     public static final String ID = "id";
     public static final String LANGUAGE = "language";
@@ -139,10 +139,10 @@ public class UserProfile implements Parcelable {
         dest.writeInt(volume);
     }
 
-    public static final Creator<UserProfile> CREATOR = new Creator<UserProfile>() {
+    public static final Creator<UserProfileBase> CREATOR = new Creator<UserProfileBase>() {
         @Override
-        public UserProfile createFromParcel(Parcel source) {
-            UserProfile userProfile = new UserProfile();
+        public UserProfileBase createFromParcel(Parcel source) {
+            UserProfileBase userProfile = new UserProfileBase();
             userProfile.setId(source.readInt());
             userProfile.setLanguage(ParcelUtils.readStringFromParcel(source));
             userProfile.setRatio(ParcelUtils.readStringFromParcel(source));
@@ -160,8 +160,8 @@ public class UserProfile implements Parcelable {
         }
 
         @Override
-        public UserProfile[] newArray(int size) {
-            return new UserProfile[size];
+        public UserProfileBase[] newArray(int size) {
+            return new UserProfileBase[size];
         }
     };
 }

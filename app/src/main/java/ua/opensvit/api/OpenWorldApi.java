@@ -1,15 +1,23 @@
 package ua.opensvit.api;
 
+import android.content.Context;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
+import android.os.Build;
+
 import java.io.IOException;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import ua.opensvit.VideoStreamApp;
 import ua.opensvit.data.ApiConstants;
-import ua.opensvit.data.authorization.AuthorizationInfo;
-import ua.opensvit.data.authorization.UserInfo;
-import ua.opensvit.data.authorization.UserProfile;
+import ua.opensvit.data.authorization.login_password.AuthorizationInfo;
+import ua.opensvit.data.authorization.login_password.UserInfo;
+import ua.opensvit.data.authorization.login_password.UserProfile;
+import ua.opensvit.data.authorization.mac.AuthorizationInfoMac;
+import ua.opensvit.data.authorization.mac.UserProfileMac;
 import ua.opensvit.data.iptv.base.TvMenuInfo;
 import ua.opensvit.data.iptv.base.TvMenuItem;
 import ua.opensvit.data.iptv.films.FilmItem;
@@ -28,10 +36,64 @@ public class OpenWorldApi {
         mApiPath = ApiUtils.getBaseUrl();
     }
 
+    public AuthorizationInfoMac getAuthorizationInfo() throws IOException {
+        WifiManager manager = (WifiManager) VideoStreamApp.getInstance()
+                .getSystemService(Context.WIFI_SERVICE);
+        WifiInfo info = manager.getConnectionInfo();
+        if(info != null) {
+            String mac = info.getMacAddress();
+            String sn = Build.SERIAL;
+            String url = ApiUtils.getApiUrl(ApiConstants.MacAddressAuth.AUTH_URL, mac, sn);
+            this.httpOut = this.gets.get(url);
+            AuthorizationInfoMac res = new AuthorizationInfoMac();
+            boolean isAuthenticated = false;
+            try {
+                JSONObject jsonObj = new JSONObject(this.httpOut);
+                if (jsonObj.has(AuthorizationInfoMac.ERROR)) {
+                    res.setError(jsonObj.getString(AuthorizationInfoMac.ERROR));
+                } else if (jsonObj.getBoolean(AuthorizationInfoMac.IS_ACTIVE)) {
+                    res.setIsActive(true);
+                    if (jsonObj.getBoolean(AuthorizationInfoMac.IS_AUTHENTICATED)) {
+                        res.setIsAuthenticated(true);
+                        isAuthenticated = true;
+                    }
+                }
+                if (!isAuthenticated) {
+                    return res;
+                }
+                res.setSession(jsonObj.getString(AuthorizationInfoMac.J_SESSION));
+                JSONObject userProfileObj = jsonObj.getJSONObject(UserProfileMac.JSON_NAME);
+                UserProfileMac userProfileMac = new UserProfileMac();
+                if(userProfileObj.has(UserProfileMac.NETWORK_PATH)) {
+                    userProfileMac.setNetworkPath(userProfileObj.getString(UserProfileMac
+                            .NETWORK_PATH));
+                }
+                userProfileMac.setTransparency(userProfileObj.getInt(UserProfileMac.TRANSPARENCY));
+                userProfileMac.setId(userProfileObj.getInt(UserProfileMac.ID));
+                userProfileMac.setReminder(userProfileObj.getInt(UserProfileMac.REMINDER));
+                userProfileMac.setVolume(userProfileObj.getInt(UserProfileMac.VOLUME));
+                userProfileMac.setRatio(userProfileObj.getString(UserProfileMac.RATIO));
+                userProfileMac.setResolution(userProfileObj.getString(UserProfileMac.RESOLUTION));
+                userProfileMac.setLanguage(userProfileObj.getString(UserProfileMac.LANGUAGE));
+                userProfileMac.setStartPage(userProfileObj.getString(UserProfileMac.START_PAGE));
+                userProfileMac.setType(userProfileObj.getString(UserProfileMac.TYPE));
+                userProfileMac.setSkin(userProfileObj.getString(UserProfileMac.SKIN));
+                userProfileMac.setShowWelcome(userProfileObj.getBoolean(UserProfileMac
+                        .SHOW_WELCOME));
+                res.setUserProfileBase(userProfileMac);
+            } catch (JSONException e) {
+                e.printStackTrace();
+                return res;
+            }
+            return res;
+        }
+        return null;
+    }
+
     public AuthorizationInfo getAuthorizationInfo(String login, String password) throws
             IOException {
         AuthorizationInfo res = new AuthorizationInfo();
-        String url = ApiUtils.getApiUrl(ApiConstants.AUTH_URL, login, password);
+        String url = ApiUtils.getApiUrl(ApiConstants.LoginPasswordAuth.AUTH_URL, login, password);
         this.httpOut = this.gets.get(url);
         boolean isAuthenticated = false;
         try {
@@ -66,7 +128,7 @@ public class OpenWorldApi {
             userProfile.setType(userProfileObj.getString(UserProfile.TYPE));
             userProfile.setSkin(userProfileObj.getString(UserProfile.SKIN));
             userProfile.setShowWelcome(userProfileObj.getBoolean(UserProfile.SHOW_WELCOME));
-            res.setUserProfile(userProfile);
+            res.setUserProfileBase(userProfile);
         } catch (JSONException e) {
             e.printStackTrace();
             return res;
@@ -75,8 +137,7 @@ public class OpenWorldApi {
     }
 
     public TvMenuInfo getAuthService() throws IOException {
-        String url = ApiUtils.getApiUrl(ApiConstants.AUTH_SERVICE_URL, ApiConstants
-                .AUTH_SERVICE_IP_TV);
+        String url = ApiUtils.getApiUrl(ApiConstants.LoginPasswordAuth.AUTH_SERVICE_URL, ApiConstants.LoginPasswordAuth.AUTH_SERVICE_IP_TV);
         this.httpOut = this.gets.get(url);
 
         return parseJsonTvMenuInfo(httpOut);
@@ -84,7 +145,9 @@ public class OpenWorldApi {
 
     public FilmsInfo getFilms(int genreId) throws IOException {
         FilmsInfo res = new FilmsInfo();
-        String url = ApiUtils.getApiUrl(ApiConstants.GET_FILMS_URL, "" + genreId, "" + 0, "" + 0);
+        String url = ApiUtils.getApiUrl(ApiConstants.LoginPasswordAuth.GET_FILMS_URL, "" + genreId,
+                "" + 0, "" +
+                0);
         this.httpOut = this.gets.get(url);
         try {
             JSONObject jsonObj = new JSONObject(this.httpOut);
@@ -471,7 +534,7 @@ public class OpenWorldApi {
     }
 
     public TvMenuInfo getVodMenu() throws IOException {
-        String url = ApiUtils.getApiUrl(ApiConstants.VOD_MENU_URL);
+        String url = ApiUtils.getApiUrl(ApiConstants.LoginPasswordAuth.VOD_MENU_URL);
         this.httpOut = this.gets.get(url);
         TvMenuInfo res = parseJsonTvMenuInfo(httpOut);
         res.setService(1);

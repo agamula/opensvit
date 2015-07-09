@@ -14,11 +14,10 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import org.json.JSONObject;
-
-import ua.opensvit.data.authorization.AuthorizationInfo;
 import ua.opensvit.api.OpenWorldApi;
 import ua.opensvit.data.PassLoginStorage;
+import ua.opensvit.data.authorization.login_password.AuthorizationInfo;
+import ua.opensvit.data.authorization.mac.AuthorizationInfoMac;
 
 @SuppressLint({"NewApi"})
 public class LevTv extends Activity implements View.OnClickListener {
@@ -56,24 +55,28 @@ public class LevTv extends Activity implements View.OnClickListener {
                 password = "123321";
             }
             OpenWorldApi api = new OpenWorldApi();
-            VideoStreamApplication.getInstance().setDbApi(api);
+            VideoStreamApp app = VideoStreamApp.getInstance();
+            app.setDbApi(api);
             try {
-                AuthorizationInfo authorizationInfo = api.getAuthorizationInfo(login, password);
-                if (authorizationInfo.getError() != null) {
-                    Toast.makeText(this, authorizationInfo.getError(), Toast.LENGTH_SHORT).show();
-                }
-                if (authorizationInfo.isActive() && authorizationInfo
-                        .isAuthenticated()) {
+                if(!app.isMac()) {
+                    AuthorizationInfo authorizationInfo = api.getAuthorizationInfo(login, password);
+                    if (authorizationInfo.getError() != null) {
+                        Toast.makeText(this, authorizationInfo.getError(), Toast.LENGTH_SHORT).show();
+                    }
+                    if (authorizationInfo.isActive() && authorizationInfo
+                            .isAuthenticated()) {
 
-                    Intent localIntent = new Intent(this, MainMenu.class);
-                    localIntent.putExtra(AUTHORIZATION_INFO_TAG, authorizationInfo);
-                    startActivity(localIntent);
-                    //finish();
+                        Intent localIntent = new Intent(this, MainMenu.class);
+                        localIntent.putExtra(AUTHORIZATION_INFO_TAG, authorizationInfo);
+                        startActivity(localIntent);
+                        finish();
+                    }
+                } else {
+                    AuthorizationInfoMac macInfo = api.getAuthorizationInfo();
+                    int a = 10;
                 }
-                return;
             } catch (Exception e) {
                 e.printStackTrace();
-                return;
             }
         } else {
             Toast.makeText(this, "Please check your network connection", Toast.LENGTH_SHORT).show();

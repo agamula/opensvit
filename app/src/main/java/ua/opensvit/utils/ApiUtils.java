@@ -3,7 +3,7 @@ package ua.opensvit.utils;
 import java.util.Locale;
 
 import ua.opensvit.R;
-import ua.opensvit.VideoStreamApplication;
+import ua.opensvit.VideoStreamApp;
 
 public class ApiUtils {
 
@@ -14,9 +14,20 @@ public class ApiUtils {
     }
 
     public static String getBaseUrl() {
-        VideoStreamApplication app = VideoStreamApplication.getInstance();
-        sApiUrl = app.getResources().getString(app.isTest() ? R.string.api_test_url : R.string
-                .api_live_url);
+        VideoStreamApp app = VideoStreamApp.getInstance();
+        if(app.isMac()) {
+            if(app.isTest()) {
+                sApiUrl = app.getString(R.string.api_test_mac_url);
+            } else {
+                sApiUrl = app.getString(R.string.api_live_mac_url);
+            }
+        } else {
+            if(app.isTest()) {
+                sApiUrl = app.getString(R.string.api_test_login_password_url);
+            } else {
+                sApiUrl = app.getString(R.string.api_live_login_password_url);
+            }
+        }
         return sApiUrl;
     }
 

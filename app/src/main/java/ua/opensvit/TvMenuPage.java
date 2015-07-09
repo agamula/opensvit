@@ -34,12 +34,12 @@ public class TvMenuPage extends ExpandableListActivity {
 
     public void onCreate(Bundle paramBundle) {
         super.onCreate(paramBundle);
-        api = VideoStreamApplication.getInstance().getApi();
+        api = VideoStreamApp.getInstance().getApi();
         try {
             this.api.KeepAlive(true);
             tvMenuInfo = this.api.getAuthService();
             //this.iptvServiceId = this.iptvMenu.Iptv_menu_str.service;
-            VideoStreamApplication.getInstance().setIpTvServiceId(tvMenuInfo.getService());
+            VideoStreamApp.getInstance().setIpTvServiceId(tvMenuInfo.getService());
             //this.iptvMeunuItemsCount = this.iptvMenu.Iptv_menu_str.IPTVMenuItems.id.size();
             if (tvMenuInfo.isSuccess()) {
                 ganre_viev();
@@ -118,7 +118,7 @@ public class TvMenuPage extends ExpandableListActivity {
 
 
     public void getEpgChannel(int paramInt, String paramString, Boolean paramBoolean) {
-        VideoStreamApplication.getInstance().setChannelId(paramInt);
+        VideoStreamApp.getInstance().setChannelId(paramInt);
         LevtvStruct struct = null;
         try {
             struct = this.api.GetEpg(Integer.valueOf(tvMenuInfo.getService()), Integer
@@ -171,7 +171,7 @@ public class TvMenuPage extends ExpandableListActivity {
     public static void playChannel(int paramInt, String paramString, Context context)
             throws IOException, JSONException {
 
-        VideoStreamApplication app = VideoStreamApplication.getInstance();
+        VideoStreamApp app = VideoStreamApp.getInstance();
 
         app.setChannelId(paramInt);
         Intent localIntent = new Intent(context, VideoViewPlayer.class);

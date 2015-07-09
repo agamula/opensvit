@@ -78,7 +78,7 @@ public class VodListAdapter extends BaseExpandableListAdapter {
         }
 
         Point screenSize = new Point();
-        WindowManager localWindowManager = (WindowManager) VideoStreamApplication.getInstance()
+        WindowManager localWindowManager = (WindowManager) VideoStreamApp.getInstance()
                 .getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
         Display display = localWindowManager.getDefaultDisplay();
         if (Build.VERSION.SDK_INT >= 11) {

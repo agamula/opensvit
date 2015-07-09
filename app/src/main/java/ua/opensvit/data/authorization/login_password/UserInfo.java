@@ -1,4 +1,4 @@
-package ua.opensvit.data.authorization;
+package ua.opensvit.data.authorization.login_password;
 
 import android.os.Parcel;
 import android.os.Parcelable;

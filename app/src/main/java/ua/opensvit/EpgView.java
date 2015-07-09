@@ -134,7 +134,7 @@ public class EpgView extends ExpandableListActivity {
 
     public void onCreate(Bundle paramBundle) {
         super.onCreate(paramBundle);
-        this.api = VideoStreamApplication.getInstance().getApi();
+        this.api = VideoStreamApp.getInstance().getApi();
         this.chId = getIntent().getExtras().getInt("ch_id");
         this.chName = getIntent().getExtras().getString("ch_name");
         this.epgGo = getIntent().getExtras().getString("epg_go");

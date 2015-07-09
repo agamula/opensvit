@@ -5,4 +5,6 @@
     <bool name="default_line_indicator_centered">true</bool>
     <bool name="default_title_indicator_selected_bold">true</bool>
     <bool name="default_underline_indicator_fades">true</bool>
+    <bool name="is_test">true</bool>
+    <bool name="is_mac">true</bool>
 </resources>

@@ -41,7 +41,7 @@ public class FilmAct extends Activity {
     public void onCreate(Bundle bundle) {
         super.onCreate(bundle);
         setContentView(R.layout.vod_activitivod);
-        this.api = VideoStreamApplication.getInstance().getApi();
+        this.api = VideoStreamApp.getInstance().getApi();
         this.chId = getIntent().getExtras().getInt("ch_id");
         LevtvStruct struct = null;
         try {

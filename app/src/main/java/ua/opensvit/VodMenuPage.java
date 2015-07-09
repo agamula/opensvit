@@ -5,17 +5,13 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ExpandableListView;
-import android.widget.ListView;
 import android.widget.Toast;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import ua.opensvit.api.OpenWorldApi;
-import ua.opensvit.api.LevtvStruct;
 import ua.opensvit.data.Film;
 import ua.opensvit.data.iptv.base.TvMenuInfo;
 import ua.opensvit.data.iptv.base.TvMenuItem;
@@ -32,7 +28,7 @@ public class VodMenuPage extends ExpandableListActivity {
 
     public void onCreate(Bundle bundle) {
         super.onCreate(bundle);
-        api = VideoStreamApplication.getInstance().getApi();
+        api = VideoStreamApp.getInstance().getApi();
         try {
             this.api.KeepAlive(true);
             this.VodMenu = this.api.getVodMenu();

@@ -3,17 +3,20 @@ package ua.opensvit;
 import android.app.Application;
 import ua.opensvit.api.OpenWorldApi;
 
-public class VideoStreamApplication extends Application {
+public final class VideoStreamApp extends Application {
 
-    private static VideoStreamApplication sInstance;
-    private static boolean IS_TEST = false;
+    private static VideoStreamApp sInstance;
 
-    public static VideoStreamApplication getInstance() {
+    public static VideoStreamApp getInstance() {
         return sInstance;
     }
 
-    public static boolean isTest() {
-        return IS_TEST;
+    public boolean isTest() {
+        return getResources().getBoolean(R.bool.is_test);
+    }
+
+    public boolean isMac() {
+        return getResources().getBoolean(R.bool.is_mac);
     }
 
     public final void onCreate() {
