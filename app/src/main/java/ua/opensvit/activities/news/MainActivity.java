@@ -38,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
 
         ActionBar ab = getSupportActionBar();
         ab.setDisplayHomeAsUpEnabled(true);
+        ab.setDisplayShowTitleEnabled(false);
 
         mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
         setupDrawerToggle();
