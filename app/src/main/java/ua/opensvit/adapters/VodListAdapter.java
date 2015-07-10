@@ -1,4 +1,4 @@
-package ua.opensvit;
+package ua.opensvit.adapters;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -18,6 +18,8 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 
+import ua.opensvit.R;
+import ua.opensvit.VideoStreamApp;
 import ua.opensvit.api.OpenWorldApi;
 import ua.opensvit.data.Film;
 

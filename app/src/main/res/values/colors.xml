@@ -17,4 +17,9 @@
     <color name="default_title_indicator_selected_color">#ffffffff</color>
     <color name="default_title_indicator_text_color">#bbffffff</color>
     <color name="default_underline_indicator_selected_color">#ff33b5e5</color>
+
+    <color name="app_dark_color">#ff89abe5</color>
+    <color name="app_color">#ffbed7e5</color>
+    <color name="app_light_color">#ffd5e2e5</color>
+    <color name="default_text_color">#ff6b6868</color>
 </resources>

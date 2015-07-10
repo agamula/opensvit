@@ -1,4 +1,4 @@
-package ua.opensvit;
+package ua.opensvit.adapters;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -22,6 +22,7 @@ import java.util.ArrayList;
 
 import org.json.JSONException;
 
+import ua.opensvit.R;
 import ua.opensvit.api.OpenWorldApi;
 import ua.opensvit.data.Channel;
 

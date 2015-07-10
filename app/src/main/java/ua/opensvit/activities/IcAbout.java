@@ -1,12 +1,13 @@
-package ua.opensvit;
+package ua.opensvit.activities;
 
 import android.app.Activity;
 import android.os.Bundle;
 import android.text.util.Linkify;
 import android.widget.TextView;
 
-public class IcAbout
-        extends Activity {
+import ua.opensvit.R;
+
+public class IcAbout extends Activity {
     public IcAbout() {
     }
 

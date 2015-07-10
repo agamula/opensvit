@@ -1,4 +1,4 @@
-package ua.opensvit;
+package ua.opensvit.activities;
 
 import android.app.ExpandableListActivity;
 import android.content.Intent;
@@ -11,6 +11,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import ua.opensvit.VideoStreamApp;
+import ua.opensvit.activities.FilmAct;
+import ua.opensvit.adapters.VodListAdapter;
 import ua.opensvit.api.OpenWorldApi;
 import ua.opensvit.data.Film;
 import ua.opensvit.data.iptv.base.TvMenuInfo;

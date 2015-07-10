@@ -1,4 +1,4 @@
-package ua.opensvit;
+package ua.opensvit.adapters;
 
 import android.content.Context;
 import android.content.Intent;
@@ -15,6 +15,9 @@ import java.util.ArrayList;
 
 import org.json.JSONException;
 
+import ua.opensvit.R;
+import ua.opensvit.VideoStreamApp;
+import ua.opensvit.activities.VideoViewPlayer;
 import ua.opensvit.data.EpgItem;
 
 public class EpgListApapter extends BaseExpandableListAdapter {

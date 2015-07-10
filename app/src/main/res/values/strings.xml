@@ -11,8 +11,15 @@
     <string name="hello_world">Hello world!</string>
     <string name="menu_settings">Settings</string>
     <string name="title_activity_lev_tv">LevTv</string>
+
+
     <string name="api_live_login_password_url">http://iptv.opensvit.ua/pc</string>
     <string name="api_test_login_password_url">http://iptv.opensvit.ua/levtvo/pc</string>
     <string name="api_test_mac_url">http://ltt.opensvit.ua/levtvo</string>
     <string name="api_live_mac_url">http://ltt.opensvit.ua</string>
+    <string name="app_name1">VideoStreamApp</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="navigation_drawer_open_default">Open drawer</string>
+    <string name="navigation_drawer_close_default">Close drawer</string>
 </resources>

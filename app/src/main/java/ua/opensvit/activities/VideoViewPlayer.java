@@ -1,4 +1,4 @@
-package ua.opensvit;
+package ua.opensvit.activities;
 
 import android.app.Activity;
 import android.content.res.Configuration;
@@ -11,6 +11,8 @@ import java.io.IOException;
 
 import org.json.JSONException;
 
+import ua.opensvit.R;
+import ua.opensvit.VideoStreamApp;
 import ua.opensvit.api.OpenWorldApi;
 import ua.opensvit.api.LevtvStruct;
 

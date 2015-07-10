@@ -1,4 +1,4 @@
-package ua.opensvit;
+package ua.opensvit.activities;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -14,6 +14,8 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import ua.opensvit.R;
+import ua.opensvit.VideoStreamApp;
 import ua.opensvit.api.OpenWorldApi;
 import ua.opensvit.data.PassLoginStorage;
 import ua.opensvit.data.authorization.login_password.AuthorizationInfo;

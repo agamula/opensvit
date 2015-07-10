@@ -1,4 +1,4 @@
-package ua.opensvit;
+package ua.opensvit.activities;
 
 import android.app.ListActivity;
 import android.content.Intent;
@@ -7,6 +7,8 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
+
+import ua.opensvit.R;
 
 public class MainMenu extends ListActivity {
     public MainMenu() {

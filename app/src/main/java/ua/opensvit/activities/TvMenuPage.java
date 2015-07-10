@@ -1,4 +1,4 @@
-package ua.opensvit;
+package ua.opensvit.activities;
 
 import android.app.AlertDialog;
 import android.app.ExpandableListActivity;
@@ -16,6 +16,8 @@ import java.util.List;
 
 import org.json.JSONException;
 
+import ua.opensvit.VideoStreamApp;
+import ua.opensvit.adapters.ChannelListAdapter;
 import ua.opensvit.api.OpenWorldApi;
 import ua.opensvit.api.LevtvStruct;
 import ua.opensvit.data.Film;

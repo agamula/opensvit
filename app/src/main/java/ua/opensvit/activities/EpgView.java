@@ -1,4 +1,4 @@
-package ua.opensvit;
+package ua.opensvit.activities;
 
 import android.annotation.SuppressLint;
 import android.app.ExpandableListActivity;
@@ -15,6 +15,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import ua.opensvit.VideoStreamApp;
+import ua.opensvit.adapters.EpgListApapter;
 import ua.opensvit.api.OpenWorldApi;
 import ua.opensvit.data.EpgItem;
 

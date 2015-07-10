@@ -1,4 +1,4 @@
-package ua.opensvit;
+package ua.opensvit.activities;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -20,6 +20,8 @@ import java.net.URL;
 
 import org.json.JSONException;
 
+import ua.opensvit.R;
+import ua.opensvit.VideoStreamApp;
 import ua.opensvit.api.OpenWorldApi;
 import ua.opensvit.api.LevtvStruct;
 
