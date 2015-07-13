@@ -22,4 +22,6 @@
     <string name="password">Password</string>
     <string name="navigation_drawer_open_default">Open drawer</string>
     <string name="navigation_drawer_close_default">Close drawer</string>
+    <string name="login">Login</string>
+    <string name="demo_login">Demo Login</string>
 </resources>

@@ -22,4 +22,8 @@
     <color name="app_color">#ffbed7e5</color>
     <color name="app_light_color">#ffd5e2e5</color>
     <color name="default_text_color">#ff6b6868</color>
+    <color name="color_login">#ff89abe5</color>
+    <color name="color_login_pressed">#ff7398e5</color>
+    <color name="color_demo_login">#ffbed7e5</color>
+    <color name="color_demo_login_pressed">#ff8fcde5</color>
 </resources>

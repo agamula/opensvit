@@ -1,6 +1,7 @@
 package ua.opensvit;
 
 import android.app.Application;
+
 import ua.opensvit.api.OpenWorldApi;
 
 public final class VideoStreamApp extends Application {
@@ -12,24 +13,38 @@ public final class VideoStreamApp extends Application {
     }
 
     public boolean isTest() {
-        return getResources().getBoolean(R.bool.is_test);
+        return mTestSet ? mIsTest : getResources().getBoolean(R.bool.is_test);
     }
 
     public boolean isMac() {
-        return getResources().getBoolean(R.bool.is_mac);
+        return mMacSet ? mIsMac : getResources().getBoolean(R.bool.is_mac);
     }
 
     public final void onCreate() {
         super.onCreate();
         sInstance = this;
+        mMacSet = mTestSet = false;
     }
 
     private OpenWorldApi mApi;
     private int mChannelId = 0;
     private int mIpTvServiceId;
+    private boolean mIsMac;
+    private boolean mIsTest;
+    private boolean mMacSet;
+    private boolean mTestSet;
 
-    public int getChannelId()
-    {
+    public void setIsMac(boolean mIsMac) {
+        mMacSet = true;
+        this.mIsMac = mIsMac;
+    }
+
+    public void setIsTest(boolean mIsTest) {
+        mTestSet = true;
+        this.mIsTest = mIsTest;
+    }
+
+    public int getChannelId() {
         return this.mChannelId;
     }
 

@@ -10,6 +10,8 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 
 import ua.opensvit.R;
+import ua.opensvit.VideoStreamApp;
+import ua.opensvit.api.OpenWorldApi;
 import ua.opensvit.fragments.MainFragment;
 
 public class MainActivity extends AppCompatActivity {
@@ -42,6 +44,10 @@ public class MainActivity extends AppCompatActivity {
 
         mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
         setupDrawerToggle();
+
+        OpenWorldApi api = new OpenWorldApi();
+        VideoStreamApp app = VideoStreamApp.getInstance();
+        app.setDbApi(api);
     }
 
     private void setupDrawerToggle() {
