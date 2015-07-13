@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="tv_types">
+        <item>@string/tv_type_tv</item>
+        <item>@string/tv_type_vod</item>
+        <item>@string/tv_type_about</item>
+    </string-array>
+</resources>

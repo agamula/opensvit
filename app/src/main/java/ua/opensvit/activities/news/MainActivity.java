@@ -1,6 +1,10 @@
 package ua.opensvit.activities.news;
 
+import android.app.Activity;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -92,5 +96,13 @@ public class MainActivity extends AppCompatActivity {
         });
 
         mDrawerLayout.setDrawerListener(mDrawerToggle);
+    }
+
+    public static void startFragment(FragmentActivity activity, Fragment fragment) {
+        FragmentTransaction transaction = activity.getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.fragment_container, fragment);
+        //TODO add animation
+        transaction.addToBackStack(null);
+        transaction.commit();
     }
 }

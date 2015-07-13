@@ -39,7 +39,7 @@ public class TvMenuPage extends ExpandableListActivity {
         api = VideoStreamApp.getInstance().getApi();
         try {
             this.api.KeepAlive(true);
-            tvMenuInfo = this.api.getAuthService();
+            tvMenuInfo = this.api.getTvMenu();
             //this.iptvServiceId = this.iptvMenu.Iptv_menu_str.service;
             VideoStreamApp.getInstance().setIpTvServiceId(tvMenuInfo.getService());
             //this.iptvMeunuItemsCount = this.iptvMenu.Iptv_menu_str.IPTVMenuItems.id.size();

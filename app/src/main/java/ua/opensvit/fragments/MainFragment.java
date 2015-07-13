@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,7 +12,7 @@ import android.widget.Toast;
 
 import ua.opensvit.R;
 import ua.opensvit.VideoStreamApp;
-import ua.opensvit.activities.MainMenu;
+import ua.opensvit.activities.news.MainActivity;
 import ua.opensvit.api.OpenWorldApi;
 import ua.opensvit.data.authorization.login_password.AuthorizationInfo;
 import ua.opensvit.data.authorization.mac.AuthorizationInfoMac;
@@ -46,17 +47,15 @@ public class MainFragment extends Fragment {
                     app.setIsMac(true);
                     app.setIsTest(true);
                     ApiUtils.getBaseUrl();
-                    Activity activity = getActivity();
+                    FragmentActivity activity = getActivity();
                     AuthorizationInfoMac authorizationInfo = api.getAuthorizationInfo();
                     if (authorizationInfo.getError() != null) {
                         Toast.makeText(activity, authorizationInfo.getError(), Toast.LENGTH_SHORT).show();
                     }
                     if (authorizationInfo.isActive() && authorizationInfo
                             .isAuthenticated()) {
-                        Intent localIntent = new Intent(activity, MainMenu.class);
-                        localIntent.putExtra(AUTHORIZATION_INFO_TAG, authorizationInfo);
-                        startActivity(localIntent);
-                        activity.finish();
+                        Fragment tvTypesFragment = TvTypesFragment.newInstance(authorizationInfo);
+                        MainActivity.startFragment(activity, tvTypesFragment);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -71,18 +70,15 @@ public class MainFragment extends Fragment {
                     app.setIsMac(false);
                     app.setIsTest(false);
                     ApiUtils.getBaseUrl();
-                    Activity activity = getActivity();
+                    FragmentActivity activity = getActivity();
                     AuthorizationInfo authorizationInfo = api.getAuthorizationInfo("310807", "123321");
                     if (authorizationInfo.getError() != null) {
                         Toast.makeText(activity, authorizationInfo.getError(), Toast.LENGTH_SHORT).show();
                     }
                     if (authorizationInfo.isActive() && authorizationInfo
                             .isAuthenticated()) {
-
-                        Intent localIntent = new Intent(activity, MainMenu.class);
-                        localIntent.putExtra(AUTHORIZATION_INFO_TAG, authorizationInfo);
-                        startActivity(localIntent);
-                        activity.finish();
+                        Fragment tvTypesFragment = TvTypesFragment.newInstance(authorizationInfo);
+                        MainActivity.startFragment(activity, tvTypesFragment);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();

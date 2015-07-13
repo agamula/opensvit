@@ -40,7 +40,7 @@ public class OpenWorldApi {
         WifiManager manager = (WifiManager) VideoStreamApp.getInstance()
                 .getSystemService(Context.WIFI_SERVICE);
         WifiInfo info = manager.getConnectionInfo();
-        if(info != null) {
+        if (info != null) {
             String mac = info.getMacAddress();
             String sn = Build.SERIAL;
             String url = ApiUtils.getApiUrl(ApiConstants.MacAddressAuth.AUTH_URL, mac, sn);
@@ -64,7 +64,7 @@ public class OpenWorldApi {
                 res.setSession(jsonObj.getString(AuthorizationInfoMac.J_SESSION));
                 JSONObject userProfileObj = jsonObj.getJSONObject(UserProfileMac.JSON_NAME);
                 UserProfileMac userProfileMac = new UserProfileMac();
-                if(userProfileObj.has(UserProfileMac.NETWORK_PATH)) {
+                if (userProfileObj.has(UserProfileMac.NETWORK_PATH)) {
                     userProfileMac.setNetworkPath(userProfileObj.getString(UserProfileMac
                             .NETWORK_PATH));
                 }
@@ -136,18 +136,25 @@ public class OpenWorldApi {
         return res;
     }
 
-    public TvMenuInfo getAuthService() throws IOException {
-        String url = ApiUtils.getApiUrl(ApiConstants.LoginPasswordAuth.AUTH_SERVICE_URL, ApiConstants.LoginPasswordAuth.AUTH_SERVICE_IP_TV);
+    public TvMenuInfo getTvMenu() throws IOException {
+        String url = ApiUtils.getApiUrl(ApiConstants.LoginPasswordAuth.IP_TV_MENU_URL);
         this.httpOut = this.gets.get(url);
-
         return parseJsonTvMenuInfo(httpOut);
+    }
+
+    public TvMenuInfo getVodMenu() throws IOException {
+        String url = ApiUtils.getApiUrl(ApiConstants.LoginPasswordAuth.VOD_MENU_URL);
+        this.httpOut = this.gets.get(url);
+        TvMenuInfo res = parseJsonTvMenuInfo(httpOut);
+        res.setService(1);
+        return res;
     }
 
     public FilmsInfo getFilms(int genreId) throws IOException {
         FilmsInfo res = new FilmsInfo();
         String url = ApiUtils.getApiUrl(ApiConstants.LoginPasswordAuth.GET_FILMS_URL, "" + genreId,
                 "" + 0, "" +
-                0);
+                        0);
         this.httpOut = this.gets.get(url);
         try {
             JSONObject jsonObj = new JSONObject(this.httpOut);
@@ -533,32 +540,29 @@ public class OpenWorldApi {
         return res;
     }
 
-    public TvMenuInfo getVodMenu() throws IOException {
-        String url = ApiUtils.getApiUrl(ApiConstants.LoginPasswordAuth.VOD_MENU_URL);
-        this.httpOut = this.gets.get(url);
-        TvMenuInfo res = parseJsonTvMenuInfo(httpOut);
-        res.setService(1);
-        return res;
-    }
-
     private TvMenuInfo parseJsonTvMenuInfo(String tvInfoJsonString) {
         TvMenuInfo res = new TvMenuInfo();
         try {
             JSONObject jsonObj = new JSONObject(tvInfoJsonString);
-            boolean isSuccess = jsonObj.getBoolean(TvMenuInfo.SUCCESS);
-            res.setSuccess(isSuccess);
-            if (isSuccess) {
-                if(jsonObj.has(TvMenuInfo.SERVICE)) {
-                    res.setService(jsonObj.getInt(TvMenuInfo.SERVICE));
+            if (jsonObj.has(TvMenuInfo.SUCCESS)) {
+                boolean isSuccess = jsonObj.getBoolean(TvMenuInfo.SUCCESS);
+                res.setSuccess(isSuccess);
+                if (isSuccess) {
+                    if (jsonObj.has(TvMenuInfo.SERVICE)) {
+                        res.setService(jsonObj.getInt(TvMenuInfo.SERVICE));
+                    }
+                    JSONArray ipTvItemsArr = jsonObj.getJSONArray(TvMenuItem.JSON_NAME);
+                    for (int i = 0; i < ipTvItemsArr.length(); i++) {
+                        JSONObject localJSONObject = ipTvItemsArr.getJSONObject(i);
+                        TvMenuItem item = new TvMenuItem();
+                        item.setId(localJSONObject.getInt(TvMenuItem.ID));
+                        item.setName(localJSONObject.getString(TvMenuItem.NAME));
+                        res.addItem(item);
+                    }
                 }
-                JSONArray ipTvItemsArr = jsonObj.getJSONArray(TvMenuItem.JSON_NAME);
-                for (int i = 0; i < ipTvItemsArr.length(); i++) {
-                    JSONObject localJSONObject = ipTvItemsArr.getJSONObject(i);
-                    TvMenuItem item = new TvMenuItem();
-                    item.setId(localJSONObject.getInt(TvMenuItem.ID));
-                    item.setName(localJSONObject.getString(TvMenuItem.NAME));
-                    res.addItem(item);
-                }
+            } else if (jsonObj.has(TvMenuInfo.ERROR)) {
+                String error = jsonObj.getString(TvMenuInfo.ERROR);
+                res.setError(error);
             }
         } catch (JSONException e) {
             e.printStackTrace();

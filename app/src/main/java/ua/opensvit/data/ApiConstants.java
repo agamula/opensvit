@@ -8,8 +8,6 @@ public class ApiConstants {
         }
 
         public static final String AUTH_URL = WS + "Auth?login=%s&password=%s";
-        public static final String AUTH_SERVICE_URL = WS + "AuthService?type=%s";
-        public static final String AUTH_SERVICE_IP_TV = "iptv";
 
         public static final String CHECK_AVAILABILITY_URL = WS + "CheckAvailability?url=%s";
         public static final String CHECK_SERVICE_PIN_URL = WS + "CheckServicePin?id=%s&pin=%s";
@@ -29,7 +27,7 @@ public class ApiConstants {
         public static final String GET_IMAGES_URL = WS + "GetImages";
         public static final String I18N_URL = WS + "I18n?language=%s";
         public static final String INFO_ABOUT_URL = WS + "InfoAbout";
-        public static final String IP_TV_MENU_ABOUT_URL = WS + "IptvMenu";
+        public static final String IP_TV_MENU_URL = WS + "IptvMenu";
         public static final String KEEP_ALIVE_URL = WS + "KeepAlive";
         public static final String ORDER_FILM_URL = WS + "OrderFilm?id=%s&pin=%s";
         public static final String RESET_PIN_URL = WS + "ResetPin?pin=%s&oldPin=%s";
@@ -61,7 +59,7 @@ public class ApiConstants {
         public static final String GET_IMAGES_URL = WS + "GetImages";
         public static final String I18N_URL = WS + "I18n?language=%s";
         public static final String INFO_ABOUT_URL = WS + "InfoAbout";
-        public static final String IP_TV_MENU_ABOUT_URL = WS + "IptvMenu";
+        public static final String IP_TV_MENU_URL = WS + "IptvMenu";
         public static final String KEEP_ALIVE_URL = WS + "KeepAlive";
         public static final String ORDER_FILM_URL = WS + "OrderFilm?id=%s&pin=%s";
         public static final String TOGGLE_IP_TV_FAVORITES_UTL = WS +
