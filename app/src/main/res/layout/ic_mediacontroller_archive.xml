@@ -10,7 +10,7 @@
     android:orientation="horizontal">
 
     <RelativeLayout
-        android:id="@id/relativeLayout1"
+        android:id="@+id/relativeLayout1"
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="fill_parent"
         android:layout_height="74.0dip"
@@ -22,7 +22,7 @@
         android:orientation="horizontal">
 
         <ImageButton
-            android:id="@id/mediacontroller_play_pause"
+            android:id="@+id/mediacontroller_play_pause"
             android:layout_width="54.599976dip"
             android:layout_height="32.0dip"
             android:layout_alignParentRight="true"
@@ -41,10 +41,10 @@
             android:layout_marginLeft="7.0dip"
             android:layout_marginRight="7.0dip"
             android:layout_marginTop="2.0dip"
-            android:layout_toLeftOf="@id/mediacontroller_play_pause">
+            android:layout_toLeftOf="@+id/mediacontroller_play_pause">
 
             <TextView
-                android:id="@id/mediacontroller_file_nameA"
+                android:id="@+id/mediacontroller_file_nameA"
                 style="@style/MediaController_Text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -53,7 +53,7 @@
                 android:singleLine="true"/>
 
             <TextView
-                android:id="@id/mediacontroller_ods_nowA"
+                android:id="@+id/mediacontroller_ods_nowA"
                 style="@style/MediaController_Text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -64,18 +64,18 @@
                 android:singleLine="true"/>
 
             <TextView
-                android:id="@id/mediacontroller_ods_next"
+                android:id="@+id/mediacontroller_ods_next"
                 style="@style/MediaController_Text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignLeft="@id/mediacontroller_ods_now"
+                android:layout_alignLeft="@+id/mediacontroller_ods_now"
                 android:layout_centerVertical="true"
                 android:ellipsize="marquee"
                 android:singleLine="true"/>
         </RelativeLayout>
 
         <ImageButton
-            android:id="@id/mediacontroller_play_pause"
+            android:id="@+id/mediacontroller_play_pause"
             android:layout_width="54.599976dip"
             android:layout_height="32.0dip"
             android:layout_alignParentRight="true"
@@ -94,10 +94,10 @@
             android:layout_marginLeft="7.0dip"
             android:layout_marginRight="7.0dip"
             android:layout_marginTop="2.0dip"
-            android:layout_toLeftOf="@id/mediacontroller_play_pause">
+            android:layout_toLeftOf="@+id/mediacontroller_play_pause">
 
             <TextView
-                android:id="@id/mediacontroller_file_name"
+                android:id="@+id/mediacontroller_file_name"
                 style="@style/MediaController_Text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -106,7 +106,7 @@
                 android:singleLine="true"/>
 
             <TextView
-                android:id="@id/mediacontroller_ods_now"
+                android:id="@+id/mediacontroller_ods_now"
                 style="@style/MediaController_Text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -117,11 +117,11 @@
                 android:singleLine="true"/>
 
             <TextView
-                android:id="@id/mediacontroller_ods_next"
+                android:id="@+id/mediacontroller_ods_next"
                 style="@style/MediaController_Text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignLeft="@id/mediacontroller_ods_now"
+                android:layout_alignLeft="@+id/mediacontroller_ods_now"
                 android:layout_centerVertical="true"
                 android:ellipsize="marquee"
                 android:singleLine="true"/>
@@ -129,16 +129,16 @@
     </RelativeLayout>
 
     <RelativeLayout
-        android:id="@id/relativeLayout1"
+        android:id="@+id/relativeLayout1"
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="fill_parent"
         android:layout_height="76.0dip"
-        android:layout_above="@id/relativeLayout1"
+        android:layout_above="@+id/relativeLayout1"
         android:layout_alignParentTop="true"
         android:orientation="horizontal">
 
         <RelativeLayout
-            android:layout_width="fill_parent"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_alignParentRight="true"
@@ -146,17 +146,17 @@
             android:background="@drawable/mediacontroller_bg">
 
             <TextView
-                android:id="@id/timerText"
+                android:id="@+id/timerText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
                 android:layout_marginRight="42.0dip"
-                android:layout_toLeftOf="@id/PlayArchiveBotton"
+                android:layout_toLeftOf="@+id/PlayArchiveBotton"
                 android:text="+-/time"
                 android:textAppearance="?android:textAppearanceLarge"/>
 
             <ImageButton
-                android:id="@id/PlayArchiveBotton"
+                android:id="@+id/PlayArchiveBotton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentRight="true"
@@ -166,30 +166,30 @@
                 android:src="@drawable/mediacontroller_play02"/>
 
             <ImageButton
-                android:id="@id/plusButton"
+                android:id="@+id/plusButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
-                android:layout_toRightOf="@id/minusButton"
+                android:layout_toRightOf="@+id/minusButton"
                 android:background="#00000000"
                 android:src="@drawable/ic_plus_archive"/>
 
             <ImageButton
-                android:id="@id/minusButton"
+                android:id="@+id/minusButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
-                android:layout_alignTop="@id/plusButton"
+                android:layout_alignTop="@+id/plusButton"
                 android:background="#00000000"
                 android:src="@drawable/ic_minus_archive"/>
 
             <ImageButton
-                android:id="@id/liveButton"
+                android:id="@+id/liveButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignTop="@id/plusButton"
+                android:layout_alignTop="@+id/plusButton"
                 android:layout_marginLeft="57.0dip"
-                android:layout_toRightOf="@id/plusButton"
+                android:layout_toRightOf="@+id/plusButton"
                 android:background="#00000000"
                 android:src="@drawable/ic_livearchive"/>
         </RelativeLayout>

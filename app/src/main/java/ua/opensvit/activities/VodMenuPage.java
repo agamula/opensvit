@@ -12,12 +12,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ua.opensvit.VideoStreamApp;
-import ua.opensvit.activities.FilmAct;
 import ua.opensvit.adapters.VodListAdapter;
 import ua.opensvit.api.OpenWorldApi;
 import ua.opensvit.data.Film;
-import ua.opensvit.data.iptv.base.TvMenuInfo;
-import ua.opensvit.data.iptv.base.TvMenuItem;
+import ua.opensvit.data.iptv.menu.TvMenuInfo;
+import ua.opensvit.data.iptv.menu.TvMenuItem;
 import ua.opensvit.data.iptv.films.FilmItem;
 import ua.opensvit.data.iptv.films.FilmsInfo;
 

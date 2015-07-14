@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
+import android.widget.Toast;
 
 import java.io.IOException;
 
@@ -18,8 +19,10 @@ import ua.opensvit.data.authorization.login_password.UserInfo;
 import ua.opensvit.data.authorization.login_password.UserProfile;
 import ua.opensvit.data.authorization.mac.AuthorizationInfoMac;
 import ua.opensvit.data.authorization.mac.UserProfileMac;
-import ua.opensvit.data.iptv.base.TvMenuInfo;
-import ua.opensvit.data.iptv.base.TvMenuItem;
+import ua.opensvit.data.iptv.channels.Channel;
+import ua.opensvit.data.iptv.channels.ChannelsInfo;
+import ua.opensvit.data.iptv.menu.TvMenuInfo;
+import ua.opensvit.data.iptv.menu.TvMenuItem;
 import ua.opensvit.data.iptv.films.FilmItem;
 import ua.opensvit.data.iptv.films.FilmsInfo;
 import ua.opensvit.utils.ApiUtils;
@@ -136,6 +139,38 @@ public class OpenWorldApi {
         return res;
     }
 
+    private TvMenuInfo parseJsonTvMenuInfo(String tvInfoJsonString) {
+        TvMenuInfo res = new TvMenuInfo();
+        try {
+            JSONObject jsonObj = new JSONObject(tvInfoJsonString);
+            if (jsonObj.has(TvMenuInfo.SUCCESS)) {
+                boolean isSuccess = jsonObj.getBoolean(TvMenuInfo.SUCCESS);
+                res.setSuccess(isSuccess);
+                if (isSuccess) {
+                    if (jsonObj.has(TvMenuInfo.SERVICE)) {
+                        res.setService(jsonObj.getInt(TvMenuInfo.SERVICE));
+                    }
+                    JSONArray ipTvItemsArr = jsonObj.getJSONArray(TvMenuItem.JSON_NAME);
+                    for (int i = 0; i < ipTvItemsArr.length(); i++) {
+                        JSONObject localJSONObject = ipTvItemsArr.getJSONObject(i);
+                        TvMenuItem item = new TvMenuItem();
+                        item.setId(localJSONObject.getInt(TvMenuItem.ID));
+                        item.setName(localJSONObject.getString(TvMenuItem.NAME));
+                        res.addItem(item);
+                    }
+                }
+            } else if (jsonObj.has(TvMenuInfo.ERROR)) {
+                String error = jsonObj.getString(TvMenuInfo.ERROR);
+                res.setError(error);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+            res.setSuccess(false);
+            return res;
+        }
+        return res;
+    }
+
     public TvMenuInfo getTvMenu() throws IOException {
         String url = ApiUtils.getApiUrl(ApiConstants.LoginPasswordAuth.IP_TV_MENU_URL);
         this.httpOut = this.gets.get(url);
@@ -150,11 +185,77 @@ public class OpenWorldApi {
         return res;
     }
 
+    public ChannelsInfo getChannels(int categoryId) throws IOException {
+        ChannelsInfo res = new ChannelsInfo();
+        String url = ApiUtils.getApiUrl(ApiConstants.LoginPasswordAuth.GET_CHANNELS_URL, "" +
+                categoryId, "" + 0, "" + 0);
+        this.httpOut = this.gets.get(url);
+        try {
+            JSONObject jsonObj = new JSONObject(this.httpOut);
+            boolean isSuccess = jsonObj.getBoolean(ChannelsInfo.SUCCESS);
+            res.setSuccess(isSuccess);
+            if (isSuccess) {
+                res.setTotal(jsonObj.getInt(ChannelsInfo.TOTAL));
+                JSONArray channelsArr = jsonObj.getJSONArray(Channel.JSON_NAME);
+                for (int i = 0; i < channelsArr.length(); i++) {
+                    JSONObject channelObj = channelsArr.getJSONObject(i);
+                    Channel channel = new Channel();
+                    channel.setId(channelObj.getInt(Channel.ID));
+                    channel.setName(channelObj.getString(Channel.NAME));
+                    channel.setLogo(channelObj.getString(Channel.LOGO));
+                    channel.setFavorits(channelObj.getBoolean(Channel.FAVORITS));
+                    if(channelObj.has(Channel.ARCHIVE)) {
+                        channel.setArchive(channelObj.getString(Channel.ARCHIVE));
+                    }
+                    //res.Iptv_channels.IptvChanelsItems.allowed.addElement(Boolean.valueOf
+                    //        (localJSONObject.getBoolean("allowed")));
+
+                    //res.Iptv_channels.IptvChanelsItems.logo.addElement("/lev.png");
+                    res.addChannel(channel);
+                }
+            }
+        } catch (JSONException paramObject) {
+            paramObject.printStackTrace();
+            res.setSuccess(false);
+            return res;
+        }
+        return res;
+    }
+
+    public boolean toggleIptvFavorites(int channelId) throws IOException, JSONException {
+        String url = ApiUtils.getApiUrl(ApiConstants.LoginPasswordAuth
+                .TOGGLE_IP_TV_FAVORITES_UTL, channelId + "");
+        httpOut = this.gets.get(url);
+        try {
+            JSONObject jsonObj = new JSONObject(httpOut);
+            return jsonObj.getBoolean("success");
+        } catch (JSONException e) {
+            parseExceptionAndShowToast(httpOut);
+
+        }
+        return false;
+    }
+
+    public String getChannelIp(int channelId) throws IOException {
+        String url = ApiUtils.getApiUrl(ApiConstants.LoginPasswordAuth.GET_CHANNEL_IP_URL,
+                channelId + "");
+        this.httpOut = this.gets.get(url);
+        String res = null;
+        try {
+            JSONObject localJSONObject = new JSONObject(this.httpOut);
+            if (localJSONObject.getBoolean("success")) {
+                res = (String) localJSONObject.get("ip");
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return res;
+    }
+
     public FilmsInfo getFilms(int genreId) throws IOException {
         FilmsInfo res = new FilmsInfo();
         String url = ApiUtils.getApiUrl(ApiConstants.LoginPasswordAuth.GET_FILMS_URL, "" + genreId,
-                "" + 0, "" +
-                        0);
+                "" + 0, "" + 0);
         this.httpOut = this.gets.get(url);
         try {
             JSONObject jsonObj = new JSONObject(this.httpOut);
@@ -193,18 +294,6 @@ public class OpenWorldApi {
             return res.get("url").toString();
         }
         return "error";
-    }
-
-    public String GetChannelIp(int param) throws IOException, JSONException {
-
-        String url = this.mApiPath + "/ws/GetChannelIp?id=" + param;
-        this.httpOut = this.gets.get(url);
-        JSONObject localJSONObject = new JSONObject(this.httpOut);
-        String res = null;
-        if (localJSONObject.getBoolean("success")) {
-            res = (String) localJSONObject.get("ip");
-        }
-        return res;
     }
 
     public LevtvStruct GetEpg(int param1, int param2, int param3, int param4)
@@ -324,12 +413,6 @@ public class OpenWorldApi {
         return "http://193.53.89.7/vod/Amelia.mp4";
     }
 
-    public boolean ToggleIptvFavorites(int param) throws IOException, JSONException {
-        String url = this.mApiPath + "/ws/ToggleIptvFavorites?iptvId=" + param;
-        this.httpOut = this.gets.get(url);
-        return new JSONObject(this.httpOut).getBoolean("success");
-    }
-
     public void getAuthVod() {
         String str = new String(this.applicationPathVod + "/ws/AuthStb?sn=CS1630K8080A3211116000357&mac=00:1a:d0:07:a1:62");
         try {
@@ -366,52 +449,6 @@ public class OpenWorldApi {
             //TODO uncomment
             //res.Films_struct.success = false;
             System.out.println("is Active false");
-        }
-        return res;
-    }
-
-    public LevtvStruct getIptvChannels(String param) throws IOException {
-        LevtvStruct res = new LevtvStruct();
-        String url = this.mApiPath +
-                "/ws/GetChannels?perPage=0&page=0&genreId=" + param;
-        this.httpOut = this.gets.get(url);
-        try {
-            JSONObject jsonObj = new JSONObject(this.httpOut);
-            if (jsonObj.getBoolean("success")) {
-                res.Iptv_channels.success = true;
-                res.Iptv_channels.total = jsonObj.getInt("total");
-                JSONArray jsonArr = jsonObj.getJSONArray("items");
-                for (int i = 0; i < jsonArr.length(); i++) {
-                    JSONObject localJSONObject = jsonArr.getJSONObject(i);
-                    res.Iptv_channels.IptvChanelsItems.id.addElement(Integer.valueOf(
-                            localJSONObject.getInt("id")));
-                    res.Iptv_channels.IptvChanelsItems.name.addElement(localJSONObject.getString
-                            ("name"));
-                    if (localJSONObject.has("logo")) {
-                        res.Iptv_channels.IptvChanelsItems.logo.addElement("/images/" +
-                                localJSONObject.getString("logo"));
-                    }
-                    res.Iptv_channels.IptvChanelsItems.favorite.addElement(Boolean.valueOf
-                            (localJSONObject.getBoolean("favorite")));
-                    res.Iptv_channels.IptvChanelsItems.allowed.addElement(Boolean.valueOf
-                            (localJSONObject.getBoolean("allowed")));
-                    if (!localJSONObject.has("archive")) {
-                        res.Iptv_channels.IptvChanelsItems.archive.addElement(Boolean.valueOf
-                                (false));
-                        continue;
-                    }
-                    res.Iptv_channels.IptvChanelsItems.archive.addElement(Boolean.valueOf
-                            (localJSONObject.getBoolean("archive")));
-                    res.Iptv_channels.IptvChanelsItems.logo.addElement("/lev.png");
-                }
-            } else {
-                res.Iptv_channels.success = false;
-                System.out.println("is Active false");
-            }
-        } catch (JSONException paramObject) {
-            paramObject.printStackTrace();
-            res.Iptv_channels.success = false;
-            return res;
         }
         return res;
     }
@@ -540,36 +577,15 @@ public class OpenWorldApi {
         return res;
     }
 
-    private TvMenuInfo parseJsonTvMenuInfo(String tvInfoJsonString) {
-        TvMenuInfo res = new TvMenuInfo();
+    private void parseExceptionAndShowToast(String out) {
         try {
-            JSONObject jsonObj = new JSONObject(tvInfoJsonString);
-            if (jsonObj.has(TvMenuInfo.SUCCESS)) {
-                boolean isSuccess = jsonObj.getBoolean(TvMenuInfo.SUCCESS);
-                res.setSuccess(isSuccess);
-                if (isSuccess) {
-                    if (jsonObj.has(TvMenuInfo.SERVICE)) {
-                        res.setService(jsonObj.getInt(TvMenuInfo.SERVICE));
-                    }
-                    JSONArray ipTvItemsArr = jsonObj.getJSONArray(TvMenuItem.JSON_NAME);
-                    for (int i = 0; i < ipTvItemsArr.length(); i++) {
-                        JSONObject localJSONObject = ipTvItemsArr.getJSONObject(i);
-                        TvMenuItem item = new TvMenuItem();
-                        item.setId(localJSONObject.getInt(TvMenuItem.ID));
-                        item.setName(localJSONObject.getString(TvMenuItem.NAME));
-                        res.addItem(item);
-                    }
-                }
-            } else if (jsonObj.has(TvMenuInfo.ERROR)) {
-                String error = jsonObj.getString(TvMenuInfo.ERROR);
-                res.setError(error);
-            }
+            JSONObject obj = new JSONObject(out);
+            String error = obj.getString("error");
+            Toast.makeText(VideoStreamApp.getInstance().getApplicationContext(), error, Toast
+                    .LENGTH_SHORT).show();
         } catch (JSONException e) {
             e.printStackTrace();
-            res.setSuccess(false);
-            return res;
         }
-        return res;
     }
 
     public String getApiPath() {

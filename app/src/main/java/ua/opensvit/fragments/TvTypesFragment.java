@@ -15,7 +15,7 @@ import ua.opensvit.VideoStreamApp;
 import ua.opensvit.activities.news.MainActivity;
 import ua.opensvit.api.OpenWorldApi;
 import ua.opensvit.data.authorization.AuthorizationInfoBase;
-import ua.opensvit.data.iptv.base.TvMenuInfo;
+import ua.opensvit.data.iptv.menu.TvMenuInfo;
 
 public class TvTypesFragment extends ListFragment {
 

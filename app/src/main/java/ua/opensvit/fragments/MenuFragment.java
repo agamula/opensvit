@@ -1,36 +1,34 @@
 package ua.opensvit.fragments;
 
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.ListFragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
-import android.widget.ListAdapter;
 import android.widget.Toast;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import ua.opensvit.R;
 import ua.opensvit.VideoStreamApp;
+import ua.opensvit.activities.news.MainActivity;
 import ua.opensvit.adapters.ChannelListAdapter;
 import ua.opensvit.api.OpenWorldApi;
-import ua.opensvit.data.Film;
-import ua.opensvit.data.iptv.base.TvMenuInfo;
-import ua.opensvit.data.iptv.base.TvMenuItem;
-import ua.opensvit.data.iptv.films.FilmItem;
-import ua.opensvit.data.iptv.films.FilmsInfo;
+import ua.opensvit.data.iptv.channels.Channel;
+import ua.opensvit.data.iptv.channels.ChannelsInfo;
+import ua.opensvit.data.iptv.menu.TvMenuInfo;
+import ua.opensvit.data.iptv.menu.TvMenuItem;
 import ua.opensvit.loaders.RunnableLoader;
 
-public class MenuFragment extends Fragment implements LoaderManager.LoaderCallbacks<String>{
+public class MenuFragment extends Fragment implements LoaderManager.LoaderCallbacks<String>,
+        ExpandableListView.OnChildClickListener{
 
     private static final String MENU_INFO_TAG = "menu_info";
     public static final int LOAD_MENUS_ID = 0;
@@ -78,22 +76,16 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
                             groupsList.add(tvMenuItems.get(i).getName());
                         }
 
-                        ArrayList localArrayList2 = new ArrayList(groupsList.size());
+                        ArrayList<ArrayList<Channel>> channels = new ArrayList<>(groupsList.size());
                         for (int i = 0; i < groupsList.size(); i++) {
-                            FilmsInfo filmsInfo = api.getFilms(tvMenuItems.get(i).getId());
-                            List<Film> films = new ArrayList<>();
-                            List<FilmItem> filmItems = filmsInfo.getUnmodifiableFilms();
-                            for (int j = 0; j < filmsInfo.getTotal(); j++) {
-                                FilmItem filmItem = filmItems.get(j);
-                                Film film = new Film(filmItem.getName(), filmItem.getLogo(), filmItem.getId(),
-                                        filmItem.getYear(), filmItem.getGenre(), filmItem.getOrigin());
-                                films.add(film);
-                            }
-                            localArrayList2.add(films);
+                            ChannelsInfo channelsInfo = api.getChannels(tvMenuItems.get(i).getId());
+                            ArrayList<Channel> channelArrayList = new ArrayList<>();
+                            channelArrayList.addAll(channelsInfo.getUnmodifiableChannels());
+                            channels.add(channelArrayList);
                         }
 
                         mExpListAdapter = new ChannelListAdapter(getActivity(), groupsList,
-                                localArrayList2, api);
+                                channels, api);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -108,10 +100,27 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
     public void onLoadFinished(Loader<String> loader, String data) {
         mProgress.setVisibility(View.GONE);
         mExpandableListView.setAdapter(mExpListAdapter);
+        mExpandableListView.setOnChildClickListener(this);
     }
 
     @Override
     public void onLoaderReset(Loader<String> loader) {
 
+    }
+
+    @Override
+    public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int
+            childPosition, long id) {
+        Channel channel = (Channel) mExpListAdapter.getChild(groupPosition, childPosition);
+        VideoStreamApp app = VideoStreamApp.getInstance();
+        try {
+            String ip = VideoStreamApp.getInstance().getApi().getChannelIp(channel.getId());
+            Toast.makeText(app.getApplicationContext(), ip, Toast.LENGTH_SHORT).show();
+            MainActivity.startFragment(getActivity(), PlayVideoFragment.newInstance(ip));
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }

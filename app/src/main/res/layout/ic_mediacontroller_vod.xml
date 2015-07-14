@@ -11,7 +11,7 @@
     android:orientation="horizontal">
 
     <ImageButton
-        android:id="@id/mediacontroller_play_pause"
+        android:id="@+id/mediacontroller_play_pause"
         android:layout_width="54.599976dip"
         android:layout_height="32.0dip"
         android:layout_alignParentRight="true"
@@ -24,20 +24,20 @@
         android:src="@drawable/mediacontroller_pause_button"/>
 
     <RelativeLayout
-        android:layout_width="fill_parent"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="2.0dip"
         android:layout_marginLeft="7.0dip"
         android:layout_marginRight="7.0dip"
         android:layout_marginTop="2.0dip"
-        android:layout_toLeftOf="@id/mediacontroller_play_pause">
+        android:layout_toLeftOf="@+id/mediacontroller_play_pause">
 
         <RelativeLayout
-            android:layout_width="fill_parent"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
             <TextView
-                android:id="@id/mediacontroller_time_current"
+                android:id="@+id/mediacontroller_time_current"
                 style="@style/MediaController_Text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -45,7 +45,7 @@
                 android:layout_alignParentTop="true"/>
 
             <TextView
-                android:id="@id/mediacontroller_time_total"
+                android:id="@+id/mediacontroller_time_total"
                 style="@style/MediaController_Text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -54,7 +54,7 @@
         </RelativeLayout>
 
         <SeekBar
-            android:id="@id/mediacontroller_seekbar"
+            android:id="@+id/mediacontroller_seekbar"
             style="@style/MediaController_SeekBar"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
@@ -63,7 +63,7 @@
             android:max="1000"/>
 
         <TextView
-            android:id="@id/mediacontroller_file_name"
+            android:id="@+id/mediacontroller_file_name"
             style="@style/MediaController_Text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

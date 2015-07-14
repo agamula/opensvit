@@ -7,7 +7,7 @@
     android:orientation="vertical">
 
     <TextView
-        android:id="@id/TextView01"
+        android:id="@+id/TextView01"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
@@ -16,26 +16,26 @@
         android:textStyle="bold"/>
 
     <TextView
-        android:id="@id/tv1"
+        android:id="@+id/tv1"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="Username"/>
 
     <EditText
-        android:id="@id/username"
+        android:id="@+id/username"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:singleLine="true"
         android:text=""/>
 
     <TextView
-        android:id="@id/tv2"
+        android:id="@+id/tv2"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="Password"/>
 
     <EditText
-        android:id="@id/password"
+        android:id="@+id/password"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:ems="10"
@@ -45,30 +45,30 @@
     </EditText>
 
     <Button
-        android:id="@id/Button01"
+        android:id="@+id/Button01"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="Login"/>
 
     <TextView
-        android:id="@id/tv"
+        android:id="@+id/tv"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"/>
 
     <CheckBox
-        android:id="@id/checkRemember"
+        android:id="@+id/checkRemember"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Remember me"/>
 
     <CheckBox
-        android:id="@id/DemoCheckBox"
+        android:id="@+id/DemoCheckBox"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Demo user"/>
 
     <TextView
-        android:id="@id/error_text"
+        android:id="@+id/error_text"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:gravity="center"

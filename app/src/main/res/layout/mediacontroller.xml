@@ -11,7 +11,7 @@
     android:orientation="horizontal">
 
     <ImageButton
-        android:id="@id/mediacontroller_play_pause"
+        android:id="@+id/mediacontroller_play_pause"
         android:layout_width="54.599976dip"
         android:layout_height="32.0dip"
         android:layout_alignParentRight="true"
@@ -33,7 +33,7 @@
         android:layout_toLeftOf="@id/mediacontroller_play_pause">
 
         <TextView
-            android:id="@id/mediacontroller_file_name"
+            android:id="@+id/mediacontroller_file_name"
             style="@style/MediaController_Text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -42,7 +42,7 @@
             android:singleLine="true"/>
 
         <TextView
-            android:id="@id/mediacontroller_ods_now"
+            android:id="@+id/mediacontroller_ods_now"
             style="@style/MediaController_Text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -53,11 +53,11 @@
             android:singleLine="true"/>
 
         <TextView
-            android:id="@id/mediacontroller_ods_next"
+            android:id="@+id/mediacontroller_ods_next"
             style="@style/MediaController_Text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignLeft="@id/mediacontroller_ods_now"
+            android:layout_alignLeft="@+id/mediacontroller_ods_now"
             android:layout_centerVertical="true"
             android:ellipsize="marquee"
             android:singleLine="true"/>

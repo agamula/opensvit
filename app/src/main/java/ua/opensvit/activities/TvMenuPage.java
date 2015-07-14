@@ -21,8 +21,8 @@ import ua.opensvit.adapters.ChannelListAdapter;
 import ua.opensvit.api.OpenWorldApi;
 import ua.opensvit.api.LevtvStruct;
 import ua.opensvit.data.Film;
-import ua.opensvit.data.iptv.base.TvMenuInfo;
-import ua.opensvit.data.iptv.base.TvMenuItem;
+import ua.opensvit.data.iptv.menu.TvMenuInfo;
+import ua.opensvit.data.iptv.menu.TvMenuItem;
 import ua.opensvit.data.iptv.films.FilmItem;
 import ua.opensvit.data.iptv.films.FilmsInfo;
 
@@ -178,7 +178,7 @@ public class TvMenuPage extends ExpandableListActivity {
         app.setChannelId(paramInt);
         Intent localIntent = new Intent(context, VideoViewPlayer.class);
         try {
-            localIntent.putExtra("ch_path", app.getApi().GetChannelIp(Integer.valueOf
+            localIntent.putExtra("ch_path", app.getApi().getChannelIp(Integer.valueOf
                     (paramInt)));
             localIntent.putExtra("ch_name", paramString);
             localIntent.putExtra("ch_id", paramInt);
@@ -187,8 +187,6 @@ public class TvMenuPage extends ExpandableListActivity {
             context.startActivity(localIntent);
             return;
         } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
             e.printStackTrace();
         }
     }

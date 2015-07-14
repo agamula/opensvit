@@ -1,4 +1,4 @@
-package ua.opensvit.data.iptv.base;
+package ua.opensvit.data.iptv.menu;
 
 import android.os.Parcel;
 import android.os.Parcelable;
