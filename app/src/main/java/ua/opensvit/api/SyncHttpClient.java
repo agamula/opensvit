@@ -27,7 +27,7 @@ public class SyncHttpClient
 
     private static String convertStreamToString(InputStream paramInputStream) {
         BufferedReader reader = new BufferedReader(new InputStreamReader(paramInputStream));
-        String s = null;
+        String s;
         StringBuilder res = new StringBuilder();
         try {
             while ((s = reader.readLine()) != null) {
@@ -46,30 +46,14 @@ public class SyncHttpClient
         return res.toString();
     }
 
-    private boolean mSetAlive;
-
-    public void keepAlive(final boolean keepAlive) {
-        mSetAlive = true;
-        System.setProperty("http.keepAlive", "" + keepAlive);
-        httpclient.setReuseStrategy(new ConnectionReuseStrategy() {
-            @Override
-            public boolean keepAlive(HttpResponse httpResponse, HttpContext httpContext) {
-                return keepAlive;
-            }
-        });
-    }
-
     public SyncHttpClient clone()
             throws CloneNotSupportedException {
         return (SyncHttpClient) super.clone();
     }
 
     public String get(String paramString) throws IOException {
-        if(!mSetAlive) {
-            httpclient.setReuseStrategy(null);
-        }
         StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitAll().build());
-        this.httpclient.setCookieStore(this.cookieStore);
+        //this.httpclient.setCookieStore(this.cookieStore);
         String res = null;
         HttpGet httpGet = new HttpGet(paramString);
         try {

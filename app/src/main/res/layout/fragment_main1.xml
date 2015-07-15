@@ -43,7 +43,6 @@
 
             <TextView
                 style="@style/DefaultTextStyle"
-                android:layout_height="wrap_content"
                 android:text="@string/login"
                 android:layout_gravity="center_horizontal"/>
 
@@ -53,7 +52,6 @@
 
             <TextView
                 style="@style/DefaultTextStyle"
-                android:layout_height="wrap_content"
                 android:text="@string/demo_login"
                 android:layout_gravity="center_horizontal"/>
         </LinearLayout>

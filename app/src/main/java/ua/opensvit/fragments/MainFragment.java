@@ -1,7 +1,5 @@
 package ua.opensvit.fragments;
 
-import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -12,7 +10,7 @@ import android.widget.Toast;
 
 import ua.opensvit.R;
 import ua.opensvit.VideoStreamApp;
-import ua.opensvit.activities.news.MainActivity;
+import ua.opensvit.activities.fragments.MainActivity;
 import ua.opensvit.api.OpenWorldApi;
 import ua.opensvit.data.authorization.login_password.AuthorizationInfo;
 import ua.opensvit.data.authorization.mac.AuthorizationInfoMac;
@@ -45,18 +43,24 @@ public class MainFragment extends Fragment {
             public void onClick(View v) {
                 try {
                     app.setIsMac(true);
-                    app.setIsTest(true);
                     ApiUtils.getBaseUrl();
                     FragmentActivity activity = getActivity();
-                    AuthorizationInfoMac authorizationInfo = api.getAuthorizationInfo();
+                    AuthorizationInfoMac authorizationInfo = api.getMacAuthorizationInfo();
                     if (authorizationInfo.getError() != null) {
                         Toast.makeText(activity, authorizationInfo.getError(), Toast.LENGTH_SHORT).show();
                     }
-                    if (authorizationInfo.isActive() && authorizationInfo
-                            .isAuthenticated()) {
+                    if (!authorizationInfo.isActive()) {
+                        authorizationInfo = api.getMacAuthorizationInfo("svs", "svs");
+                    }
+
+                    if(authorizationInfo.isAuthenticated()) {
                         Fragment tvTypesFragment = TvTypesFragment.newInstance(authorizationInfo);
                         MainActivity.startFragment(activity, tvTypesFragment);
+                    } else {
+                        Toast.makeText(activity, getString(R.string.authorization_failed), Toast
+                                .LENGTH_SHORT).show();
                     }
+
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -68,7 +72,6 @@ public class MainFragment extends Fragment {
             public void onClick(View v) {
                 try {
                     app.setIsMac(false);
-                    app.setIsTest(false);
                     ApiUtils.getBaseUrl();
                     FragmentActivity activity = getActivity();
                     AuthorizationInfo authorizationInfo = api.getAuthorizationInfo("310807", "123321");

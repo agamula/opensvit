@@ -3,6 +3,7 @@ package ua.opensvit;
 import android.app.Application;
 
 import ua.opensvit.api.OpenWorldApi;
+import ua.opensvit.api.OpenWorldApi1;
 
 public final class VideoStreamApp extends Application {
 
@@ -27,6 +28,7 @@ public final class VideoStreamApp extends Application {
     }
 
     private OpenWorldApi mApi;
+    private OpenWorldApi1 mApi1;
     private int mChannelId = 0;
     private int mIpTvServiceId;
     private boolean mIsMac;
@@ -58,6 +60,14 @@ public final class VideoStreamApp extends Application {
 
     public void setDbApi(OpenWorldApi paramOpenWorldApi) {
         this.mApi = paramOpenWorldApi;
+    }
+
+    public void setApi1(OpenWorldApi1 mApi1) {
+        this.mApi1 = mApi1;
+    }
+
+    public OpenWorldApi1 getApi1() {
+        return mApi1;
     }
 
     public void setIpTvServiceId(int mIpTvServiceId) {

@@ -29,6 +29,10 @@ public class RunnableLoader extends AsyncTaskLoader<String> {
         }
     }
 
+    public Runnable getRunnable() {
+        return mRunnable;
+    }
+
     @Override
     protected void onStartLoading() {
         if (res != null) {

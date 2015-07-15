@@ -4,14 +4,17 @@ import android.content.Context;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
+import android.support.v4.app.Fragment;
+import android.widget.ProgressBar;
 import android.widget.Toast;
-
-import java.io.IOException;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+
+import ua.opensvit.R;
 import ua.opensvit.VideoStreamApp;
 import ua.opensvit.data.ApiConstants;
 import ua.opensvit.data.authorization.AuthorizationInfoBase;
@@ -23,23 +26,16 @@ import ua.opensvit.data.authorization.mac.AuthorizationInfoMac;
 import ua.opensvit.data.authorization.mac.UserProfileMac;
 import ua.opensvit.data.iptv.channels.Channel;
 import ua.opensvit.data.iptv.channels.ChannelsInfo;
-import ua.opensvit.data.iptv.menu.TvMenuInfo;
-import ua.opensvit.data.iptv.menu.TvMenuItem;
 import ua.opensvit.data.iptv.films.FilmItem;
 import ua.opensvit.data.iptv.films.FilmsInfo;
+import ua.opensvit.data.iptv.menu.TvMenuInfo;
+import ua.opensvit.data.iptv.menu.TvMenuItem;
+import ua.opensvit.http.IOkHttpLoadInfo;
+import ua.opensvit.http.OkHttpAsyncTask;
+import ua.opensvit.http.OkHttpClientRunnable;
 import ua.opensvit.utils.ApiUtils;
 
-public class OpenWorldApi {
-    private String applicationPathVod = new String("http://195.22.112.90:34000/levtvsv_pc/");
-    SyncHttpClient gets = new SyncHttpClient();
-    String httpOut = new String();
-    public Object kostyl;
-    String pub_error = new String();
-    private final String mApiPath;
-
-    public OpenWorldApi() {
-        mApiPath = ApiUtils.getBaseUrl();
-    }
+public class OpenWorldApi1 {
 
     private boolean parseAuthorizationInfoBase(AuthorizationInfoBase res, JSONObject jsonObj) {
         boolean isAuthenticated = false;
@@ -54,7 +50,7 @@ public class OpenWorldApi {
                 }
             }
 
-            if(isAuthenticated) {
+            if (isAuthenticated) {
                 JSONObject userProfileObj = jsonObj.getJSONObject(UserProfileBase.JSON_NAME);
                 UserProfileBase userProfileBase = res.getUserProfileBase();
                 userProfileBase.setTransparency(userProfileObj.getInt(UserProfileBase.TRANSPARENCY));
@@ -79,84 +75,139 @@ public class OpenWorldApi {
         return true;
     }
 
-    private void parseAuthorizationInfoMac(AuthorizationInfoMac res, String url)
-            throws IOException{
-        this.httpOut = this.gets.get(url);
-        try {
-            JSONObject jsonObj = new JSONObject(this.httpOut);
-            res.setUserProfileBase(new UserProfileMac());
-            if(!parseAuthorizationInfoBase(res, jsonObj)) {
-                res.setUserProfileBase(null);
-                return;
-            }
-
-            res.setSession(jsonObj.getString(AuthorizationInfoMac.J_SESSION));
-            JSONObject userProfileObj = jsonObj.getJSONObject(UserProfileMac.JSON_NAME);
-            UserProfileMac userProfileMac = (UserProfileMac)res.getUserProfileBase();
-            if (userProfileObj.has(UserProfileMac.NETWORK_PATH)) {
-                userProfileMac.setNetworkPath(userProfileObj.getString(UserProfileMac
-                        .NETWORK_PATH));
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return;
+    private void parseAuthorizationInfoMac(ProgressBar mProgress, final AuthorizationInfoMac res, String
+            url, final ResultListener mListener, String... params) throws IOException {
+        IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
+        for (int i = 0; i < params.length; i += 2) {
+            loadInfo.addParam(params[i], params[i + 1]);
         }
+        executeHttpTask(mProgress, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+            @Override
+            public void onLoadFinished(String result) {
+                try {
+                    JSONObject jsonObj = new JSONObject(result);
+                    res.setUserProfileBase(new UserProfileMac());
+                    if (!parseAuthorizationInfoBase(res, jsonObj)) {
+                        res.setUserProfileBase(null);
+                        if (mListener != null) {
+                            mListener.onResult(res);
+                        }
+                        return;
+                    }
+
+                    res.setSession(jsonObj.getString(AuthorizationInfoMac.J_SESSION));
+                    JSONObject userProfileObj = jsonObj.getJSONObject(UserProfileMac.JSON_NAME);
+                    UserProfileMac userProfileMac = (UserProfileMac) res.getUserProfileBase();
+                    if (userProfileObj.has(UserProfileMac.NETWORK_PATH)) {
+                        userProfileMac.setNetworkPath(userProfileObj.getString(UserProfileMac
+                                .NETWORK_PATH));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                if (mListener != null) {
+                    mListener.onResult(res);
+                }
+            }
+        });
     }
 
-    public AuthorizationInfoMac getMacAuthorizationInfo() throws IOException {
+    public interface ResultListener {
+        void onResult(Object res);
+    }
+
+    public void macAuth(ProgressBar mProgress, ResultListener mListener)
+            throws IOException {
         WifiManager manager = (WifiManager) VideoStreamApp.getInstance()
                 .getSystemService(Context.WIFI_SERVICE);
         WifiInfo info = manager.getConnectionInfo();
-        AuthorizationInfoMac res = new AuthorizationInfoMac();
         if (info != null) {
             String mac = info.getMacAddress();
             String sn = Build.SERIAL;
-            String url = ApiUtils.getApiUrl(ApiConstants.MacAddressAuth.AUTH_URL, mac, sn);
-            parseAuthorizationInfoMac(res, url);
+            String url = ApiUtils.getApiUrl(ApiConstants.MacAddressAuth.Auth.URL);
+
+            parseAuthorizationInfoMac(mProgress, new AuthorizationInfoMac(), url, mListener,
+                    ApiConstants.MacAddressAuth.Auth.PARAM_MAC, mac, ApiConstants.MacAddressAuth
+                            .Auth.PARAM_SN, sn);
+        } else {
+            VideoStreamApp app = VideoStreamApp.getInstance();
+            Toast.makeText(app.getApplicationContext(), app.getString(R.string
+                    .load_failed_message), Toast.LENGTH_SHORT).show();
         }
-        return res;
     }
 
-    public AuthorizationInfoMac getMacAuthorizationInfo(String login, String password) throws
-            IOException {
+    public void macAuth(Fragment fragment, String login, String password,
+                        ResultListener mListener) throws IOException {
         WifiManager manager = (WifiManager) VideoStreamApp.getInstance()
                 .getSystemService(Context.WIFI_SERVICE);
         WifiInfo info = manager.getConnectionInfo();
-        AuthorizationInfoMac res = new AuthorizationInfoMac();
         if (info != null) {
             String mac = info.getMacAddress();
             String sn = Build.SERIAL;
-            String url = ApiUtils.getApiUrl(ApiConstants.MacAddressAuth.AUTH_LOGIN_PASSWORD_URL,
-                    mac, sn, login, password);
-            parseAuthorizationInfoMac(res, url);
+            String url = ApiUtils.getApiUrl(ApiConstants.MacAddressAuth.Auth.URL);
+
+            parseAuthorizationInfoMac((ProgressBar) fragment.getActivity().findViewById(R.id
+                    .progress), new AuthorizationInfoMac(), url, mListener, ApiConstants
+                    .MacAddressAuth.Auth.PARAM_MAC, mac, ApiConstants.MacAddressAuth
+                    .Auth.PARAM_SN, sn, ApiConstants.MacAddressAuth.Auth.LoginPassword
+                    .PARAM_LOGIN, login, ApiConstants.MacAddressAuth.Auth.LoginPassword
+                    .PARAM_PASSWORD, password);
+        } else {
+            VideoStreamApp app = VideoStreamApp.getInstance();
+            Toast.makeText(app.getApplicationContext(), app.getString(R.string
+                    .load_failed_message), Toast.LENGTH_SHORT).show();
         }
-        return res;
     }
 
-    public AuthorizationInfo getAuthorizationInfo(String login, String password) throws
-            IOException {
-        AuthorizationInfo res = new AuthorizationInfo();
-        String url = ApiUtils.getApiUrl(ApiConstants.LoginPasswordAuth.AUTH_URL, login, password);
-        this.httpOut = this.gets.get(url);
-        try {
-            JSONObject jsonObj = new JSONObject(this.httpOut);
-            res.setUserProfileBase(new UserProfile());
+    public void auth(Fragment fragment, String login, String password,
+                     final ResultListener mListener) throws IOException {
+        String url = ApiUtils.getApiUrl(ApiConstants.LoginPasswordAuth.Auth.URL);
+        IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
+        loadInfo.addParam(ApiConstants.LoginPasswordAuth.Auth.PARAM_LOGIN, login);
+        loadInfo.addParam(ApiConstants.LoginPasswordAuth.Auth.PARAM_PASSWORD, password);
+        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+            @Override
+            public void onLoadFinished(String result) {
+                AuthorizationInfo res = new AuthorizationInfo();
+                try {
+                    JSONObject jsonObj = new JSONObject(result);
+                    res.setUserProfileBase(new UserProfile());
 
-            if (!parseAuthorizationInfoBase(res, jsonObj)) {
-                res.setUserProfileBase(null);
-                return res;
+                    if (!parseAuthorizationInfoBase(res, jsonObj)) {
+                        res.setUserProfileBase(null);
+                        if (mListener != null) {
+                            mListener.onResult(res);
+                        }
+                        return;
+                    }
+                    JSONObject userInfoObj = jsonObj.getJSONObject(UserInfo.JSON_NAME);
+                    UserInfo userInfo = new UserInfo();
+                    userInfo.setBalance(userInfoObj.getInt(UserInfo.BALANCE));
+                    userInfo.setName(userInfoObj.getString(UserInfo.NAME));
+                    res.setUserInfo(userInfo);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                if (mListener != null) {
+                    mListener.onResult(res);
+                }
             }
-            JSONObject userInfoObj = jsonObj.getJSONObject(UserInfo.JSON_NAME);
-            UserInfo userInfo = new UserInfo();
-            userInfo.setBalance(userInfoObj.getInt(UserInfo.BALANCE));
-            userInfo.setName(userInfoObj.getString(UserInfo.NAME));
-            res.setUserInfo(userInfo);
+        });
+    }
 
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return res;
-        }
-        return res;
+    private void executeHttpTask(Fragment fragment, String url, IOkHttpLoadInfo.GetLoaderCreateInfo
+            loadInfo, OkHttpAsyncTask.OnLoadFinishedListener mLoadFinishedListener) {
+        executeHttpTask((ProgressBar) fragment.getActivity().findViewById(R.id
+                .progress), url, loadInfo, mLoadFinishedListener);
+    }
+
+    private void executeHttpTask(ProgressBar progressBar, String url, IOkHttpLoadInfo
+            .GetLoaderCreateInfo loadInfo, OkHttpAsyncTask.OnLoadFinishedListener
+            mLoadFinishedListener) {
+        OkHttpClientRunnable mRunnable = new OkHttpClientRunnable(url, loadInfo);
+        OkHttpAsyncTask task = new OkHttpAsyncTask(progressBar, mRunnable);
+        task.setOnLoadFinishedListener(mLoadFinishedListener);
+        task.execute();
     }
 
     private TvMenuInfo parseJsonTvMenuInfo(String tvInfoJsonString) {
@@ -191,111 +242,184 @@ public class OpenWorldApi {
         return res;
     }
 
-    public TvMenuInfo getTvMenu() throws IOException {
-        String url = ApiUtils.getApiUrl(ApiConstants.LoginPasswordAuth.IP_TV_MENU_URL);
-        this.httpOut = this.gets.get(url);
-        return parseJsonTvMenuInfo(httpOut);
-    }
-
-    public TvMenuInfo getVodMenu() throws IOException {
-        String url = ApiUtils.getApiUrl(ApiConstants.LoginPasswordAuth.VOD_MENU_URL);
-        this.httpOut = this.gets.get(url);
-        TvMenuInfo res = parseJsonTvMenuInfo(httpOut);
-        res.setService(1);
-        return res;
-    }
-
-    public ChannelsInfo getChannels(int categoryId) throws IOException {
-        ChannelsInfo res = new ChannelsInfo();
-        String url = ApiUtils.getApiUrl(ApiConstants.LoginPasswordAuth.GET_CHANNELS_URL, "" +
-                categoryId, "" + 0, "" + 0);
-        this.httpOut = this.gets.get(url);
-        try {
-            JSONObject jsonObj = new JSONObject(this.httpOut);
-            boolean isSuccess = jsonObj.getBoolean(ChannelsInfo.SUCCESS);
-            res.setSuccess(isSuccess);
-            if (isSuccess) {
-                res.setTotal(jsonObj.getInt(ChannelsInfo.TOTAL));
-                JSONArray channelsArr = jsonObj.getJSONArray(Channel.JSON_NAME);
-                for (int i = 0; i < channelsArr.length(); i++) {
-                    JSONObject channelObj = channelsArr.getJSONObject(i);
-                    Channel channel = new Channel();
-                    channel.setId(channelObj.getInt(Channel.ID));
-                    channel.setName(channelObj.getString(Channel.NAME));
-                    channel.setLogo(channelObj.getString(Channel.LOGO));
-                    channel.setFavorits(channelObj.getBoolean(Channel.FAVORITS));
-                    if(channelObj.has(Channel.ARCHIVE)) {
-                        channel.setArchive(channelObj.getString(Channel.ARCHIVE));
-                    }
-                    //res.Iptv_channels.IptvChanelsItems.allowed.addElement(Boolean.valueOf
-                    //        (localJSONObject.getBoolean("allowed")));
-
-                    //res.Iptv_channels.IptvChanelsItems.logo.addElement("/lev.png");
-                    res.addChannel(channel);
+    public void macFindTvMenu(Fragment fragment, final ResultListener mListener) throws IOException {
+        String url = ApiUtils.getApiUrl(ApiConstants.IpTvMenu.URL);
+        IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
+        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+            @Override
+            public void onLoadFinished(String result) {
+                TvMenuInfo res = parseJsonTvMenuInfo(result);
+                if(mListener != null) {
+                    mListener.onResult(res);
                 }
             }
-        } catch (JSONException paramObject) {
-            paramObject.printStackTrace();
-            res.setSuccess(false);
-            return res;
-        }
-        return res;
+        });
     }
 
-    public boolean toggleIptvFavorites(int channelId) throws IOException {
-        String url = ApiUtils.getApiUrl(ApiConstants.LoginPasswordAuth
-                .TOGGLE_IP_TV_FAVORITES_URL, channelId + "");
-        httpOut = this.gets.get(url);
-        try {
-            JSONObject jsonObj = new JSONObject(httpOut);
-            return jsonObj.getBoolean("success");
-        } catch (JSONException e) {
-            parseExceptionAndShowToast(httpOut);
-
-        }
-        return false;
-    }
-
-    public String getChannelIp(int channelId) throws IOException {
-        String url = ApiUtils.getApiUrl(ApiConstants.LoginPasswordAuth.GET_CHANNEL_IP_URL,
-                channelId + "");
-        this.httpOut = this.gets.get(url);
-        String res = null;
-        try {
-            JSONObject localJSONObject = new JSONObject(this.httpOut);
-            if (localJSONObject.getBoolean("success")) {
-                res = (String) localJSONObject.get("ip");
+    public void macFindVodMenu(Fragment fragment, final ResultListener mListener) throws IOException {
+        String url = ApiUtils.getApiUrl(ApiConstants.VodMenu.URL);
+        IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
+        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+            @Override
+            public void onLoadFinished(String result) {
+                TvMenuInfo res = parseJsonTvMenuInfo(result);
+                if(mListener != null) {
+                    mListener.onResult(res);
+                }
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return res;
+        });
     }
 
-    public long keepAliveTime(boolean keepAlive) throws IOException {
-        String url = ApiUtils.getApiUrl(ApiConstants.LoginPasswordAuth.KEEP_ALIVE_URL);
-        this.httpOut = this.gets.get(url);
+    public void macFindChannels(Fragment fragment, int categoryId, final ResultListener
+            mListener) throws IOException {
+        String url = ApiUtils.getApiUrl(ApiConstants.GetChannels.URL);
+        IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
+        loadInfo.addParam(ApiConstants.GetChannels.PARAM_GENRE_ID, "" + categoryId);
+        loadInfo.addParam(ApiConstants.GetChannels.PARAM_PER_PAGE, "" + 0);
+        loadInfo.addParam(ApiConstants.GetChannels.PARAM_PAGE, "" + 0);
+        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+            @Override
+            public void onLoadFinished(String result) {
+                ChannelsInfo res = new ChannelsInfo();
+                try {
+                    JSONObject jsonObj = new JSONObject(result);
+                    boolean isSuccess = jsonObj.getBoolean(ChannelsInfo.SUCCESS);
+                    res.setSuccess(isSuccess);
+                    if (isSuccess) {
+                        res.setTotal(jsonObj.getInt(ChannelsInfo.TOTAL));
+                        JSONArray channelsArr = jsonObj.getJSONArray(Channel.JSON_NAME);
+                        for (int i = 0; i < channelsArr.length(); i++) {
+                            JSONObject channelObj = channelsArr.getJSONObject(i);
+                            Channel channel = new Channel();
+                            channel.setId(channelObj.getInt(Channel.ID));
+                            channel.setName(channelObj.getString(Channel.NAME));
+                            channel.setLogo(channelObj.getString(Channel.LOGO));
+                            channel.setFavorits(channelObj.getBoolean(Channel.FAVORITS));
+                            if (channelObj.has(Channel.ARCHIVE)) {
+                                channel.setArchive(channelObj.getString(Channel.ARCHIVE));
+                            }
+                            //res.Iptv_channels.IptvChanelsItems.allowed.addElement(Boolean.valueOf
+                            //        (localJSONObject.getBoolean("allowed")));
+
+                            //res.Iptv_channels.IptvChanelsItems.logo.addElement("/lev.png");
+                            res.addChannel(channel);
+                        }
+                    }
+                } catch (JSONException paramObject) {
+                    paramObject.printStackTrace();
+                    res.setSuccess(false);
+                }
+                if (mListener != null) {
+                    mListener.onResult(res);
+                }
+            }
+        });
+    }
+
+    public void macToggleIpTvFavorites(Fragment fragment, int channelId, final ResultListener
+            mListener) throws IOException {
+        String url = ApiUtils.getApiUrl(ApiConstants.ToggleIpTvFavorites.URL);
+        IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
+        loadInfo.addParam(ApiConstants.ToggleIpTvFavorites.PARAM_IP_TV, channelId + "");
+        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+            @Override
+            public void onLoadFinished(String result) {
+                boolean res = false;
+                try {
+                    JSONObject jsonObj = new JSONObject(result);
+                    res = jsonObj.getBoolean("success");
+                } catch (JSONException e) {
+                    parseExceptionAndShowToast(result);
+                }
+
+                if (mListener != null) {
+                    mListener.onResult(res);
+                }
+            }
+        });
+    }
+
+    public void macFindChannelIp(Fragment fragment, int channelId, final ResultListener mListener)
+            throws IOException {
+        String url = ApiUtils.getApiUrl(ApiConstants.GetChannelIp.URL);
+        IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
+        loadInfo.addParam(ApiConstants.GetChannelIp.PARAM_ID, channelId + "");
+        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+            @Override
+            public void onLoadFinished(String result) {
+                String res = null;
+                try {
+                    JSONObject localJSONObject = new JSONObject(result);
+                    if (localJSONObject.getBoolean("success")) {
+                        res = (String) localJSONObject.get("ip");
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                if (mListener != null) {
+                    mListener.onResult(res);
+                }
+            }
+        });
+    }
+
+    public void macKeepAlive(Fragment fragment, final ResultListener mListener) throws IOException {
+        String url = ApiUtils.getApiUrl(ApiConstants.KeepAlive.URL);
+        IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
+        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+            @Override
+            public void onLoadFinished(String result) {
+                long res = -1;
+                try {
+                    JSONObject jsonObj = new JSONObject(result);
+                    res = jsonObj.getLong("time");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                if (mListener != null) {
+                    mListener.onResult(res);
+                }
+            }
+        });
+    }
+
+    public void checkAvailability(Fragment fragment, String url, final ResultListener mListener)
+            throws IOException {
+        String runUrl = ApiUtils.getApiUrl(ApiConstants.LoginPasswordAuth.CheckAvailability.URL);
+        IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
+        loadInfo.addParam(ApiConstants.LoginPasswordAuth.CheckAvailability.PARAM_URL, url);
+        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+            @Override
+            public void onLoadFinished(String result) {
+                boolean res = false;
+                try {
+                    JSONObject jsonObj = new JSONObject(result);
+                    res = true;
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                if (mListener != null) {
+                    mListener.onResult(res);
+                }
+            }
+        });
+    }
+
+    private void parseExceptionAndShowToast(String out) {
         try {
-            JSONObject jsonObj = new JSONObject(this.httpOut);
-            return jsonObj.getLong("time");
+            JSONObject obj = new JSONObject(out);
+            String error = obj.getString("error");
+            Toast.makeText(VideoStreamApp.getInstance().getApplicationContext(), error, Toast
+                    .LENGTH_SHORT).show();
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        return -1;
     }
 
-    public boolean checkAvailability(String url) throws IOException {
-        url = ApiUtils.getApiUrl(ApiConstants.LoginPasswordAuth.CHECK_AVAILABILITY_URL, url);
-        this.httpOut = this.gets.get(url);
-        try {
-            JSONObject jsonObj = new JSONObject(this.httpOut);
-            return true;
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
+    /*
     public FilmsInfo getFilms(int genreId) throws IOException {
         FilmsInfo res = new FilmsInfo();
         String url = ApiUtils.getApiUrl(ApiConstants.LoginPasswordAuth.GET_FILMS_URL, "" + genreId,
@@ -367,7 +491,7 @@ public class OpenWorldApi {
     public void KeepAlive(boolean keepAlive) {
         //gets.keepAlive(keepAlive);
         new Thread() {
-            /* Error */
+            /* Error * /
             public void run() {
 
                 /*SyncHttpClient client = null;
@@ -388,7 +512,7 @@ public class OpenWorldApi {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                }      */
+                }      * /
                 // Byte code:
                 //   0: new 27	ua/ic/levtv/library/SyncHttpClient
                 //   3: dup
@@ -499,7 +623,7 @@ public class OpenWorldApi {
 
     public void getKeepAliveVod() {
         new Thread() {
-            /* Error */
+            /* Error * /
             public void run() {
                 // Byte code:
                 //   0: new 27	ua/ic/levtv/library/SyncHttpClient
@@ -621,22 +745,11 @@ public class OpenWorldApi {
         return res;
     }
 
-    private void parseExceptionAndShowToast(String out) {
-        try {
-            JSONObject obj = new JSONObject(out);
-            String error = obj.getString("error");
-            Toast.makeText(VideoStreamApp.getInstance().getApplicationContext(), error, Toast
-                    .LENGTH_SHORT).show();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-    }
-
     public String getApiPath() {
         return mApiPath;
     }
 
     public String getApplicationPathVod() {
         return applicationPathVod;
-    }
+    }       */
 }

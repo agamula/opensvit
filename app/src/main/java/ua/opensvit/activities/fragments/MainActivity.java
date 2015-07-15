@@ -1,6 +1,5 @@
-package ua.opensvit.activities.news;
+package ua.opensvit.activities.fragments;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -16,6 +15,8 @@ import android.view.View;
 import ua.opensvit.R;
 import ua.opensvit.VideoStreamApp;
 import ua.opensvit.api.OpenWorldApi;
+import ua.opensvit.api.OpenWorldApi1;
+import ua.opensvit.fragments.CheckingDeviceFragment;
 import ua.opensvit.fragments.MainFragment;
 
 public class MainActivity extends AppCompatActivity {
@@ -36,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
 
         if(savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new
-                    MainFragment()).commit();
+                    CheckingDeviceFragment()).commit();
         } else {
             getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
                     getSupportFragmentManager().findFragmentById(R.id.fragment_container)).commit();
@@ -49,9 +50,9 @@ public class MainActivity extends AppCompatActivity {
         mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
         setupDrawerToggle();
 
-        OpenWorldApi api = new OpenWorldApi();
         VideoStreamApp app = VideoStreamApp.getInstance();
-        app.setDbApi(api);
+        app.setDbApi(new OpenWorldApi());
+        app.setApi1(new OpenWorldApi1());
     }
 
     private void setupDrawerToggle() {

@@ -97,9 +97,6 @@ public class ChannelListAdapter extends BaseExpandableListAdapter {
                 } catch (IOException e) {
                     e.printStackTrace();
                     success = false;
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    success = false;
                 }
                 if(success) {
                     setImageFavoriteResource(imageView2, channel);

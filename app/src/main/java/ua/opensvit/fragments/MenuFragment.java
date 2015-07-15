@@ -18,7 +18,7 @@ import java.util.List;
 
 import ua.opensvit.R;
 import ua.opensvit.VideoStreamApp;
-import ua.opensvit.activities.news.MainActivity;
+import ua.opensvit.activities.fragments.MainActivity;
 import ua.opensvit.adapters.ChannelListAdapter;
 import ua.opensvit.api.OpenWorldApi;
 import ua.opensvit.data.iptv.channels.Channel;
@@ -114,7 +114,10 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
         Channel channel = (Channel) mExpListAdapter.getChild(groupPosition, childPosition);
         VideoStreamApp app = VideoStreamApp.getInstance();
         try {
-            String ip = VideoStreamApp.getInstance().getApi().getChannelIp(channel.getId());
+            OpenWorldApi api = app.getApi();
+            //api.keepAliveTime(true);
+            String ip = api.getChannelIp(channel.getId());
+            boolean availability = api.checkAvailability(ip);
             Toast.makeText(app.getApplicationContext(), ip, Toast.LENGTH_SHORT).show();
             MainActivity.startFragment(getActivity(), PlayVideoFragment.newInstance(ip));
             return true;
