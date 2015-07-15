@@ -53,7 +53,7 @@ public class SyncHttpClient
 
     public String get(String paramString) throws IOException {
         StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitAll().build());
-        //this.httpclient.setCookieStore(this.cookieStore);
+        this.httpclient.setCookieStore(this.cookieStore);
         String res = null;
         HttpGet httpGet = new HttpGet(paramString);
         try {
