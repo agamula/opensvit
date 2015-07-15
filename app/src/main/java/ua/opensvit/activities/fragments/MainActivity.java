@@ -106,4 +106,11 @@ public class MainActivity extends AppCompatActivity {
         transaction.addToBackStack(null);
         transaction.commit();
     }
+
+    public static void startFragmentWithoutBack(FragmentActivity activity, Fragment fragment) {
+        FragmentTransaction transaction = activity.getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.fragment_container, fragment);
+        //TODO add animation
+        transaction.commit();
+    }
 }

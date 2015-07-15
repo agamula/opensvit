@@ -37,4 +37,7 @@
     <string name="checking_device">Checking device</string>
     <string name="wrong_http_method_message">Wrong http method</string>
     <string name="load_failed_message">Load failed</string>
+    <string name="user_password_not_found">User/Password not found in database!</string>
+    <string name="input_username">Please input username</string>
+    <string name="input_password">Please input password</string>
 </resources>

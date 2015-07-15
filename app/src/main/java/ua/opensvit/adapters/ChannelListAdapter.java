@@ -13,28 +13,34 @@ import android.view.WindowManager;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.json.JSONException;
 
 import ua.opensvit.R;
+import ua.opensvit.VideoStreamApp;
 import ua.opensvit.api.OpenWorldApi;
+import ua.opensvit.api.OpenWorldApi1;
 import ua.opensvit.data.iptv.channels.Channel;
 
 @SuppressLint({"NewApi"})
-public class ChannelListAdapter extends BaseExpandableListAdapter {
-    private OpenWorldApi api;
-    private ArrayList<ArrayList<Channel>> channels;
+public class ChannelListAdapter extends BaseExpandableListAdapter implements OpenWorldApi1.ResultListener {
+    private OpenWorldApi1 api;
+    private List<List<Channel>> channels;
     private Context context;
-    private ArrayList<String> groups;
+    private List<String> groups;
     private LayoutInflater inflater;
+    private Channel mSelectedChannel;
+    private ImageView mSelectedImageView;
 
-    public ChannelListAdapter(Context paramContext, ArrayList<String> groups,
-                              ArrayList<ArrayList<Channel>> channels, OpenWorldApi api) {
+    public ChannelListAdapter(Context paramContext, List<String> groups,
+                              List<List<Channel>> channels, OpenWorldApi1 api) {
         this.context = paramContext;
         this.groups = groups;
         this.channels = channels;
@@ -87,19 +93,13 @@ public class ChannelListAdapter extends BaseExpandableListAdapter {
         imageView2.getLayoutParams().width = ((int) (screenHeight * 0.07D));
         convertView.findViewById(R.id.frame2).setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                boolean success;
                 try {
-                    success = ChannelListAdapter.this.api.toggleIptvFavorites(channel.getId
-                            ());
-                    if(success) {
-                        channel.setFavorits(!channel.isFavorits());
-                    }
+                    mSelectedChannel = channel;
+                    mSelectedImageView = imageView2;
+                    ChannelListAdapter.this.api.macToggleIpTvFavorites(null, channel.getId
+                            (), ChannelListAdapter.this);
                 } catch (IOException e) {
                     e.printStackTrace();
-                    success = false;
-                }
-                if(success) {
-                    setImageFavoriteResource(imageView2, channel);
                 }
             }
         });
@@ -162,5 +162,20 @@ public class ChannelListAdapter extends BaseExpandableListAdapter {
     private Drawable grabImageFromUrl(String paramString)
             throws Exception {
         return Drawable.createFromStream((InputStream) new URL(paramString).getContent(), "src");
+    }
+
+    @Override
+    public void onResult(Object res) {
+        boolean mSuccess = (boolean) res;
+        if (mSuccess) {
+            mSelectedChannel.setFavorits(!mSelectedChannel.isFavorits());
+            setImageFavoriteResource(mSelectedImageView, mSelectedChannel);
+        }
+    }
+
+    @Override
+    public void onError(String result) {
+        Toast.makeText(VideoStreamApp.getInstance().getApplicationContext(), result, Toast
+                .LENGTH_SHORT).show();
     }
 }

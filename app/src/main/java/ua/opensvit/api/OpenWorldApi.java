@@ -13,7 +13,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import ua.opensvit.VideoStreamApp;
-import ua.opensvit.data.ApiConstants;
+import ua.opensvit.data.constants.ApiConstants;
 import ua.opensvit.data.authorization.AuthorizationInfoBase;
 import ua.opensvit.data.authorization.UserProfileBase;
 import ua.opensvit.data.authorization.login_password.AuthorizationInfo;

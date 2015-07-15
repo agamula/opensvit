@@ -20,14 +20,14 @@ import ua.opensvit.R;
 import ua.opensvit.VideoStreamApp;
 import ua.opensvit.activities.fragments.MainActivity;
 import ua.opensvit.adapters.ChannelListAdapter;
-import ua.opensvit.api.OpenWorldApi;
+import ua.opensvit.api.OpenWorldApi1;
 import ua.opensvit.data.iptv.channels.Channel;
-import ua.opensvit.data.iptv.channels.ChannelsInfo;
 import ua.opensvit.data.iptv.menu.TvMenuInfo;
 import ua.opensvit.data.iptv.menu.TvMenuItem;
 import ua.opensvit.loaders.RunnableLoader;
 
 public class MenuFragment extends Fragment implements LoaderManager.LoaderCallbacks<String>,
+        OpenWorldApi1.ResultListener,
         ExpandableListView.OnChildClickListener{
 
     private static final String MENU_INFO_TAG = "menu_info";
@@ -69,23 +69,17 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
                 @Override
                 public void run() {
                     try {
-                        OpenWorldApi api = VideoStreamApp.getInstance().getApi();
+                        OpenWorldApi1 api1 = VideoStreamApp.getInstance().getApi1();
                         List<TvMenuItem> tvMenuItems = mMenuInfo.getUnmodifiableTVItems();
-                        ArrayList<String> groupsList = new ArrayList<>();
+                        List<String> groupsList = new ArrayList<>();
                         for (int i = 0; i < tvMenuItems.size(); i++) {
                             groupsList.add(tvMenuItems.get(i).getName());
                         }
 
-                        ArrayList<ArrayList<Channel>> channels = new ArrayList<>(groupsList.size());
-                        for (int i = 0; i < groupsList.size(); i++) {
-                            ChannelsInfo channelsInfo = api.getChannels(tvMenuItems.get(i).getId());
-                            ArrayList<Channel> channelArrayList = new ArrayList<>();
-                            channelArrayList.addAll(channelsInfo.getUnmodifiableChannels());
-                            channels.add(channelArrayList);
-                        }
+                        List<List<Channel>> channels = api1.macFindChannels(tvMenuItems);
 
                         mExpListAdapter = new ChannelListAdapter(getActivity(), groupsList,
-                                channels, api);
+                                channels, api1);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -112,18 +106,29 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
     public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int
             childPosition, long id) {
         Channel channel = (Channel) mExpListAdapter.getChild(groupPosition, childPosition);
-        VideoStreamApp app = VideoStreamApp.getInstance();
         try {
-            OpenWorldApi api = app.getApi();
-            //api.keepAliveTime(true);
-            String ip = api.getChannelIp(channel.getId());
-            boolean availability = api.checkAvailability(ip);
-            Toast.makeText(app.getApplicationContext(), ip, Toast.LENGTH_SHORT).show();
-            MainActivity.startFragment(getActivity(), PlayVideoFragment.newInstance(ip));
+            VideoStreamApp.getInstance().getApi1().macFindChannelIp(this, channel.getId(), this);
             return true;
         } catch (IOException e) {
             e.printStackTrace();
         }
         return false;
+    }
+
+    @Override
+    public void onResult(Object res) {
+        if(res == null) {
+            Toast.makeText(getActivity(), getString(R.string.load_failed_message), Toast
+                    .LENGTH_SHORT).show();
+            return;
+        }
+        String ip = (String) res;
+        Toast.makeText(getActivity(), ip, Toast.LENGTH_SHORT).show();
+        MainActivity.startFragment(getActivity(), PlayVideoFragment.newInstance(ip));
+    }
+
+    @Override
+    public void onError(String result) {
+        Toast.makeText(getActivity(), result, Toast.LENGTH_SHORT).show();
     }
 }

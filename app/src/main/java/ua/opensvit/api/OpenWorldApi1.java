@@ -13,10 +13,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import ua.opensvit.R;
 import ua.opensvit.VideoStreamApp;
-import ua.opensvit.data.ApiConstants;
+import ua.opensvit.data.constants.ApiConstants;
 import ua.opensvit.data.authorization.AuthorizationInfoBase;
 import ua.opensvit.data.authorization.UserProfileBase;
 import ua.opensvit.data.authorization.login_password.AuthorizationInfo;
@@ -81,7 +83,7 @@ public class OpenWorldApi1 {
         for (int i = 0; i < params.length; i += 2) {
             loadInfo.addParam(params[i], params[i + 1]);
         }
-        executeHttpTask(mProgress, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+        executeHttpTask1(mProgress, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
                 try {
@@ -109,11 +111,19 @@ public class OpenWorldApi1 {
                     mListener.onResult(res);
                 }
             }
+
+            @Override
+            public void onLoadError(String errMsg) {
+                if (mListener != null) {
+                    mListener.onError(errMsg);
+                }
+            }
         });
     }
 
     public interface ResultListener {
         void onResult(Object res);
+        void onError(String result);
     }
 
     public void macAuth(ProgressBar mProgress, ResultListener mListener)
@@ -192,16 +202,28 @@ public class OpenWorldApi1 {
                     mListener.onResult(res);
                 }
             }
+
+            @Override
+            public void onLoadError(String errMsg) {
+                if (mListener != null) {
+                    mListener.onError(errMsg);
+                }
+            }
         });
     }
 
     private void executeHttpTask(Fragment fragment, String url, IOkHttpLoadInfo.GetLoaderCreateInfo
             loadInfo, OkHttpAsyncTask.OnLoadFinishedListener mLoadFinishedListener) {
-        executeHttpTask((ProgressBar) fragment.getActivity().findViewById(R.id
-                .progress), url, loadInfo, mLoadFinishedListener);
+        final ProgressBar progressBar;
+        if(fragment == null) {
+            progressBar = null;
+        } else {
+            progressBar = (ProgressBar) fragment.getActivity().findViewById(R.id.progress);
+        }
+        executeHttpTask1(progressBar, url, loadInfo, mLoadFinishedListener);
     }
 
-    private void executeHttpTask(ProgressBar progressBar, String url, IOkHttpLoadInfo
+    private void executeHttpTask1(ProgressBar progressBar, String url, IOkHttpLoadInfo
             .GetLoaderCreateInfo loadInfo, OkHttpAsyncTask.OnLoadFinishedListener
             mLoadFinishedListener) {
         OkHttpClientRunnable mRunnable = new OkHttpClientRunnable(url, loadInfo);
@@ -249,8 +271,15 @@ public class OpenWorldApi1 {
             @Override
             public void onLoadFinished(String result) {
                 TvMenuInfo res = parseJsonTvMenuInfo(result);
-                if(mListener != null) {
+                if (mListener != null) {
                     mListener.onResult(res);
+                }
+            }
+
+            @Override
+            public void onLoadError(String errMsg) {
+                if (mListener != null) {
+                    mListener.onResult(errMsg);
                 }
             }
         });
@@ -267,7 +296,71 @@ public class OpenWorldApi1 {
                     mListener.onResult(res);
                 }
             }
+
+            @Override
+            public void onLoadError(String errMsg) {
+                if (mListener != null) {
+                    mListener.onResult(errMsg);
+                }
+            }
         });
+    }
+
+    private ChannelsInfo parseChannelsInfo(String result) {
+        ChannelsInfo res = new ChannelsInfo();
+        try {
+            JSONObject jsonObj = new JSONObject(result);
+            boolean isSuccess = jsonObj.getBoolean(ChannelsInfo.SUCCESS);
+            res.setSuccess(isSuccess);
+            if (isSuccess) {
+                res.setTotal(jsonObj.getInt(ChannelsInfo.TOTAL));
+                JSONArray channelsArr = jsonObj.getJSONArray(Channel.JSON_NAME);
+                for (int i = 0; i < channelsArr.length(); i++) {
+                    JSONObject channelObj = channelsArr.getJSONObject(i);
+                    Channel channel = new Channel();
+                    channel.setId(channelObj.getInt(Channel.ID));
+                    channel.setName(channelObj.getString(Channel.NAME));
+                    channel.setLogo(channelObj.getString(Channel.LOGO));
+                    channel.setFavorits(channelObj.getBoolean(Channel.FAVORITS));
+                    if (channelObj.has(Channel.ARCHIVE)) {
+                        channel.setArchive(channelObj.getString(Channel.ARCHIVE));
+                    }
+                    //res.Iptv_channels.IptvChanelsItems.allowed.addElement(Boolean.valueOf
+                    //        (localJSONObject.getBoolean("allowed")));
+
+                    //res.Iptv_channels.IptvChanelsItems.logo.addElement("/lev.png");
+                    res.addChannel(channel);
+                }
+            }
+        } catch (JSONException paramObject) {
+            paramObject.printStackTrace();
+            res.setSuccess(false);
+        }
+        return res;
+    }
+
+    public List<List<Channel>> macFindChannels(List<TvMenuItem> tvMenuItems) throws IOException {
+        String url = ApiUtils.getApiUrl(ApiConstants.GetChannels.URL);
+        final List<List<Channel>> res = new ArrayList<>(tvMenuItems.size());
+        for (int i = 0; i < tvMenuItems.size(); i++) {
+            IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
+            loadInfo.addParam(ApiConstants.GetChannels.PARAM_GENRE_ID, "" + tvMenuItems.get(i)
+                    .getId());
+            loadInfo.addParam(ApiConstants.GetChannels.PARAM_PER_PAGE, "" + 0);
+            loadInfo.addParam(ApiConstants.GetChannels.PARAM_PAGE, "" + 0);
+            OkHttpClientRunnable mRunnable = new OkHttpClientRunnable(url, loadInfo);
+            mRunnable.setOnLoadResultListener(new OkHttpClientRunnable.OnLoadResultListener() {
+                @Override
+                public void onLoadResult(boolean isSuccess, String result) {
+                    if (isSuccess) {
+                        ChannelsInfo info = parseChannelsInfo(result);
+                        res.add(new ArrayList<>(info.getUnmodifiableChannels()));
+                    }
+                }
+            });
+            mRunnable.run();
+        }
+        return res;
     }
 
     public void macFindChannels(Fragment fragment, int categoryId, final ResultListener
@@ -280,37 +373,16 @@ public class OpenWorldApi1 {
         executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
-                ChannelsInfo res = new ChannelsInfo();
-                try {
-                    JSONObject jsonObj = new JSONObject(result);
-                    boolean isSuccess = jsonObj.getBoolean(ChannelsInfo.SUCCESS);
-                    res.setSuccess(isSuccess);
-                    if (isSuccess) {
-                        res.setTotal(jsonObj.getInt(ChannelsInfo.TOTAL));
-                        JSONArray channelsArr = jsonObj.getJSONArray(Channel.JSON_NAME);
-                        for (int i = 0; i < channelsArr.length(); i++) {
-                            JSONObject channelObj = channelsArr.getJSONObject(i);
-                            Channel channel = new Channel();
-                            channel.setId(channelObj.getInt(Channel.ID));
-                            channel.setName(channelObj.getString(Channel.NAME));
-                            channel.setLogo(channelObj.getString(Channel.LOGO));
-                            channel.setFavorits(channelObj.getBoolean(Channel.FAVORITS));
-                            if (channelObj.has(Channel.ARCHIVE)) {
-                                channel.setArchive(channelObj.getString(Channel.ARCHIVE));
-                            }
-                            //res.Iptv_channels.IptvChanelsItems.allowed.addElement(Boolean.valueOf
-                            //        (localJSONObject.getBoolean("allowed")));
-
-                            //res.Iptv_channels.IptvChanelsItems.logo.addElement("/lev.png");
-                            res.addChannel(channel);
-                        }
-                    }
-                } catch (JSONException paramObject) {
-                    paramObject.printStackTrace();
-                    res.setSuccess(false);
-                }
+                ChannelsInfo res = parseChannelsInfo(result);
                 if (mListener != null) {
                     mListener.onResult(res);
+                }
+            }
+
+            @Override
+            public void onLoadError(String errMsg) {
+                if (mListener != null) {
+                    mListener.onResult(errMsg);
                 }
             }
         });
@@ -321,7 +393,7 @@ public class OpenWorldApi1 {
         String url = ApiUtils.getApiUrl(ApiConstants.ToggleIpTvFavorites.URL);
         IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
         loadInfo.addParam(ApiConstants.ToggleIpTvFavorites.PARAM_IP_TV, channelId + "");
-        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+        executeHttpTask(null, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
                 boolean res = false;
@@ -334,6 +406,13 @@ public class OpenWorldApi1 {
 
                 if (mListener != null) {
                     mListener.onResult(res);
+                }
+            }
+
+            @Override
+            public void onLoadError(String errMsg) {
+                if (mListener != null) {
+                    mListener.onResult(errMsg);
                 }
             }
         });
@@ -361,6 +440,13 @@ public class OpenWorldApi1 {
                     mListener.onResult(res);
                 }
             }
+
+            @Override
+            public void onLoadError(String errMsg) {
+                if (mListener != null) {
+                    mListener.onResult(errMsg);
+                }
+            }
         });
     }
 
@@ -380,6 +466,13 @@ public class OpenWorldApi1 {
 
                 if (mListener != null) {
                     mListener.onResult(res);
+                }
+            }
+
+            @Override
+            public void onLoadError(String errMsg) {
+                if (mListener != null) {
+                    mListener.onResult(errMsg);
                 }
             }
         });
@@ -403,6 +496,13 @@ public class OpenWorldApi1 {
 
                 if (mListener != null) {
                     mListener.onResult(res);
+                }
+            }
+
+            @Override
+            public void onLoadError(String errMsg) {
+                if (mListener != null) {
+                    mListener.onResult(errMsg);
                 }
             }
         });

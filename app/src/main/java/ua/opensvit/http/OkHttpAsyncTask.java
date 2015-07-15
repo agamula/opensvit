@@ -47,18 +47,18 @@ public class OkHttpAsyncTask extends AsyncTask<Void, Void, Void> implements
         if(mProgress != null) {
             mProgress.setVisibility(View.GONE);
         }
-        if(mSuccess) {
-            if(mOnLoadFinishedListener != null) {
+        if(mOnLoadFinishedListener != null) {
+            if (mSuccess) {
                 mOnLoadFinishedListener.onLoadFinished(mResult);
+            } else {
+                mOnLoadFinishedListener.onLoadError(mResult);
             }
-        } else {
-            VideoStreamApp app = VideoStreamApp.getInstance();
-            Toast.makeText(app.getApplicationContext(), mResult, Toast.LENGTH_SHORT).show();
         }
     }
 
     public interface OnLoadFinishedListener {
         void onLoadFinished(String result);
+        void onLoadError(String errMsg);
     }
 
     @Override

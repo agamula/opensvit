@@ -1,6 +1,9 @@
-package ua.opensvit.data;
+package ua.opensvit.data.constants;
 
 public class ApiConstants {
+    private ApiConstants() {
+    }
+
     private static final String WS = "/ws/";
 
     public static final class LoginPasswordAuth {

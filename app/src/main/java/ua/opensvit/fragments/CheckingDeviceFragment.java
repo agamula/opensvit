@@ -1,11 +1,14 @@
 package ua.opensvit.fragments;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import java.io.IOException;
 
@@ -42,9 +45,20 @@ public class CheckingDeviceFragment extends Fragment implements OpenWorldApi1.Re
     public void onResult(Object res) {
         AuthorizationInfoMac mac = (AuthorizationInfoMac) res;
         if(mac.isActive()) {
-            MainActivity.startFragment(getActivity(), TvTypesFragment1.newInstance(mac));
+            MainActivity.startFragmentWithoutBack(getActivity(), TvTypesFragment.newInstance(mac));
         } else {
-            MainActivity.startFragment(getActivity(), new MainFragment());
+            MainActivity.startFragmentWithoutBack(getActivity(), new MainFragment());
         }
+    }
+
+    @Override
+    public void onError(String result) {
+        Toast.makeText(getActivity(), result, Toast.LENGTH_SHORT).show();
+        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                getActivity().finish();
+            }
+        }, 700);
     }
 }

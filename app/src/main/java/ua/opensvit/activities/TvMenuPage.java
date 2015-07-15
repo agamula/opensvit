@@ -114,7 +114,7 @@ public class TvMenuPage extends ExpandableListActivity {
             localArrayList2.add(films);
         }
 
-        this.expListAdapter = new ChannelListAdapter(this, groupsList, localArrayList2, this.api);
+        this.expListAdapter = new ChannelListAdapter(this, groupsList, localArrayList2, null);
         setListAdapter(this.expListAdapter);
     }
 
