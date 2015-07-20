@@ -1,16 +1,22 @@
 package ua.opensvit.http;
 
+import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.os.Build;
 
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 
 import java.io.IOException;
+import java.net.CookieHandler;
 import java.net.CookiePolicy;
 import java.util.HashMap;
 import java.util.Map;
 
+import ua.opensvit.BuildConfig;
 import ua.opensvit.R;
 import ua.opensvit.VideoStreamApp;
 
@@ -19,13 +25,24 @@ public class OkHttpClientRunnable implements Runnable {
     private final IOkHttpLoadInfo info;
     private OnLoadResultListener mOnLoadResultListener;
     private boolean mErrorLogger;
-    private final Map<String, String> mHeaders = new HashMap<>();
+    private final Map<String, String> mHeaders;
     private static final OkHttpClient CLIENT = new OkHttpClient();
+
+
+    public static final String USER_AGENT = "OpenSvitAndroidClient." + BuildConfig.VERSION_CODE;
 
     static {
         java.net.CookieManager cookieManager = new java.net.CookieManager();
         cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
         CLIENT.setCookieHandler(cookieManager);
+        CookieHandler currentHandler = CookieHandler.getDefault();
+        if (currentHandler != cookieManager) {
+            CookieHandler.setDefault(cookieManager);
+        }
+
+        if (!System.getProperty("http.agent", "").equals(USER_AGENT)) {
+            System.setProperty("http.agent", USER_AGENT);
+        }
     }
 
     private final Resources mResources;
@@ -34,6 +51,8 @@ public class OkHttpClientRunnable implements Runnable {
         this.url = url;
         this.info = mOkHttpClientInfo;
         this.mResources = VideoStreamApp.getInstance().getResources();
+        this.mHeaders = new HashMap<>();
+        mHeaders.put("User-Agent", USER_AGENT);
     }
 
     public void setOnLoadResultListener(OnLoadResultListener moOnLoadResultListener) {
@@ -76,7 +95,7 @@ public class OkHttpClientRunnable implements Runnable {
                     builder.delete();
                     break;
                 default:
-                    if(mOnLoadResultListener != null) {
+                    if (mOnLoadResultListener != null) {
                         mOnLoadResultListener.onLoadResult(false, mResources.getString(R.string
                                 .wrong_http_method_message));
                     }
@@ -93,7 +112,7 @@ public class OkHttpClientRunnable implements Runnable {
                     .build();
 
             Response response = CLIENT.newCall(request).execute();
-            if(mOnLoadResultListener != null) {
+            if (mOnLoadResultListener != null) {
                 if (!response.isSuccessful()) {
                     if (mErrorLogger) {
                         mOnLoadResultListener.onLoadResult(false, response.code() + " : " +
@@ -108,7 +127,7 @@ public class OkHttpClientRunnable implements Runnable {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            if(mOnLoadResultListener != null) {
+            if (mOnLoadResultListener != null) {
                 mOnLoadResultListener.onLoadResult(false, mResources.getString(R.string
                         .load_failed_message));
             }

@@ -23,8 +23,8 @@ public final class VideoStreamApp extends Application {
 
     public final void onCreate() {
         super.onCreate();
-        sInstance = this;
         mMacSet = mTestSet = false;
+        sInstance = this;
     }
 
     private OpenWorldApi mApi;

@@ -25,4 +25,5 @@ dependencies {
     compile 'com.android.support:appcompat-v7:22.1.1'
     compile 'me.neavo:vitamio:4.2.2'
     compile 'com.squareup.okhttp:okhttp:2.0.0'
+    compile 'com.google.android.exoplayer:exoplayer:r1.4.1'
 }

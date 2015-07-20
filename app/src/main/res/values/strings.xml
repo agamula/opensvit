@@ -40,4 +40,10 @@
     <string name="user_password_not_found">User/Password not found in database!</string>
     <string name="input_username">Please input username</string>
     <string name="input_password">Please input password</string>
+
+    <string name="video">Video</string>
+    <string name="audio">Audio</string>
+    <string name="text">Text</string>
+    <string name="logging">Logging</string>
+    <string name="retry">Retry</string>
 </resources>

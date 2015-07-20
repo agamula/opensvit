@@ -25,6 +25,7 @@ import ua.opensvit.data.iptv.channels.Channel;
 import ua.opensvit.data.iptv.menu.TvMenuInfo;
 import ua.opensvit.data.iptv.menu.TvMenuItem;
 import ua.opensvit.loaders.RunnableLoader;
+import ua.opensvit.player.PlayerFragment;
 
 public class MenuFragment extends Fragment implements LoaderManager.LoaderCallbacks<String>,
         OpenWorldApi1.ResultListener,
@@ -124,7 +125,7 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
         }
         String ip = (String) res;
         Toast.makeText(getActivity(), ip, Toast.LENGTH_SHORT).show();
-        MainActivity.startFragment(getActivity(), PlayVideoFragment.newInstance(ip));
+        MainActivity.startFragment(getActivity(), PlayerFragment.newInstance(ip));
     }
 
     @Override
