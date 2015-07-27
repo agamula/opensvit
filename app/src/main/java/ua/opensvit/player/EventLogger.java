@@ -21,8 +21,8 @@ import java.util.Locale;
 /**
  * Logs player events using {@link Log}.
  */
-public class EventLogger implements DemoPlayer.Listener, DemoPlayer.InfoListener,
-        DemoPlayer.InternalErrorListener {
+public class EventLogger implements ExoPlayerImpl.Listener, ExoPlayerImpl.InfoListener,
+        ExoPlayerImpl.InternalErrorListener {
 
 
     private static final String TAG = "EventLogger";
@@ -41,7 +41,7 @@ public class EventLogger implements DemoPlayer.Listener, DemoPlayer.InfoListener
 
 
     public EventLogger() {
-        loadStartTimeMs = new long[DemoPlayer.RENDERER_COUNT];
+        loadStartTimeMs = new long[ExoPlayerImpl.RENDERER_COUNT];
     }
 
 

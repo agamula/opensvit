@@ -12,7 +12,6 @@ import com.google.android.exoplayer.audio.AudioCapabilities;
 import com.google.android.exoplayer.chunk.VideoFormatSelectorUtil;
 import com.google.android.exoplayer.hls.HlsChunkSource;
 import com.google.android.exoplayer.hls.HlsMasterPlaylist;
-import com.google.android.exoplayer.hls.HlsPlaylist;
 import com.google.android.exoplayer.hls.HlsPlaylistParser;
 import com.google.android.exoplayer.hls.HlsSampleSource;
 import com.google.android.exoplayer.metadata.Id3Parser;
@@ -35,7 +34,7 @@ import android.util.Log;
 import java.io.IOException;
 import java.util.Map;
 
-public class HlsRendererBuilder implements DemoPlayer.RendererBuilder,
+public class HlsRendererBuilder implements ExoPlayerImpl.RendererBuilder,
         ManifestCallback<HlsPlaylist>, ManifestFetcher.EventListener {
 
 
@@ -49,8 +48,8 @@ public class HlsRendererBuilder implements DemoPlayer.RendererBuilder,
     private final AudioCapabilities audioCapabilities;
 
 
-    private DemoPlayer player;
-    private DemoPlayer.RendererBuilderCallback callback;
+    private ExoPlayerImpl player;
+    private ExoPlayerImpl.RendererBuilderCallback callback;
 
 
     public HlsRendererBuilder(Context context, String userAgent, String url,
@@ -63,7 +62,7 @@ public class HlsRendererBuilder implements DemoPlayer.RendererBuilder,
 
 
     @Override
-    public void buildRenderers(DemoPlayer player, DemoPlayer.RendererBuilderCallback callback) {
+    public void buildRenderers(ExoPlayerImpl player, ExoPlayerImpl.RendererBuilderCallback callback) {
         this.player = player;
         this.callback = callback;
         HlsPlaylistParser parser = new HlsPlaylistParser();
@@ -103,7 +102,7 @@ public class HlsRendererBuilder implements DemoPlayer.RendererBuilder,
         HlsChunkSource chunkSource = new HlsChunkSource(dataSource, url, manifest, bandwidthMeter,
                 variantIndices, HlsChunkSource.ADAPTIVE_MODE_SPLICE, audioCapabilities);
         HlsSampleSource sampleSource = new HlsSampleSource(chunkSource, loadControl,
-                BUFFER_SEGMENTS * BUFFER_SEGMENT_SIZE, true, mainHandler, player, DemoPlayer.TYPE_VIDEO);
+                BUFFER_SEGMENTS * BUFFER_SEGMENT_SIZE, true, mainHandler, player, ExoPlayerImpl.TYPE_VIDEO);
         MediaCodecVideoTrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(sampleSource,
                 MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, 5000, mainHandler, player, 50);
         MediaCodecAudioTrackRenderer audioRenderer = new MediaCodecAudioTrackRenderer(sampleSource);
@@ -117,11 +116,11 @@ public class HlsRendererBuilder implements DemoPlayer.RendererBuilder,
                 mainHandler.getLooper());
 
 
-        TrackRenderer[] renderers = new TrackRenderer[DemoPlayer.RENDERER_COUNT];
-        renderers[DemoPlayer.TYPE_VIDEO] = videoRenderer;
-        renderers[DemoPlayer.TYPE_AUDIO] = audioRenderer;
-        renderers[DemoPlayer.TYPE_METADATA] = id3Renderer;
-        renderers[DemoPlayer.TYPE_TEXT] = closedCaptionRenderer;
+        TrackRenderer[] renderers = new TrackRenderer[ExoPlayerImpl.RENDERER_COUNT];
+        renderers[ExoPlayerImpl.TYPE_VIDEO] = videoRenderer;
+        renderers[ExoPlayerImpl.TYPE_AUDIO] = audioRenderer;
+        renderers[ExoPlayerImpl.TYPE_METADATA] = id3Renderer;
+        renderers[ExoPlayerImpl.TYPE_TEXT] = closedCaptionRenderer;
         callback.onRenderers(null, null, renderers, bandwidthMeter);
     }
 

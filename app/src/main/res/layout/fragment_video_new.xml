@@ -43,7 +43,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="#88000000"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:id="@+id/bottom_layout">
 
 
         <TextView

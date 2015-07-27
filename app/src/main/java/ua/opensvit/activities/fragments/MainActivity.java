@@ -12,6 +12,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 
+import io.vov.vitamio.LibsChecker;
 import io.vov.vitamio.Vitamio;
 import ua.opensvit.R;
 import ua.opensvit.VideoStreamApp;
@@ -29,6 +30,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if(!LibsChecker.checkVitamioLibs(this)) {
+            return;
+        }
         setContentView(R.layout.activity_main);
 
         mToolbar = (Toolbar)findViewById(R.id.toolbar);
@@ -54,7 +58,6 @@ public class MainActivity extends AppCompatActivity {
         VideoStreamApp app = VideoStreamApp.getInstance();
         app.setDbApi(new OpenWorldApi());
         app.setApi1(new OpenWorldApi1());
-        Vitamio.initialize(this);
     }
 
     private void setupDrawerToggle() {

@@ -1,7 +1,6 @@
 package ua.opensvit.fragments;
 
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
@@ -24,8 +23,8 @@ import ua.opensvit.api.OpenWorldApi1;
 import ua.opensvit.data.iptv.channels.Channel;
 import ua.opensvit.data.iptv.menu.TvMenuInfo;
 import ua.opensvit.data.iptv.menu.TvMenuItem;
+import ua.opensvit.fragments.player.VitamioVideoFragment;
 import ua.opensvit.loaders.RunnableLoader;
-import ua.opensvit.player.PlayerFragment;
 
 public class MenuFragment extends Fragment implements LoaderManager.LoaderCallbacks<String>,
         OpenWorldApi1.ResultListener,
@@ -47,7 +46,6 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
     private ExpandableListView mExpandableListView;
     private View mProgress;
 
-    @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_menu, container, false);
@@ -125,7 +123,7 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
         }
         String ip = (String) res;
         Toast.makeText(getActivity(), ip, Toast.LENGTH_SHORT).show();
-        MainActivity.startFragment(getActivity(), PlayerFragment.newInstance(ip));
+        MainActivity.startFragment(getActivity(), VitamioVideoFragment.newInstance(ip));
     }
 
     @Override

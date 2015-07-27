@@ -46,4 +46,6 @@
     <string name="text">Text</string>
     <string name="logging">Logging</string>
     <string name="retry">Retry</string>
+    <string name="title_activity_play">PlayActivity</string>
+    <string name="action_settings">Settings</string>
 </resources>
