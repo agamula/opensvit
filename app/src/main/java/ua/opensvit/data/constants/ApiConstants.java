@@ -37,6 +37,15 @@ public class ApiConstants {
         }
 
         public static final String CHECK_SERVICE_PIN_URL = WS + "CheckServicePin?id=%s&pin=%s";
+        public static final class CheckServicePin {
+            private CheckServicePin() {
+            }
+
+            public static final String URL = WS + "CheckServicePin";
+            public static final String PARAM_ID = "id";
+            public static final String PARAM_PIN = "pin";
+        }
+
         public static final String GET_ARCHIVE_URL = WS + "GetArchiveUrl?id=%s&timestamp=%s";
         public static final String GET_CHANNEL_IP_URL = WS + "GetChannelIp?id=%s";
         public static final String GET_CHANNEL_OSD_URL = WS +
@@ -54,6 +63,15 @@ public class ApiConstants {
         public static final String KEEP_ALIVE_URL = WS + "KeepAlive";
         public static final String ORDER_FILM_URL = WS + "OrderFilm?id=%s&pin=%s";
         public static final String RESET_PIN_URL = WS + "ResetPin?pin=%s&oldPin=%s";
+        public static final class ResetPin {
+            private ResetPin() {
+            }
+
+            public static final String URL = WS + "ResetPin";
+            public static final String PARAM_PIN = "pin";
+            public static final String PARAM_OLD_PIN = "oldPin";
+        }
+
         public static final String UPDATE_PROFILE_URL = WS +
                 "UpdateProfile?id=%s&type=%s&language=%s&ratio=%s&resolution=%s&skin=%s" +
                 "&transparency=%s&startPage=%s&networkPath=%s&volume=%s&reminder=%s";
@@ -91,6 +109,15 @@ public class ApiConstants {
         public static final String PARAM_IP_TV = "iptvId";
     }
 
+    public static final class GetArchiveUrl {
+        private GetArchiveUrl() {
+        }
+
+        public static final String URL = WS + "GetArchiveUrl";
+        public static final String PARAM_ID = "id";
+        public static final String PARAM_TIMESTAMP = "timestamp";
+    }
+
     public static final class GetChannelIp {
         private GetChannelIp() {
         }
@@ -99,12 +126,112 @@ public class ApiConstants {
         public static final String PARAM_ID = "id";
     }
 
+    public static final class GetChannelOsd {
+        private GetChannelOsd() {
+        }
+
+        public static final String URL = WS + "GetChannelOsd";
+        public static final String PARAM_CHANNEL_ID = "channelId";
+        public static final String PARAM_SERVICE_ID = "serviceId";
+        public static final String PARAM_TIMESTAMP = "timestamp";
+    }
+
+    public static final class GetCreepingLine {
+        private GetCreepingLine() {
+        }
+
+        public static final String URL = WS + "GetCreepingLine";
+        public static final String PARAM_SERVICE = "service";
+        public static final String PARAM_LOOKING = "looking";
+    }
+
+    public static final class GetEpg {
+        private GetEpg() {
+        }
+
+        public static final String URL = WS + "GetEpg";
+        public static final String PARAM_CHANNEL_ID = "channelId";
+        public static final String PARAM_SERVICE_ID = "serviceId";
+        public static final String PARAM_START_UT = "startUT";
+        public static final String PARAM_END_UT = "endUT";
+        public static final String PARAM_PER_PAGE = "perPage";
+        public static final String PARAM_PAGE = "page";
+    }
+
+    public static final class GetFilm {
+        private GetFilm() {
+        }
+
+        public static final String URL = WS + "GetFilm";
+        public static final String PARAM_ID = "id";
+    }
+
+    public static final class GetFilms {
+        private GetFilms() {
+        }
+
+        public static final String URL = WS + "GetFilms";
+        public static final String PARAM_GENRE_ID = "genreId";
+        public static final String PARAM_PER_PAGE = "perPage";
+        public static final String PARAM_PAGE = "page";
+    }
+
+    public static final class GetImages {
+        private GetImages() {
+        }
+
+        public static final String URL = WS + "GetImages";
+    }
+
+    public static final class I18n {
+        private I18n() {
+        }
+
+        public static final String URL = WS + "I18n";
+        public static final String PARAM_LANGUAGE = "language";
+    }
+
+    public static final class InfoAbout {
+        private InfoAbout() {
+        }
+
+        public static final String URL = WS + "InfoAbout";
+    }
+
     public static final class KeepAlive {
         private KeepAlive() {
         }
 
         public static final String URL = WS + "KeepAlive";
     }
+
+    public static final class OrderFilm {
+        private OrderFilm() {
+        }
+
+        public static final String URL = WS + "OrderFilm";
+        public static final String PARAM_ID = "id";
+        public static final String PARAM_PIN = "pin";
+    }
+
+    public static final class UpdateProfile {
+        private UpdateProfile() {
+        }
+
+        public static final String URL = WS + "UpdateProfile";
+        public static final String PARAM_ID = "id";
+        public static final String PARAM_TYPE = "type";
+        public static final String PARAM_LANGUAGE = "language";
+        public static final String PARAM_RATIO = "ratio";
+        public static final String PARAM_RESOLUTION = "resolution";
+        public static final String PARAM_SKIN = "skin";
+        public static final String PARAM_TRANSPARENCY = "transparency";
+        public static final String PARAM_START_PAGE = "startPage";
+        public static final String PARAM_NETWORK_PATH = "networkPath";
+        public static final String PARAM_VOLUME = "volume";
+        public static final String PARAM_REMINDER = "reminder";
+    }
+
 
     public static final class MacAddressAuth {
         private MacAddressAuth() {
