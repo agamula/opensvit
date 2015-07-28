@@ -15,9 +15,13 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import ua.opensvit.R;
 import ua.opensvit.VideoStreamApp;
+import ua.opensvit.data.CreepingLineItem;
+import ua.opensvit.data.GetUrlItem;
+import ua.opensvit.data.InfoAbout;
 import ua.opensvit.data.constants.ApiConstants;
 import ua.opensvit.data.authorization.AuthorizationInfoBase;
 import ua.opensvit.data.authorization.UserProfileBase;
@@ -26,12 +30,13 @@ import ua.opensvit.data.authorization.login_password.UserInfo;
 import ua.opensvit.data.authorization.login_password.UserProfile;
 import ua.opensvit.data.authorization.mac.AuthorizationInfoMac;
 import ua.opensvit.data.authorization.mac.UserProfileMac;
-import ua.opensvit.data.iptv.channels.Channel;
-import ua.opensvit.data.iptv.channels.ChannelsInfo;
-import ua.opensvit.data.iptv.films.FilmItem;
-import ua.opensvit.data.iptv.films.FilmsInfo;
-import ua.opensvit.data.iptv.menu.TvMenuInfo;
-import ua.opensvit.data.iptv.menu.TvMenuItem;
+import ua.opensvit.data.channels.Channel;
+import ua.opensvit.data.channels.ChannelsInfo;
+import ua.opensvit.data.epg.EpgItem;
+import ua.opensvit.data.images.ImageInfo;
+import ua.opensvit.data.images.ImageItem;
+import ua.opensvit.data.menu.TvMenuInfo;
+import ua.opensvit.data.menu.TvMenuItem;
 import ua.opensvit.http.IOkHttpLoadInfo;
 import ua.opensvit.http.OkHttpAsyncTask;
 import ua.opensvit.http.OkHttpClientRunnable;
@@ -264,7 +269,7 @@ public class OpenWorldApi1 {
         return res;
     }
 
-    public void macFindTvMenu(Fragment fragment, final ResultListener mListener) throws IOException {
+    public void macIpTvMenu(Fragment fragment, final ResultListener mListener) throws IOException {
         String url = ApiUtils.getApiUrl(ApiConstants.IpTvMenu.URL);
         IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
         executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
@@ -285,7 +290,7 @@ public class OpenWorldApi1 {
         });
     }
 
-    public void macFindVodMenu(Fragment fragment, final ResultListener mListener) throws IOException {
+    public void macVodMenu(Fragment fragment, final ResultListener mListener) throws IOException {
         String url = ApiUtils.getApiUrl(ApiConstants.VodMenu.URL);
         IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
         executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
@@ -339,7 +344,7 @@ public class OpenWorldApi1 {
         return res;
     }
 
-    public List<List<Channel>> macFindChannels(List<TvMenuItem> tvMenuItems) throws IOException {
+    public List<List<Channel>> macGetChannels(List<TvMenuItem> tvMenuItems) throws IOException {
         String url = ApiUtils.getApiUrl(ApiConstants.GetChannels.URL);
         final List<List<Channel>> res = new ArrayList<>(tvMenuItems.size());
         for (int i = 0; i < tvMenuItems.size(); i++) {
@@ -363,7 +368,7 @@ public class OpenWorldApi1 {
         return res;
     }
 
-    public void macFindChannels(Fragment fragment, int categoryId, final ResultListener
+    public void macGetChannels(Fragment fragment, int categoryId, final ResultListener
             mListener) throws IOException {
         String url = ApiUtils.getApiUrl(ApiConstants.GetChannels.URL);
         IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
@@ -418,7 +423,46 @@ public class OpenWorldApi1 {
         });
     }
 
-    public void macFindChannelIp(Fragment fragment, int channelId, final ResultListener mListener)
+    public void macGetArchiveUrl(Fragment fragment, int id, long timestamp, final ResultListener
+            mListener)
+            throws IOException {
+        String url = ApiUtils.getApiUrl(ApiConstants.GetArchiveUrl.URL);
+        IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
+        loadInfo.addParam(ApiConstants.GetArchiveUrl.PARAM_ID, id + "");
+        loadInfo.addParam(ApiConstants.GetArchiveUrl.PARAM_TIMESTAMP, timestamp + "");
+        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+            @Override
+            public void onLoadFinished(String result) {
+                GetUrlItem res = new GetUrlItem();
+                try {
+                    JSONObject localJSONObject = new JSONObject(result);
+                    if(localJSONObject.has(GetUrlItem.IP)) {
+                        res.setUrl(localJSONObject.getString(GetUrlItem.IP));
+                    } else {
+                        res.setUrl(localJSONObject.getString(GetUrlItem.URL));
+                    }
+                    res.setHasInfoLine(localJSONObject.getBoolean(GetUrlItem.HAS_INFO_LINE));
+                    res.setSuccess(localJSONObject.getBoolean(GetUrlItem.SUCCESS));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    res = null;
+                }
+
+                if (mListener != null) {
+                    mListener.onResult(res);
+                }
+            }
+
+            @Override
+            public void onLoadError(String errMsg) {
+                if (mListener != null) {
+                    mListener.onResult(errMsg);
+                }
+            }
+        });
+    }
+
+    public void macGetChannelIp(Fragment fragment, int channelId, final ResultListener mListener)
             throws IOException {
         String url = ApiUtils.getApiUrl(ApiConstants.GetChannelIp.URL);
         IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
@@ -426,14 +470,286 @@ public class OpenWorldApi1 {
         executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
-                String res = null;
+                GetUrlItem res = new GetUrlItem();
                 try {
                     JSONObject localJSONObject = new JSONObject(result);
-                    if (localJSONObject.getBoolean("success")) {
-                        res = (String) localJSONObject.get("ip");
+                    if(localJSONObject.has(GetUrlItem.IP)) {
+                        res.setUrl(localJSONObject.getString(GetUrlItem.IP));
+                    } else {
+                        res.setUrl(localJSONObject.getString(GetUrlItem.URL));
+                    }
+                    res.setHasInfoLine(localJSONObject.getBoolean(GetUrlItem.HAS_INFO_LINE));
+                    res.setSuccess(localJSONObject.getBoolean(GetUrlItem.SUCCESS));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    res = null;
+                }
+
+                if (mListener != null) {
+                    mListener.onResult(res);
+                }
+            }
+
+            @Override
+            public void onLoadError(String errMsg) {
+                if (mListener != null) {
+                    mListener.onResult(errMsg);
+                }
+            }
+        });
+    }
+
+    public void macGetChannelOsd(Fragment fragment, int channelId, int serviceId, long timestamp,
+                                 final ResultListener mListener)
+            throws IOException {
+        String url = ApiUtils.getApiUrl(ApiConstants.GetChannelOsd.URL);
+        IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
+        loadInfo.addParam(ApiConstants.GetChannelOsd.PARAM_CHANNEL_ID, channelId + "");
+        loadInfo.addParam(ApiConstants.GetChannelOsd.PARAM_SERVICE_ID, serviceId + "");
+        loadInfo.addParam(ApiConstants.GetChannelOsd.PARAM_TIMESTAMP, timestamp + "");
+        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+            @Override
+            public void onLoadFinished(String result) {
+                Object res = new Object();
+                try {
+                    JSONObject localJSONObject = new JSONObject(result);
+                    //TODO parse obj to res
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    res = null;
+                }
+
+                if (mListener != null) {
+                    mListener.onResult(res);
+                }
+            }
+
+            @Override
+            public void onLoadError(String errMsg) {
+                if (mListener != null) {
+                    mListener.onResult(errMsg);
+                }
+            }
+        });
+    }
+
+    public void macGetCreepingLine(Fragment fragment, int service, int looking, final
+    ResultListener mListener) throws IOException {
+        String url = ApiUtils.getApiUrl(ApiConstants.GetCreepingLine.URL);
+        IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
+        loadInfo.addParam(ApiConstants.GetCreepingLine.PARAM_SERVICE, service + "");
+        loadInfo.addParam(ApiConstants.GetCreepingLine.PARAM_LOOKING, looking + "");
+        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+            @Override
+            public void onLoadFinished(String result) {
+                CreepingLineItem res = new CreepingLineItem();
+                try {
+                    JSONObject localJSONObject = new JSONObject(result);
+                    res.setSuccess(localJSONObject.getBoolean(CreepingLineItem.SUCCESS));
+                    res.setText(localJSONObject.getString(CreepingLineItem.TEXT));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    res = null;
+                }
+
+                if (mListener != null) {
+                    mListener.onResult(res);
+                }
+            }
+
+            @Override
+            public void onLoadError(String errMsg) {
+                if (mListener != null) {
+                    mListener.onResult(errMsg);
+                }
+            }
+        });
+    }
+
+    public void macGetEpg(Fragment fragment, int channelId, int serviceId, long startUT, long
+            endUT, int perPage, int page, final ResultListener mListener) throws IOException {
+        String url = ApiUtils.getApiUrl(ApiConstants.GetEpg.URL);
+        IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
+        loadInfo.addParam(ApiConstants.GetEpg.PARAM_CHANNEL_ID, channelId + "");
+        loadInfo.addParam(ApiConstants.GetEpg.PARAM_SERVICE_ID, serviceId + "");
+        loadInfo.addParam(ApiConstants.GetEpg.PARAM_START_UT, startUT + "");
+        loadInfo.addParam(ApiConstants.GetEpg.PARAM_END_UT, endUT + "");
+        loadInfo.addParam(ApiConstants.GetEpg.PARAM_PER_PAGE, perPage + "");
+        loadInfo.addParam(ApiConstants.GetEpg.PARAM_PAGE, page + "");
+        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+            @Override
+            public void onLoadFinished(String result) {
+                EpgItem res = new EpgItem();
+                try {
+                    JSONObject localJSONObject = new JSONObject(result);
+                    res.setDescription(localJSONObject.getString(EpgItem.DESCRIPTION));
+                    res.setDay(localJSONObject.getInt(EpgItem.DAY));
+                    res.setSuccess(localJSONObject.getBoolean(EpgItem.SUCCESS));
+                    res.setDayOfWeek(localJSONObject.getInt(EpgItem.DAY_OF_WEEK));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    res = null;
+                }
+
+                if (mListener != null) {
+                    mListener.onResult(res);
+                }
+            }
+
+            @Override
+            public void onLoadError(String errMsg) {
+                if (mListener != null) {
+                    mListener.onResult(errMsg);
+                }
+            }
+        });
+    }
+
+    public void macGetFilms(Fragment fragment, int genre, int perPage, int page, final
+    ResultListener mListener) throws IOException {
+        String url = ApiUtils.getApiUrl(ApiConstants.GetFilms.URL);
+        IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
+        loadInfo.addParam(ApiConstants.GetFilms.PARAM_GENRE_ID, genre + "");
+        loadInfo.addParam(ApiConstants.GetFilms.PARAM_PER_PAGE, perPage + "");
+        loadInfo.addParam(ApiConstants.GetFilms.PARAM_PAGE, page + "");
+        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+            @Override
+            public void onLoadFinished(String result) {
+                Object res = new Object();
+                try {
+                    JSONObject localJSONObject = new JSONObject(result);
+                    localJSONObject.getBoolean("success");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    res = null;
+                }
+
+                if (mListener != null) {
+                    mListener.onResult(res);
+                }
+            }
+
+            @Override
+            public void onLoadError(String errMsg) {
+                if (mListener != null) {
+                    mListener.onResult(errMsg);
+                }
+            }
+        });
+    }
+
+    public void macGetFilm(Fragment fragment, int filmId, final ResultListener mListener) throws IOException {
+        String url = ApiUtils.getApiUrl(ApiConstants.GetFilm.URL);
+        IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
+        loadInfo.addParam(ApiConstants.GetFilm.PARAM_ID, filmId + "");
+        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+            @Override
+            public void onLoadFinished(String result) {
+                Object res = new Object();
+                try {
+                    JSONObject localJSONObject = new JSONObject(result);
+                    localJSONObject.getBoolean("success");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    res = null;
+                }
+
+                if (mListener != null) {
+                    mListener.onResult(res);
+                }
+            }
+
+            @Override
+            public void onLoadError(String errMsg) {
+                if (mListener != null) {
+                    mListener.onResult(errMsg);
+                }
+            }
+        });
+    }
+
+    public void macGetImages(Fragment fragment, final ResultListener mListener) throws
+            IOException {
+        String url = ApiUtils.getApiUrl(ApiConstants.GetImages.URL);
+        IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
+        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+            @Override
+            public void onLoadFinished(String result) {
+                ImageInfo res = new ImageInfo();
+                try {
+                    JSONObject localJSONObject = new JSONObject(result);
+                    res.setSuccess(localJSONObject.getBoolean(ImageInfo.SUCCESS));
+                    JSONArray imageItemsObj = localJSONObject.getJSONArray(ImageItem.JSON_NAME);
+                    for (int i = 0; i < imageItemsObj.length(); i++) {
+                        ImageItem imageItem = new ImageItem();
+                        imageItem.setUrl(imageItemsObj.getString(i));
+                        res.addImageItem(imageItem);
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
+                    res = null;
+                }
+
+                if (mListener != null) {
+                    mListener.onResult(res);
+                }
+            }
+
+            @Override
+            public void onLoadError(String errMsg) {
+                if (mListener != null) {
+                    mListener.onResult(errMsg);
+                }
+            }
+        });
+    }
+
+    public void macI18n(Fragment fragment, String language, final ResultListener mListener) throws
+            IOException {
+        String url = ApiUtils.getApiUrl(ApiConstants.I18n.URL);
+        IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
+        loadInfo.addParam(ApiConstants.I18n.PARAM_LANGUAGE, language);
+        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+            @Override
+            public void onLoadFinished(String result) {
+                Object res = new Object();
+                try {
+                    JSONObject localJSONObject = new JSONObject(result);
+                    //TODO parse result and save
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    res = null;
+                }
+
+                if (mListener != null) {
+                    mListener.onResult(res);
+                }
+            }
+
+            @Override
+            public void onLoadError(String errMsg) {
+                if (mListener != null) {
+                    mListener.onResult(errMsg);
+                }
+            }
+        });
+    }
+
+    public void macInfoAbout(Fragment fragment, final ResultListener mListener)
+            throws IOException {
+        String url = ApiUtils.getApiUrl(ApiConstants.InfoAbout.URL);
+        IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
+        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+            @Override
+            public void onLoadFinished(String result) {
+                InfoAbout res = new InfoAbout();
+                try {
+                    JSONObject localJSONObject = new JSONObject(result);
+                    res.setJava(localJSONObject.getString(InfoAbout.JAVA));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    res = null;
                 }
 
                 if (mListener != null) {
@@ -460,6 +776,110 @@ public class OpenWorldApi1 {
                 try {
                     JSONObject jsonObj = new JSONObject(result);
                     res = jsonObj.getLong("time");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                if (mListener != null) {
+                    mListener.onResult(res);
+                }
+            }
+
+            @Override
+            public void onLoadError(String errMsg) {
+                if (mListener != null) {
+                    mListener.onResult(errMsg);
+                }
+            }
+        });
+    }
+
+    public void macOrderFilm(Fragment fragment, int id, int pin, final ResultListener mListener)
+            throws IOException {
+        String url = ApiUtils.getApiUrl(ApiConstants.OrderFilm.URL);
+        IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
+        loadInfo.addParam(ApiConstants.OrderFilm.PARAM_ID, id + "");
+        loadInfo.addParam(ApiConstants.OrderFilm.PARAM_PIN, pin + "");
+        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+            @Override
+            public void onLoadFinished(String result) {
+                Object res = new Object();
+                try {
+                    JSONObject jsonObj = new JSONObject(result);
+                    //TODO parse results
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                if (mListener != null) {
+                    mListener.onResult(res);
+                }
+            }
+
+            @Override
+            public void onLoadError(String errMsg) {
+                if (mListener != null) {
+                    mListener.onResult(errMsg);
+                }
+            }
+        });
+    }
+
+    public void resetPin(Fragment fragment, int oldPin, int pin, final ResultListener mListener)
+            throws IOException {
+        String url = ApiUtils.getApiUrl(ApiConstants.LoginPasswordAuth.ResetPin.URL);
+        IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
+        loadInfo.addParam(ApiConstants.LoginPasswordAuth.ResetPin.PARAM_OLD_PIN, oldPin + "");
+        loadInfo.addParam(ApiConstants.LoginPasswordAuth.ResetPin.PARAM_PIN, pin + "");
+        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+            @Override
+            public void onLoadFinished(String result) {
+                Object res = new Object();
+                try {
+                    JSONObject jsonObj = new JSONObject(result);
+                    //TODO parse results
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                if (mListener != null) {
+                    mListener.onResult(res);
+                }
+            }
+
+            @Override
+            public void onLoadError(String errMsg) {
+                if (mListener != null) {
+                    mListener.onResult(errMsg);
+                }
+            }
+        });
+    }
+
+    public void macUpdateProfile(Fragment fragment, int id, int type, String language, String
+            ratio, String resolution, String skin, String transparency, String startPage, String
+            networkPath, String volume, int reminder, final ResultListener mListener) throws
+            IOException {
+        String url = ApiUtils.getApiUrl(ApiConstants.UpdateProfile.URL);
+        IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
+        loadInfo.addParam(ApiConstants.UpdateProfile.PARAM_ID, id + "");
+        loadInfo.addParam(ApiConstants.UpdateProfile.PARAM_TYPE, type + "");
+        loadInfo.addParam(ApiConstants.UpdateProfile.PARAM_LANGUAGE, language);
+        loadInfo.addParam(ApiConstants.UpdateProfile.PARAM_RATIO, ratio);
+        loadInfo.addParam(ApiConstants.UpdateProfile.PARAM_RESOLUTION, resolution);
+        loadInfo.addParam(ApiConstants.UpdateProfile.PARAM_SKIN, skin);
+        loadInfo.addParam(ApiConstants.UpdateProfile.PARAM_TRANSPARENCY, transparency);
+        loadInfo.addParam(ApiConstants.UpdateProfile.PARAM_START_PAGE, startPage);
+        loadInfo.addParam(ApiConstants.UpdateProfile.PARAM_NETWORK_PATH, networkPath);
+        loadInfo.addParam(ApiConstants.UpdateProfile.PARAM_VOLUME, volume);
+        loadInfo.addParam(ApiConstants.UpdateProfile.PARAM_REMINDER, reminder + "");
+        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+            @Override
+            public void onLoadFinished(String result) {
+                Object res = new Object();
+                try {
+                    JSONObject jsonObj = new JSONObject(result);
+                    //TODO parse results
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }

@@ -4,6 +4,7 @@ import android.app.Application;
 
 import ua.opensvit.api.OpenWorldApi;
 import ua.opensvit.api.OpenWorldApi1;
+import ua.opensvit.data.menu.TvMenuInfo;
 
 public final class VideoStreamApp extends Application {
 
@@ -76,5 +77,15 @@ public final class VideoStreamApp extends Application {
 
     public int getIpTvServiceId() {
         return mIpTvServiceId;
+    }
+
+    private TvMenuInfo menuInfo;
+
+    public void setMenuInfo(TvMenuInfo menuInfo) {
+        this.menuInfo = menuInfo;
+    }
+
+    public TvMenuInfo getMenuInfo() {
+        return menuInfo;
     }
 }

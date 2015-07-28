@@ -1,4 +1,4 @@
-package ua.opensvit.data.iptv.films;
+package ua.opensvit.data.films;
 
 import java.util.ArrayList;
 import java.util.Collections;

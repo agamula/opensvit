@@ -18,16 +18,12 @@ import android.widget.Toast;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
-
-import org.json.JSONException;
 
 import ua.opensvit.R;
 import ua.opensvit.VideoStreamApp;
-import ua.opensvit.api.OpenWorldApi;
 import ua.opensvit.api.OpenWorldApi1;
-import ua.opensvit.data.iptv.channels.Channel;
+import ua.opensvit.data.channels.Channel;
 
 @SuppressLint({"NewApi"})
 public class ChannelListAdapter extends BaseExpandableListAdapter implements OpenWorldApi1.ResultListener {

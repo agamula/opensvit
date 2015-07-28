@@ -1,4 +1,4 @@
-package ua.opensvit.data.iptv.films;
+package ua.opensvit.data.films;
 
 public class FilmItem {
     public static final String JSON_NAME = "items";

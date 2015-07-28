@@ -23,8 +23,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activities.TvMenuPage" />
-        <activity android:name=".activities.EpgView" />
         <activity android:name=".activities.MainMenu" />
         <activity android:name=".activities.VideoViewDemo" />
         <activity
@@ -37,7 +35,6 @@
             </intent-filter>
         </activity>
         <activity android:name=".activities.FilmAct" />
-        <activity android:name=".activities.VodMenuPage" />
         <activity android:name=".activities.IcAbout" />
         <activity
             android:name="io.vov.vitamio.activity.InitActivity"

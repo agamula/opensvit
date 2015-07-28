@@ -21,12 +21,12 @@ import ua.opensvit.data.authorization.login_password.UserInfo;
 import ua.opensvit.data.authorization.login_password.UserProfile;
 import ua.opensvit.data.authorization.mac.AuthorizationInfoMac;
 import ua.opensvit.data.authorization.mac.UserProfileMac;
-import ua.opensvit.data.iptv.channels.Channel;
-import ua.opensvit.data.iptv.channels.ChannelsInfo;
-import ua.opensvit.data.iptv.menu.TvMenuInfo;
-import ua.opensvit.data.iptv.menu.TvMenuItem;
-import ua.opensvit.data.iptv.films.FilmItem;
-import ua.opensvit.data.iptv.films.FilmsInfo;
+import ua.opensvit.data.channels.Channel;
+import ua.opensvit.data.channels.ChannelsInfo;
+import ua.opensvit.data.menu.TvMenuInfo;
+import ua.opensvit.data.menu.TvMenuItem;
+import ua.opensvit.data.films.FilmItem;
+import ua.opensvit.data.films.FilmsInfo;
 import ua.opensvit.utils.ApiUtils;
 
 public class OpenWorldApi {

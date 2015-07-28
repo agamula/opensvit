@@ -26,17 +26,17 @@ public class MainMenu extends ListActivity {
         super.onListItemClick(paramListView, paramView, position, paramLong);
         switch (position) {
             case 0:
-                Intent intent = new Intent(this, TvMenuPage.class);
-                intent.putExtras(getIntent());
-                startActivity(intent);
+               // Intent intent = new Intent(this, TvMenuPage.class);
+               // intent.putExtras(getIntent());
+               // startActivity(intent);
                 break;
             case 1:
                 Toast.makeText(this, "No access to service", Toast.LENGTH_SHORT).show();
                 break;
             case 2:
-                intent = new Intent();
-                intent.setClass(this, IcAbout.class);
-                startActivity(intent);
+                //intent = new Intent();
+                //intent.setClass(this, IcAbout.class);
+                //startActivity(intent);
                 break;
         }
     }

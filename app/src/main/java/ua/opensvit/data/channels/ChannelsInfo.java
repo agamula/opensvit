@@ -1,4 +1,4 @@
-package ua.opensvit.data.iptv.channels;
+package ua.opensvit.data.channels;
 
 import android.os.Parcel;
 import android.os.Parcelable;

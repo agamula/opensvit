@@ -15,7 +15,7 @@ import ua.opensvit.VideoStreamApp;
 import ua.opensvit.activities.fragments.MainActivity;
 import ua.opensvit.api.OpenWorldApi1;
 import ua.opensvit.data.authorization.AuthorizationInfoBase;
-import ua.opensvit.data.iptv.menu.TvMenuInfo;
+import ua.opensvit.data.menu.TvMenuInfo;
 
 public class TvTypesFragment extends ListFragment implements OpenWorldApi1.ResultListener {
 
@@ -49,10 +49,10 @@ public class TvTypesFragment extends ListFragment implements OpenWorldApi1.Resul
         try {
             switch (position) {
                 case 0:
-                    api1.macFindTvMenu(this, this);
+                    api1.macIpTvMenu(this, this);
                     return;
                 case 1:
-                    api1.macFindVodMenu(this, this);
+                    api1.macVodMenu(this, this);
                     return;
                 case 2:
                     MainActivity.startFragment(getActivity(), new AboutFragment());
