@@ -1,5 +1,9 @@
 package ua.opensvit.data.epg;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public class EpgItem {
     public static final String DESCRIPTION = "description";
     public static final String DAY = "day";
@@ -10,6 +14,7 @@ public class EpgItem {
     private int day;
     private boolean success;
     private int dayOfWeek;
+    private final List<ProgramItem> programs = new ArrayList<>();
 
     public String getDescription() {
         return description;
@@ -41,6 +46,14 @@ public class EpgItem {
 
     public void setDayOfWeek(int dayOfWeek) {
         this.dayOfWeek = dayOfWeek;
+    }
+
+    public void addProgram(ProgramItem programItem) {
+        programs.add(programItem);
+    }
+
+    public List<ProgramItem> getUnmodifiablePrograms() {
+        return Collections.unmodifiableList(programs);
     }
 
     @Override

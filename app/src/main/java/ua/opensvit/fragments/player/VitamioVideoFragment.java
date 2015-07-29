@@ -6,6 +6,10 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
+
+import java.lang.reflect.Field;
+
 import ua.opensvit.R;
 
 import io.vov.vitamio.MediaPlayer;
@@ -14,7 +18,7 @@ import io.vov.vitamio.widget.VideoView;
 
 public class VitamioVideoFragment extends Fragment implements MediaPlayer
         .OnBufferingUpdateListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnInfoListener,
-        MediaPlayer.OnTimedTextListener, MediaPlayer.OnPreparedListener{
+        MediaPlayer.OnTimedTextListener, MediaPlayer.OnPreparedListener, MediaController.OnShownListener {
 
     private static final String URL_TAG = "url";
 
@@ -31,6 +35,7 @@ public class VitamioVideoFragment extends Fragment implements MediaPlayer
 
     private VideoView mVideoView;
     private String mPath;
+    private boolean mShown;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -46,10 +51,8 @@ public class VitamioVideoFragment extends Fragment implements MediaPlayer
         this.mVideoView.setVideoQuality(16);
         this.mVideoView.setVideoLayout(VideoView.VIDEO_LAYOUT_STRETCH, 0.0F);
         MediaController controller = new MediaController(getActivity());
-        controller.setFileName("File name");
-        controller.setAnchorView(view);
-        controller.setInstantSeeking(true);
-        controller.setEnabled(true);
+        controller.setInstantSeeking(false);
+        controller.setOnShownListener(this);
 
         mVideoView.setMediaController(controller);
         mVideoView.setOnBufferingUpdateListener(this);
@@ -59,6 +62,7 @@ public class VitamioVideoFragment extends Fragment implements MediaPlayer
         mVideoView.setOnPreparedListener(this);
         mVideoView.setVideoURI(Uri.parse(mPath));
         mVideoView.requestFocus();
+        mShown = false;
     }
 
     private long mPosition;
@@ -82,39 +86,55 @@ public class VitamioVideoFragment extends Fragment implements MediaPlayer
 
     @Override
     public void onBufferingUpdate(MediaPlayer mediaPlayer, int i) {
-        String a  = "asdas";
-        String b = a  + "asd";
+        String a = "asdas";
+        String b = a + "asd";
     }
 
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
-        String a  = "asdas";
-        String b = a  + "asd";
+        String a = "asdas";
+        String b = a + "asd";
     }
 
     @Override
     public boolean onInfo(MediaPlayer mediaPlayer, int i, int i1) {
-        String a  = "asdas";
-        String b = a  + "asd";
+        String a = "asdas";
+        String b = a + "asd";
         return false;
     }
 
     @Override
     public void onTimedText(String s) {
-        String a  = "asdas";
-        String b = a  + "asd";
+        String a = "asdas";
+        String b = a + "asd";
     }
 
     @Override
     public void onTimedTextUpdate(byte[] bytes, int i, int i1) {
-        String a  = "asdas";
-        String b = a  + "asd";
+        String a = "asdas";
+        String b = a + "asd";
     }
 
     @Override
     public void onPrepared(MediaPlayer mediaPlayer) {
         mediaPlayer.setPlaybackSpeed(1.0f);
-        String a  = "asdas";
-        String b = a  + "asd";
+    }
+
+    @Override
+    public void onShown() {
+        if (!mShown) {
+            try {
+                Field f = VideoView.class.getDeclaredField("mMediaController");
+                f.setAccessible(true);
+                MediaController mediaController = (MediaController) f.get(mVideoView);
+                f = MediaController.class.getDeclaredField("mFileName");
+                f.setAccessible(true);
+                TextView mCurrentTime = (TextView) f.get(mediaController);
+                mCurrentTime.setVisibility(View.GONE);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            mShown = true;
+        }
     }
 }

@@ -33,6 +33,7 @@ import ua.opensvit.data.authorization.mac.UserProfileMac;
 import ua.opensvit.data.channels.Channel;
 import ua.opensvit.data.channels.ChannelsInfo;
 import ua.opensvit.data.epg.EpgItem;
+import ua.opensvit.data.epg.ProgramItem;
 import ua.opensvit.data.images.ImageInfo;
 import ua.opensvit.data.images.ImageItem;
 import ua.opensvit.data.menu.TvMenuInfo;
@@ -41,6 +42,7 @@ import ua.opensvit.http.IOkHttpLoadInfo;
 import ua.opensvit.http.OkHttpAsyncTask;
 import ua.opensvit.http.OkHttpClientRunnable;
 import ua.opensvit.utils.ApiUtils;
+import ua.opensvit.utils.ParseUtils;
 
 public class OpenWorldApi1 {
 
@@ -284,7 +286,7 @@ public class OpenWorldApi1 {
             @Override
             public void onLoadError(String errMsg) {
                 if (mListener != null) {
-                    mListener.onResult(errMsg);
+                    mListener.onError(errMsg);
                 }
             }
         });
@@ -305,7 +307,7 @@ public class OpenWorldApi1 {
             @Override
             public void onLoadError(String errMsg) {
                 if (mListener != null) {
-                    mListener.onResult(errMsg);
+                    mListener.onError(errMsg);
                 }
             }
         });
@@ -387,7 +389,7 @@ public class OpenWorldApi1 {
             @Override
             public void onLoadError(String errMsg) {
                 if (mListener != null) {
-                    mListener.onResult(errMsg);
+                    mListener.onError(errMsg);
                 }
             }
         });
@@ -417,7 +419,7 @@ public class OpenWorldApi1 {
             @Override
             public void onLoadError(String errMsg) {
                 if (mListener != null) {
-                    mListener.onResult(errMsg);
+                    mListener.onError(errMsg);
                 }
             }
         });
@@ -456,7 +458,7 @@ public class OpenWorldApi1 {
             @Override
             public void onLoadError(String errMsg) {
                 if (mListener != null) {
-                    mListener.onResult(errMsg);
+                    mListener.onError(errMsg);
                 }
             }
         });
@@ -493,7 +495,7 @@ public class OpenWorldApi1 {
             @Override
             public void onLoadError(String errMsg) {
                 if (mListener != null) {
-                    mListener.onResult(errMsg);
+                    mListener.onError(errMsg);
                 }
             }
         });
@@ -528,7 +530,7 @@ public class OpenWorldApi1 {
             @Override
             public void onLoadError(String errMsg) {
                 if (mListener != null) {
-                    mListener.onResult(errMsg);
+                    mListener.onError(errMsg);
                 }
             }
         });
@@ -561,7 +563,7 @@ public class OpenWorldApi1 {
             @Override
             public void onLoadError(String errMsg) {
                 if (mListener != null) {
-                    mListener.onResult(errMsg);
+                    mListener.onError(errMsg);
                 }
             }
         });
@@ -580,17 +582,7 @@ public class OpenWorldApi1 {
         executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
-                EpgItem res = new EpgItem();
-                try {
-                    JSONObject localJSONObject = new JSONObject(result);
-                    res.setDescription(localJSONObject.getString(EpgItem.DESCRIPTION));
-                    res.setDay(localJSONObject.getInt(EpgItem.DAY));
-                    res.setSuccess(localJSONObject.getBoolean(EpgItem.SUCCESS));
-                    res.setDayOfWeek(localJSONObject.getInt(EpgItem.DAY_OF_WEEK));
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    res = null;
-                }
+                EpgItem res = ParseUtils.parseEpg(result);
 
                 if (mListener != null) {
                     mListener.onResult(res);
@@ -600,10 +592,35 @@ public class OpenWorldApi1 {
             @Override
             public void onLoadError(String errMsg) {
                 if (mListener != null) {
-                    mListener.onResult(errMsg);
+                    mListener.onError(errMsg);
                 }
             }
         });
+    }
+
+    public Runnable macGetEpgRunnable(int channelId, int serviceId, long startUT, long
+            endUT, int perPage, int page, final ResultListener mListener) {
+        String url = ApiUtils.getApiUrl(ApiConstants.GetEpg.URL);
+        IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
+        loadInfo.addParam(ApiConstants.GetEpg.PARAM_CHANNEL_ID, channelId + "");
+        loadInfo.addParam(ApiConstants.GetEpg.PARAM_SERVICE_ID, serviceId + "");
+        loadInfo.addParam(ApiConstants.GetEpg.PARAM_START_UT, startUT + "");
+        loadInfo.addParam(ApiConstants.GetEpg.PARAM_END_UT, endUT + "");
+        loadInfo.addParam(ApiConstants.GetEpg.PARAM_PER_PAGE, perPage + "");
+        loadInfo.addParam(ApiConstants.GetEpg.PARAM_PAGE, page + "");
+        OkHttpClientRunnable runnable = new OkHttpClientRunnable(url, loadInfo);
+        runnable.setOnLoadResultListener(new OkHttpClientRunnable.OnLoadResultListener() {
+            @Override
+            public void onLoadResult(boolean isSuccess, String result) {
+                if(isSuccess) {
+                    EpgItem res = ParseUtils.parseEpg(result);
+                    mListener.onResult(res);
+                } else {
+                    mListener.onError(result);
+                }
+            }
+        });
+        return runnable;
     }
 
     public void macGetFilms(Fragment fragment, int genre, int perPage, int page, final
@@ -633,7 +650,7 @@ public class OpenWorldApi1 {
             @Override
             public void onLoadError(String errMsg) {
                 if (mListener != null) {
-                    mListener.onResult(errMsg);
+                    mListener.onError(errMsg);
                 }
             }
         });
@@ -663,7 +680,7 @@ public class OpenWorldApi1 {
             @Override
             public void onLoadError(String errMsg) {
                 if (mListener != null) {
-                    mListener.onResult(errMsg);
+                    mListener.onError(errMsg);
                 }
             }
         });
@@ -699,7 +716,7 @@ public class OpenWorldApi1 {
             @Override
             public void onLoadError(String errMsg) {
                 if (mListener != null) {
-                    mListener.onResult(errMsg);
+                    mListener.onError(errMsg);
                 }
             }
         });
@@ -730,7 +747,7 @@ public class OpenWorldApi1 {
             @Override
             public void onLoadError(String errMsg) {
                 if (mListener != null) {
-                    mListener.onResult(errMsg);
+                    mListener.onError(errMsg);
                 }
             }
         });
@@ -760,7 +777,7 @@ public class OpenWorldApi1 {
             @Override
             public void onLoadError(String errMsg) {
                 if (mListener != null) {
-                    mListener.onResult(errMsg);
+                    mListener.onError(errMsg);
                 }
             }
         });
@@ -788,7 +805,7 @@ public class OpenWorldApi1 {
             @Override
             public void onLoadError(String errMsg) {
                 if (mListener != null) {
-                    mListener.onResult(errMsg);
+                    mListener.onError(errMsg);
                 }
             }
         });
@@ -819,7 +836,7 @@ public class OpenWorldApi1 {
             @Override
             public void onLoadError(String errMsg) {
                 if (mListener != null) {
-                    mListener.onResult(errMsg);
+                    mListener.onError(errMsg);
                 }
             }
         });
@@ -850,7 +867,7 @@ public class OpenWorldApi1 {
             @Override
             public void onLoadError(String errMsg) {
                 if (mListener != null) {
-                    mListener.onResult(errMsg);
+                    mListener.onError(errMsg);
                 }
             }
         });
@@ -892,7 +909,7 @@ public class OpenWorldApi1 {
             @Override
             public void onLoadError(String errMsg) {
                 if (mListener != null) {
-                    mListener.onResult(errMsg);
+                    mListener.onError(errMsg);
                 }
             }
         });
@@ -922,7 +939,7 @@ public class OpenWorldApi1 {
             @Override
             public void onLoadError(String errMsg) {
                 if (mListener != null) {
-                    mListener.onResult(errMsg);
+                    mListener.onError(errMsg);
                 }
             }
         });

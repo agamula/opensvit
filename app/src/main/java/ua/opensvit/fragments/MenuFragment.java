@@ -23,6 +23,7 @@ import ua.opensvit.api.OpenWorldApi1;
 import ua.opensvit.data.GetUrlItem;
 import ua.opensvit.data.InfoAbout;
 import ua.opensvit.data.channels.Channel;
+import ua.opensvit.data.epg.EpgItem;
 import ua.opensvit.data.menu.TvMenuInfo;
 import ua.opensvit.data.menu.TvMenuItem;
 import ua.opensvit.fragments.player.VitamioVideoFragment;
@@ -47,6 +48,7 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
     private ExpandableListAdapter mExpListAdapter;
     private ExpandableListView mExpandableListView;
     private View mProgress;
+    private Channel mChannel;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -94,9 +96,11 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
 
     @Override
     public void onLoadFinished(Loader<String> loader, String data) {
-        mProgress.setVisibility(View.GONE);
-        mExpandableListView.setAdapter(mExpListAdapter);
-        mExpandableListView.setOnChildClickListener(this);
+        if(loader.getId() == LOAD_MENUS_ID) {
+            mProgress.setVisibility(View.GONE);
+            mExpandableListView.setAdapter(mExpListAdapter);
+            mExpandableListView.setOnChildClickListener(this);
+        }
     }
 
     @Override
@@ -107,11 +111,11 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
     @Override
     public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int
             childPosition, long id) {
-        Channel channel = (Channel) mExpListAdapter.getChild(groupPosition, childPosition);
+        mChannel = (Channel) mExpListAdapter.getChild(groupPosition, childPosition);
         try {
             VideoStreamApp app = VideoStreamApp.getInstance();
             OpenWorldApi1 api1 = app.getApi1();
-            api1.macGetChannelIp(this, channel.getId(), this);
+            api1.macGetChannelIp(this, mChannel.getId(), this);
             /*api1.macGetArchiveUrl(MenuFragment.this, channel.getId(), System.currentTimeMillis(),
                     new OpenWorldApi1.ResultListener() {
                         @Override
@@ -150,24 +154,6 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
                     }
                     CreepingLineItem lineItem = (CreepingLineItem) res;
                     Toast.makeText(getActivity(), lineItem.getText(), Toast.LENGTH_SHORT).show();
-                }
-
-                @Override
-                public void onError(String result) {
-
-                }
-            });*/
-
-            /*long now = System.currentTimeMillis() - 24 * 60 * 60 * 1000;
-            api1.macGetEpg(MenuFragment.this, channel.getId(), app.getMenuInfo().getService(),
-                    now - 24 * 60 * 60 * 1000, now, 10, 0, new OpenWorldApi1.ResultListener() {
-                @Override
-                public void onResult(Object res) {
-                    if(res == null) {
-                        return;
-                    }
-                    EpgItem lineItem = (EpgItem) res;
-                    Toast.makeText(getActivity(), lineItem.toString(), Toast.LENGTH_SHORT).show();
                 }
 
                 @Override
@@ -214,7 +200,7 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
                         return;
                     }
                     ImageInfo imageInfo = (ImageInfo) res;
-                    Toast.makeText(getActivity(), "size: " + imageInfo.getUnmodifiableImages()
+                    Toast.makeText(getActivity(), "size: " + imageInfo.getUnmodifiablePrograms()
                             .size(), Toast.LENGTH_SHORT).show();
                 }
 
@@ -233,7 +219,7 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
                         return;
                     }
                     ImageInfo imageInfo = (ImageInfo) res;
-                    Toast.makeText(getActivity(), "size: " + imageInfo.getUnmodifiableImages()
+                    Toast.makeText(getActivity(), "size: " + imageInfo.getUnmodifiablePrograms()
                             .size(), Toast.LENGTH_SHORT).show();
                 }
 
@@ -328,7 +314,7 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
         }
         GetUrlItem urlItem = (GetUrlItem) res;
         String ip = urlItem.getUrl();
-        MainActivity.startFragment(getActivity(), VitamioVideoFragment.newInstance(ip));
+        MainActivity.startFragment(getActivity(), EpgFragment.newInstance(mChannel.getId(), ip));
     }
 
     @Override
