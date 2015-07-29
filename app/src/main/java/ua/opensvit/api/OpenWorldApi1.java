@@ -38,6 +38,7 @@ import ua.opensvit.data.images.ImageInfo;
 import ua.opensvit.data.images.ImageItem;
 import ua.opensvit.data.menu.TvMenuInfo;
 import ua.opensvit.data.menu.TvMenuItem;
+import ua.opensvit.data.osd.OsdItem;
 import ua.opensvit.http.IOkHttpLoadInfo;
 import ua.opensvit.http.OkHttpAsyncTask;
 import ua.opensvit.http.OkHttpClientRunnable;
@@ -512,11 +513,25 @@ public class OpenWorldApi1 {
         executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
-                Object res = new Object();
+                OsdItem res = new OsdItem();
                 try {
                     JSONObject localJSONObject = new JSONObject(result);
-                    //TODO parse obj to res
-
+                    JSONArray programsArr = localJSONObject.getJSONArray(ua.opensvit.data.osd
+                            .ProgramItem.JSON_NAME);
+                    for (int i = 0; i < programsArr.length(); i++) {
+                        JSONObject programObj = programsArr.getJSONObject(i);
+                        ua.opensvit.data.osd.ProgramItem programItem = new ua.opensvit.data.osd
+                                .ProgramItem();
+                        programItem.setDuration(programObj.getInt(ua.opensvit.data.osd
+                                .ProgramItem.DURATION));
+                        programItem.setTitle(programObj.getString(ua.opensvit.data.osd
+                                .ProgramItem.TITLE));
+                        programItem.setStart(programObj.getString(ua.opensvit.data.osd
+                                .ProgramItem.START));
+                        programItem.setEnd(programObj.getString(ua.opensvit.data.osd
+                                .ProgramItem.END));
+                        res.addProgram(programItem);
+                    }
                 } catch (JSONException e) {
                     e.printStackTrace();
                     res = null;

@@ -20,12 +20,15 @@ import ua.opensvit.VideoStreamApp;
 import ua.opensvit.activities.fragments.MainActivity;
 import ua.opensvit.adapters.ChannelListAdapter;
 import ua.opensvit.api.OpenWorldApi1;
+import ua.opensvit.data.CreepingLineItem;
 import ua.opensvit.data.GetUrlItem;
 import ua.opensvit.data.InfoAbout;
 import ua.opensvit.data.channels.Channel;
 import ua.opensvit.data.epg.EpgItem;
+import ua.opensvit.data.images.ImageInfo;
 import ua.opensvit.data.menu.TvMenuInfo;
 import ua.opensvit.data.menu.TvMenuItem;
+import ua.opensvit.data.osd.OsdItem;
 import ua.opensvit.fragments.player.VitamioVideoFragment;
 import ua.opensvit.loaders.RunnableLoader;
 
@@ -96,7 +99,7 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
 
     @Override
     public void onLoadFinished(Loader<String> loader, String data) {
-        if(loader.getId() == LOAD_MENUS_ID) {
+        if (loader.getId() == LOAD_MENUS_ID) {
             mProgress.setVisibility(View.GONE);
             mExpandableListView.setAdapter(mExpListAdapter);
             mExpandableListView.setOnChildClickListener(this);
@@ -116,36 +119,27 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
             VideoStreamApp app = VideoStreamApp.getInstance();
             OpenWorldApi1 api1 = app.getApi1();
             api1.macGetChannelIp(this, mChannel.getId(), this);
-            /*api1.macGetArchiveUrl(MenuFragment.this, channel.getId(), System.currentTimeMillis(),
-                    new OpenWorldApi1.ResultListener() {
-                        @Override
-                        public void onResult(Object res) {
-                            if(res == null) {
-                                return;
-                            }
-                            GetUrlItem urlItem = (GetUrlItem) res;
-                            Toast.makeText(getActivity(), urlItem.getUrl(), Toast.LENGTH_SHORT).show();
-                        }
 
-                        @Override
-                        public void onError(String result) {
-
-                        }
-                    });*/
-            //TODO not working
-            /*api1.macGetChannelOsd(MenuFragment.this, channel.getId(), app.getMenuInfo()
-                    .getService(), System.currentTimeMillis(), new OpenWorldApi1.ResultListener() {
+            api1.macGetChannelOsd(MenuFragment.this, mChannel.getId(), app.getMenuInfo()
+                    .getService(), System.currentTimeMillis() / 1000, new OpenWorldApi1
+                    .ResultListener() {
                 @Override
                 public void onResult(Object res) {
-
+                    if (res == null) {
+                        return;
+                    }
+                    OsdItem osdItem = (OsdItem) res;
+                    Toast.makeText(getActivity(), "[size] : " + osdItem.getUnmodifiablePrograms()
+                            .size(), Toast.LENGTH_LONG).show();
                 }
 
                 @Override
                 public void onError(String result) {
 
                 }
-            });*/
-            /*api1.macGetCreepingLine(MenuFragment.this, app.getMenuInfo().getService(), channel
+            });
+            //TODO work?
+            /*api1.macGetCreepingLine(MenuFragment.this, app.getMenuInfo().getService(), mChannel
                     .getId(), new OpenWorldApi1.ResultListener() {
                 @Override
                 public void onResult(Object res) {
@@ -192,7 +186,9 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
 
                         }
                     });*/
-            /*api1.macGetImages(MenuFragment.this, new OpenWorldApi1.ResultListener
+            //TODO create urls
+            /*
+            api1.macGetImages(MenuFragment.this, new OpenWorldApi1.ResultListener
                     () {
                 @Override
                 public void onResult(Object res) {
@@ -200,7 +196,7 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
                         return;
                     }
                     ImageInfo imageInfo = (ImageInfo) res;
-                    Toast.makeText(getActivity(), "size: " + imageInfo.getUnmodifiablePrograms()
+                    Toast.makeText(getActivity(), "size: " + imageInfo.getUnmodifiableImages()
                             .size(), Toast.LENGTH_SHORT).show();
                 }
 
@@ -218,9 +214,7 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
                     if (res == null) {
                         return;
                     }
-                    ImageInfo imageInfo = (ImageInfo) res;
-                    Toast.makeText(getActivity(), "size: " + imageInfo.getUnmodifiablePrograms()
-                            .size(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getActivity(), "blabla", Toast.LENGTH_SHORT).show();
                 }
 
                 @Override
@@ -228,7 +222,8 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
 
                 }
             });*/
-            /*api1.macInfoAbout(MenuFragment.this, new OpenWorldApi1.ResultListener
+            //TODO where use?
+           /* api1.macInfoAbout(MenuFragment.this, new OpenWorldApi1.ResultListener
                     () {
                 @Override
                 public void onResult(Object res) {
@@ -265,6 +260,7 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
 
                 }
             });*/
+            //TODO not mac
             /*api1.resetPin(MenuFragment.this, 10, 120, new
                     OpenWorldApi1.ResultListener() {
                         @Override
