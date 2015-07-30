@@ -20,16 +20,11 @@ import ua.opensvit.VideoStreamApp;
 import ua.opensvit.activities.fragments.MainActivity;
 import ua.opensvit.adapters.ChannelListAdapter;
 import ua.opensvit.api.OpenWorldApi1;
-import ua.opensvit.data.CreepingLineItem;
 import ua.opensvit.data.GetUrlItem;
 import ua.opensvit.data.InfoAbout;
 import ua.opensvit.data.channels.Channel;
-import ua.opensvit.data.epg.EpgItem;
-import ua.opensvit.data.images.ImageInfo;
 import ua.opensvit.data.menu.TvMenuInfo;
 import ua.opensvit.data.menu.TvMenuItem;
-import ua.opensvit.data.osd.OsdItem;
-import ua.opensvit.fragments.player.VitamioVideoFragment;
 import ua.opensvit.loaders.RunnableLoader;
 
 public class MenuFragment extends Fragment implements LoaderManager.LoaderCallbacks<String>,
@@ -120,7 +115,7 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
             OpenWorldApi1 api1 = app.getApi1();
             api1.macGetChannelIp(this, mChannel.getId(), this);
 
-            api1.macGetChannelOsd(MenuFragment.this, mChannel.getId(), app.getMenuInfo()
+            /*api1.macGetChannelOsd(MenuFragment.this, mChannel.getId(), app.getMenuInfo()
                     .getService(), System.currentTimeMillis() / 1000, new OpenWorldApi1
                     .ResultListener() {
                 @Override
@@ -137,55 +132,8 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
                 public void onError(String result) {
 
                 }
-            });
-            //TODO work?
-            /*api1.macGetCreepingLine(MenuFragment.this, app.getMenuInfo().getService(), mChannel
-                    .getId(), new OpenWorldApi1.ResultListener() {
-                @Override
-                public void onResult(Object res) {
-                    if(res == null) {
-                        return;
-                    }
-                    CreepingLineItem lineItem = (CreepingLineItem) res;
-                    Toast.makeText(getActivity(), lineItem.getText(), Toast.LENGTH_SHORT).show();
-                }
-
-                @Override
-                public void onError(String result) {
-
-                }
             });*/
-            /*api1.macGetFilms(MenuFragment.this, 1, 10, 0, new OpenWorldApi1.ResultListener() {
-                        @Override
-                        public void onResult(Object res) {
-                            if(res == null) {
-                                return;
-                            }
-                            EpgItem lineItem = (EpgItem) res;
-                            Toast.makeText(getActivity(), lineItem.toString(), Toast.LENGTH_SHORT).show();
-                        }
 
-                        @Override
-                        public void onError(String result) {
-
-                        }
-                    });*/
-            /*api1.macGetFilm(MenuFragment.this, channel.getId(), new OpenWorldApi1.ResultListener
-                    () {
-                        @Override
-                        public void onResult(Object res) {
-                            if(res == null) {
-                                return;
-                            }
-                            EpgItem lineItem = (EpgItem) res;
-                            Toast.makeText(getActivity(), lineItem.toString(), Toast.LENGTH_SHORT).show();
-                        }
-
-                        @Override
-                        public void onError(String result) {
-
-                        }
-                    });*/
             //TODO create urls
             /*
             api1.macGetImages(MenuFragment.this, new OpenWorldApi1.ResultListener
@@ -205,95 +153,6 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
 
                 }
             });*/
-            //TODO save info from api
-            /*
-            api1.macI18n(MenuFragment.this, "en", new OpenWorldApi1.ResultListener
-                    () {
-                @Override
-                public void onResult(Object res) {
-                    if (res == null) {
-                        return;
-                    }
-                    Toast.makeText(getActivity(), "blabla", Toast.LENGTH_SHORT).show();
-                }
-
-                @Override
-                public void onError(String result) {
-
-                }
-            });*/
-            //TODO where use?
-           /* api1.macInfoAbout(MenuFragment.this, new OpenWorldApi1.ResultListener
-                    () {
-                @Override
-                public void onResult(Object res) {
-                    if (res == null) {
-                        return;
-                    }
-                    InfoAbout imageInfo = (InfoAbout) res;
-                    Toast.makeText(getActivity(), imageInfo.getJava(), Toast.LENGTH_SHORT).show();
-                }
-
-                @Override
-                public void onError(String result) {
-
-                }
-            });*/
-            //TODO make work
-            /*
-            api1.macOrderFilm(MenuFragment.this, VideoStreamApp.getInstance().getMenuInfo().getService(),
-                    120, new
-                    OpenWorldApi1
-                    .ResultListener
-                    () {
-                @Override
-                public void onResult(Object res) {
-                    if (res == null) {
-                        return;
-                    }
-                    InfoAbout imageInfo = (InfoAbout) res;
-                    Toast.makeText(getActivity(), imageInfo.getJava(), Toast.LENGTH_SHORT).show();
-                }
-
-                @Override
-                public void onError(String result) {
-
-                }
-            });*/
-            //TODO not mac
-            /*api1.resetPin(MenuFragment.this, 10, 120, new
-                    OpenWorldApi1.ResultListener() {
-                        @Override
-                        public void onResult(Object res) {
-                            if (res == null) {
-                                return;
-                            }
-                            InfoAbout imageInfo = (InfoAbout) res;
-                            Toast.makeText(getActivity(), imageInfo.getJava(), Toast.LENGTH_SHORT).show();
-                        }
-
-                        @Override
-                        public void onError(String result) {
-
-                        }
-                    });*/
-            //TODO make work
-            /*api1.macUpdateProfile(MenuFragment.this, 0, 0, "en", "", "", "", "", "", "", "", 2,
-             new
-                    OpenWorldApi1.ResultListener() {
-                        @Override
-                        public void onResult(Object res) {
-                            if (res == null) {
-                                return;
-                            }
-                            Toast.makeText(getActivity(), res.toString(), Toast.LENGTH_SHORT).show();
-                        }
-
-                        @Override
-                        public void onError(String result) {
-
-                        }
-                    });*/
             return true;
         } catch (IOException e) {
             e.printStackTrace();

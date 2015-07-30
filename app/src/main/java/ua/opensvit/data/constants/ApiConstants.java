@@ -188,7 +188,6 @@ public class ApiConstants {
         }
 
         public static final String URL = WS + "I18n";
-        public static final String PARAM_LANGUAGE = "language";
     }
 
     public static final class InfoAbout {

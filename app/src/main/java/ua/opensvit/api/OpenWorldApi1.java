@@ -551,7 +551,7 @@ public class OpenWorldApi1 {
         });
     }
 
-    public void macGetCreepingLine(Fragment fragment, int service, int looking, final
+    public void macUnusedGetCreepingLine(Fragment fragment, int service, int looking, final
     ResultListener mListener) throws IOException {
         String url = ApiUtils.getApiUrl(ApiConstants.GetCreepingLine.URL);
         IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
@@ -638,7 +638,7 @@ public class OpenWorldApi1 {
         return runnable;
     }
 
-    public void macGetFilms(Fragment fragment, int genre, int perPage, int page, final
+    public void macUnusedGetFilms(Fragment fragment, int genre, int perPage, int page, final
     ResultListener mListener) throws IOException {
         String url = ApiUtils.getApiUrl(ApiConstants.GetFilms.URL);
         IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
@@ -671,7 +671,7 @@ public class OpenWorldApi1 {
         });
     }
 
-    public void macGetFilm(Fragment fragment, int filmId, final ResultListener mListener) throws IOException {
+    public void macUnusedGetFilm(Fragment fragment, int filmId, final ResultListener mListener) throws IOException {
         String url = ApiUtils.getApiUrl(ApiConstants.GetFilm.URL);
         IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
         loadInfo.addParam(ApiConstants.GetFilm.PARAM_ID, filmId + "");
@@ -737,11 +737,10 @@ public class OpenWorldApi1 {
         });
     }
 
-    public void macI18n(Fragment fragment, String language, final ResultListener mListener) throws
+    public void macUnusedGetTranslateI18n(Fragment fragment, final ResultListener mListener) throws
             IOException {
         String url = ApiUtils.getApiUrl(ApiConstants.I18n.URL);
         IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
-        loadInfo.addParam(ApiConstants.I18n.PARAM_LANGUAGE, language);
         executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
@@ -768,7 +767,7 @@ public class OpenWorldApi1 {
         });
     }
 
-    public void macInfoAbout(Fragment fragment, final ResultListener mListener)
+    public void macUnusedInfoAbout(Fragment fragment, final ResultListener mListener)
             throws IOException {
         String url = ApiUtils.getApiUrl(ApiConstants.InfoAbout.URL);
         IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
@@ -826,7 +825,8 @@ public class OpenWorldApi1 {
         });
     }
 
-    public void macOrderFilm(Fragment fragment, int id, int pin, final ResultListener mListener)
+    //TODO make work
+    public void macUnusedOrderFilm(Fragment fragment, int id, int pin, final ResultListener mListener)
             throws IOException {
         String url = ApiUtils.getApiUrl(ApiConstants.OrderFilm.URL);
         IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
@@ -857,6 +857,7 @@ public class OpenWorldApi1 {
         });
     }
 
+    //TODO not mac
     public void resetPin(Fragment fragment, int oldPin, int pin, final ResultListener mListener)
             throws IOException {
         String url = ApiUtils.getApiUrl(ApiConstants.LoginPasswordAuth.ResetPin.URL);
