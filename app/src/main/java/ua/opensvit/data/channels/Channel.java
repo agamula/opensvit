@@ -5,7 +5,7 @@ import android.os.Parcelable;
 
 import ua.opensvit.utils.ParcelUtils;
 
-public class Channel implements Parcelable{
+public class Channel implements Parcelable {
 
     public static final String JSON_NAME = "items";
     public static final String FAVORITS = "favorite";
@@ -60,6 +60,19 @@ public class Channel implements Parcelable{
         this.archive = archive;
     }
 
+    public void set(Channel channel) {
+        favorits = channel.isFavorits();
+        id = channel.getId();
+        logo = channel.getLogo();
+        archive = channel.getArchive();
+        name = channel.getName();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return o != null && o instanceof Channel && ((Channel) o).id == id;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -67,7 +80,7 @@ public class Channel implements Parcelable{
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeBooleanArray(new boolean[] {favorits});
+        dest.writeBooleanArray(new boolean[]{favorits});
         dest.writeInt(id);
         ParcelUtils.writeToParcel(logo, dest, flags);
         ParcelUtils.writeToParcel(name, dest, flags);

@@ -8,21 +8,23 @@
         android:id="@+id/imageView1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="14.0dip"
+        android:layout_marginLeft="14.0dip"
+        android:layout_marginRight="14.0dip"
+        android:layout_marginStart="14.0dip"
         android:adjustViewBounds="true"
         android:scaleType="centerInside"
-        android:src="@drawable/ic_play"
-        android:layout_marginRight="14.0dip"
-        android:layout_marginEnd="14.0dip"/>
+        android:src="@drawable/ic_play"/>
 
     <TextView
         android:id="@+id/childname"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
         android:layout_weight="0.41"
         android:focusable="false"
         android:textAppearance="?android:textAppearanceMedium"
-        android:textStyle="italic"
-        android:layout_gravity="center_vertical"/>
+        android:textStyle="italic"/>
 
     <FrameLayout
         android:id="@+id/frame2"
@@ -34,8 +36,8 @@
             android:id="@+id/imageView2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
             android:scaleType="centerInside"
-            android:src="@drawable/ic_play"
-            android:adjustViewBounds="true"/>
+            android:src="@drawable/ic_play"/>
     </FrameLayout>
 </LinearLayout>

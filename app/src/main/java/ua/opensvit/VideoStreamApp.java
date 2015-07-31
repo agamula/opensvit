@@ -1,6 +1,10 @@
 package ua.opensvit;
 
 import android.app.Application;
+import android.content.Context;
+
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 
 import ua.opensvit.api.OpenWorldApi;
 import ua.opensvit.api.OpenWorldApi1;
@@ -26,6 +30,16 @@ public final class VideoStreamApp extends Application {
         super.onCreate();
         mMacSet = mTestSet = false;
         sInstance = this;
+        initImageLoader(getApplicationContext());
+    }
+
+    public static void initImageLoader(Context context) {
+        ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(context)
+                .threadPoolSize(5)
+                .threadPriority(Thread.MIN_PRIORITY + 3)
+                .build();
+
+        ImageLoader.getInstance().init(config);
     }
 
     private OpenWorldApi mApi;

@@ -115,26 +115,6 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
             VideoStreamApp app = VideoStreamApp.getInstance();
             OpenWorldApi1 api1 = app.getApi1();
             api1.macGetChannelIp(this, mChannel.getId(), this);
-
-            //TODO create urls
-            /*
-            api1.macGetImages(MenuFragment.this, new OpenWorldApi1.ResultListener
-                    () {
-                @Override
-                public void onResult(Object res) {
-                    if (res == null) {
-                        return;
-                    }
-                    ImageInfo imageInfo = (ImageInfo) res;
-                    Toast.makeText(getActivity(), "size: " + imageInfo.getUnmodifiableImages()
-                            .size(), Toast.LENGTH_SHORT).show();
-                }
-
-                @Override
-                public void onError(String result) {
-
-                }
-            });*/
             return true;
         } catch (IOException e) {
             e.printStackTrace();

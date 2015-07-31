@@ -2,6 +2,7 @@ package ua.opensvit.adapters;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
@@ -15,6 +16,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.assist.ImageScaleType;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -24,6 +29,8 @@ import ua.opensvit.R;
 import ua.opensvit.VideoStreamApp;
 import ua.opensvit.api.OpenWorldApi1;
 import ua.opensvit.data.channels.Channel;
+import ua.opensvit.utils.ApiUtils;
+import ua.opensvit.utils.Utils;
 
 @SuppressLint({"NewApi"})
 public class ChannelListAdapter extends BaseExpandableListAdapter implements OpenWorldApi1.ResultListener {
@@ -32,8 +39,9 @@ public class ChannelListAdapter extends BaseExpandableListAdapter implements Ope
     private Context context;
     private List<String> groups;
     private LayoutInflater inflater;
-    private Channel mSelectedChannel;
-    private ImageView mSelectedImageView;
+    private DisplayImageOptions options;
+    private int mSelectedGroup;
+    private int mSelectedChild;
 
     public ChannelListAdapter(Context paramContext, List<String> groups,
                               List<List<Channel>> channels, OpenWorldApi1 api) {
@@ -42,14 +50,24 @@ public class ChannelListAdapter extends BaseExpandableListAdapter implements Ope
         this.channels = channels;
         this.api = api;
         this.inflater = LayoutInflater.from(paramContext);
+        options = new DisplayImageOptions.Builder()
+                .showImageOnLoading(android.R.drawable.screen_background_light_transparent)
+                .cacheInMemory(true)
+                .cacheOnDisk(false)
+                .resetViewBeforeLoading(true)
+                .bitmapConfig(Bitmap.Config.RGB_565)
+                .imageScaleType(ImageScaleType.EXACTLY)
+                .considerExifParams(true)
+                .build();
     }
 
     public Object getChild(int groupPosition, int childPosition) {
         return channels.get(groupPosition).get(childPosition);
     }
 
-    public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View
-            convertView, final ViewGroup parent) {
+    public View getChildView(final int groupPosition, final int childPosition, boolean isLastChild,
+                             View
+                                     convertView, final ViewGroup parent) {
         final Channel channel = (Channel) getChild(groupPosition, childPosition);
         if (convertView == null) {
             convertView = this.inflater.inflate(R.layout.child_row, parent, false);
@@ -71,8 +89,8 @@ public class ChannelListAdapter extends BaseExpandableListAdapter implements Ope
         ImageView imageView = (ImageView) convertView.findViewById(R.id.imageView1);
 
         try {
-            //String imageUrl = this.api.getApiPath() + "/" + localChannel.getLogo();
-            //imageView.setImageDrawable(grabImageFromUrl(imageUrl));
+            ImageLoader.getInstance().displayImage(Utils.wrapUrlForImageLoader(ApiUtils
+                    .getBaseUrl() + "/" + channel.getLogo()), imageView, options);
         } catch (Exception e) {
             e.printStackTrace();
             imageView.setImageResource(R.drawable.ic_star);
@@ -90,8 +108,8 @@ public class ChannelListAdapter extends BaseExpandableListAdapter implements Ope
         convertView.findViewById(R.id.frame2).setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 try {
-                    mSelectedChannel = channel;
-                    mSelectedImageView = imageView2;
+                    mSelectedGroup = groupPosition;
+                    mSelectedChild = childPosition;
                     ChannelListAdapter.this.api.macToggleIpTvFavorites(null, channel.getId
                             (), ChannelListAdapter.this);
                 } catch (IOException e) {
@@ -155,17 +173,34 @@ public class ChannelListAdapter extends BaseExpandableListAdapter implements Ope
         return getGroupId(groupPosition) + childPosition;
     }
 
-    private Drawable grabImageFromUrl(String paramString)
-            throws Exception {
-        return Drawable.createFromStream((InputStream) new URL(paramString).getContent(), "src");
+    private void fixFavoriteState(int groupPosition, int childPosition) {
+        Channel selectedChannel = channels.get(groupPosition).get(childPosition);
+        for (int i = 0; i < channels.size(); i++) {
+            int selectedIndex = channels.get(i).indexOf(selectedChannel);
+            if (groups.get(i).equals(context.getString(R.string.selected))) {
+                if (selectedIndex != -1) {
+                    channels.get(i).remove(selectedIndex);
+                } else {
+                    Channel channel = new Channel();
+                    channel.set(selectedChannel);
+                    channel.setFavorits(false);
+                    channels.get(i).add(selectedChannel);
+                }
+            } else {
+                if (selectedIndex != -1) {
+                    Channel channel = channels.get(i).get(selectedIndex);
+                    channel.setFavorits(!channel.isFavorits());
+                }
+            }
+        }
+        notifyDataSetChanged();
     }
 
     @Override
     public void onResult(Object res) {
         boolean mSuccess = (boolean) res;
         if (mSuccess) {
-            mSelectedChannel.setFavorits(!mSelectedChannel.isFavorits());
-            setImageFavoriteResource(mSelectedImageView, mSelectedChannel);
+            fixFavoriteState(mSelectedGroup, mSelectedChild);
         }
     }
 
