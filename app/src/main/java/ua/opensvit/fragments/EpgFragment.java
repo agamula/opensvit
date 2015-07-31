@@ -1,6 +1,7 @@
 package ua.opensvit.fragments;
 
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
@@ -43,6 +44,7 @@ public class EpgFragment extends Fragment implements LoaderManager.LoaderCallbac
     private int page;
     private ProgressBar mProgress;
     private String onlineUrl;
+    private VideoStreamApp mApp;
 
     public EpgFragment() {
     }
@@ -64,6 +66,7 @@ public class EpgFragment extends Fragment implements LoaderManager.LoaderCallbac
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        mApp = VideoStreamApp.getInstance();
 
         mProgress = (ProgressBar) getActivity().findViewById(R.id.progress);
         mProgress.setVisibility(View.VISIBLE);
@@ -90,7 +93,7 @@ public class EpgFragment extends Fragment implements LoaderManager.LoaderCallbac
         final Loader<String> res;
         switch (id) {
             case LOAD_PROGRAMS_LOADER_ID:
-                res = new RunnableLoader(getActivity(), VideoStreamApp.getInstance().getApi1()
+                res = new RunnableLoader(getActivity(), mApp.getApi1()
                         .macGetEpgRunnable(channelId, serviceId, startUt, endUt, perPage, page,
                                 this));
                 break;
@@ -133,12 +136,13 @@ public class EpgFragment extends Fragment implements LoaderManager.LoaderCallbac
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         if (EpgAdapter.calculatePlayOnlineView(position)) {
-            MainActivity.startFragment(getActivity(), VitamioVideoFragment.newInstance(onlineUrl));
+            MainActivity.startFragment(getActivity(), VitamioVideoFragment.newInstance(onlineUrl,
+                    channelId, mApp.getMenuInfo().getService(), System.currentTimeMillis()));
         } else {
-            ProgramItem programItem = (ProgramItem) parent.getAdapter().getItem(position);
+            final ProgramItem programItem = (ProgramItem) parent.getAdapter().getItem(position);
             if (true/*programItem.isArchive()*/) {
                 try {
-                    VideoStreamApp.getInstance().getApi1().macGetArchiveUrl(this, channelId,
+                    mApp.getApi1().macGetArchiveUrl(this, channelId,
                             programItem.getTimestamp(), new OpenWorldApi1.ResultListener() {
                                 @Override
                                 public void onResult(Object res) {
@@ -147,7 +151,9 @@ public class EpgFragment extends Fragment implements LoaderManager.LoaderCallbac
                                     }
                                     GetUrlItem urlItem = (GetUrlItem) res;
                                     MainActivity.startFragment(getActivity(),
-                                            VitamioVideoFragment.newInstance(urlItem.getUrl()));
+                                            VitamioVideoFragment.newInstance(urlItem.getUrl(),
+                                                    channelId, mApp.getMenuInfo().getService(),
+                                                    programItem.getTimestamp()));
                                 }
 
                                 @Override

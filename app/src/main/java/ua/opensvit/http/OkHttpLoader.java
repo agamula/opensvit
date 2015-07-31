@@ -5,33 +5,35 @@ import android.support.v4.content.AsyncTaskLoader;
 
 import ua.opensvit.R;
 
-public class OkHttpLoader extends AsyncTaskLoader<String> implements OkHttpClientRunnable.OnLoadResultListener{
-    private String mResult = null;
-    private final OkHttpClientRunnable mRunnable;
+public class OkHttpLoader extends AsyncTaskLoader<String> {
+    private final OkHttpAsyncTask mTask;
+    private String mResult;
 
-    public OkHttpLoader(Context context, OkHttpClientRunnable mRunnable) {
+    public OkHttpLoader(Context context, OkHttpAsyncTask mTask) {
         super(context);
-        this.mRunnable = mRunnable;
+        this.mTask = mTask;
     }
 
     @Override
     public String loadInBackground() {
-        mRunnable.setOnLoadResultListener(this);
-        mRunnable.run();
-        return mResult;
+        mTask.doInBackground();
+        return null;
     }
 
     @Override
     public void deliverResult(String data) {
-        super.deliverResult(data);
         if (isReset()) {
             return;
         }
+        mTask.onPostExecute(null);
+        data = mTask.getResult();
+        super.deliverResult(data);
         this.mResult = data;
     }
 
     @Override
     protected void onStartLoading() {
+        mTask.onPreExecute();
         if (mResult != null) {
             deliverResult(mResult);
         }
@@ -64,13 +66,5 @@ public class OkHttpLoader extends AsyncTaskLoader<String> implements OkHttpClien
 
     private void releaseResources(String data) {
         data = null;
-    }
-
-    @Override
-    public void onLoadResult(boolean isSuccess, String result) {
-        mResult = result;
-        if(!isSuccess && result.equals(getContext().getString(R.string.load_failed_message))) {
-            mResult = null;
-        }
     }
 }

@@ -50,5 +50,8 @@
     <string name="logging">Logging</string>
     <string name="retry">Retry</string>
     <string name="play_online">Play online</string>
+    <string name="till" formatted="false">Less %s till \"%s\"</string>
+    <string name="ended_after" formatted="false">\"%s\" ended after %s</string>
+    <string name="ended_as" formatted="false">\"%s\" ended as %s</string>
 
 </resources>

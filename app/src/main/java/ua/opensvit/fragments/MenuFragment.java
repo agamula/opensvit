@@ -25,6 +25,7 @@ import ua.opensvit.data.InfoAbout;
 import ua.opensvit.data.channels.Channel;
 import ua.opensvit.data.menu.TvMenuInfo;
 import ua.opensvit.data.menu.TvMenuItem;
+import ua.opensvit.data.osd.OsdItem;
 import ua.opensvit.loaders.RunnableLoader;
 
 public class MenuFragment extends Fragment implements LoaderManager.LoaderCallbacks<String>,
@@ -114,25 +115,6 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
             VideoStreamApp app = VideoStreamApp.getInstance();
             OpenWorldApi1 api1 = app.getApi1();
             api1.macGetChannelIp(this, mChannel.getId(), this);
-
-            /*api1.macGetChannelOsd(MenuFragment.this, mChannel.getId(), app.getMenuInfo()
-                    .getService(), System.currentTimeMillis() / 1000, new OpenWorldApi1
-                    .ResultListener() {
-                @Override
-                public void onResult(Object res) {
-                    if (res == null) {
-                        return;
-                    }
-                    OsdItem osdItem = (OsdItem) res;
-                    Toast.makeText(getActivity(), "[size] : " + osdItem.getUnmodifiablePrograms()
-                            .size(), Toast.LENGTH_LONG).show();
-                }
-
-                @Override
-                public void onError(String result) {
-
-                }
-            });*/
 
             //TODO create urls
             /*

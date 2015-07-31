@@ -41,6 +41,10 @@ public class OkHttpAsyncTask extends AsyncTask<Void, Void, Void> implements
         return null;
     }
 
+    public String getResult() {
+        return mResult;
+    }
+
     @Override
     protected final void onPostExecute(Void res) {
         super.onPostExecute(res);

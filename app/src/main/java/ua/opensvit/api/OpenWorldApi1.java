@@ -15,7 +15,6 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import ua.opensvit.R;
 import ua.opensvit.VideoStreamApp;
@@ -33,7 +32,6 @@ import ua.opensvit.data.authorization.mac.UserProfileMac;
 import ua.opensvit.data.channels.Channel;
 import ua.opensvit.data.channels.ChannelsInfo;
 import ua.opensvit.data.epg.EpgItem;
-import ua.opensvit.data.epg.ProgramItem;
 import ua.opensvit.data.images.ImageInfo;
 import ua.opensvit.data.images.ImageItem;
 import ua.opensvit.data.menu.TvMenuInfo;
@@ -43,6 +41,7 @@ import ua.opensvit.http.IOkHttpLoadInfo;
 import ua.opensvit.http.OkHttpAsyncTask;
 import ua.opensvit.http.OkHttpClientRunnable;
 import ua.opensvit.utils.ApiUtils;
+import ua.opensvit.utils.HttpRequestsCreator;
 import ua.opensvit.utils.ParseUtils;
 
 public class OpenWorldApi1 {
@@ -91,7 +90,7 @@ public class OpenWorldApi1 {
         for (int i = 0; i < params.length; i += 2) {
             loadInfo.addParam(params[i], params[i + 1]);
         }
-        executeHttpTask1(mProgress, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+        executeHttpTask(mProgress, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
                 try {
@@ -131,6 +130,7 @@ public class OpenWorldApi1 {
 
     public interface ResultListener {
         void onResult(Object res);
+
         void onError(String result);
     }
 
@@ -183,7 +183,7 @@ public class OpenWorldApi1 {
         IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
         loadInfo.addParam(ApiConstants.LoginPasswordAuth.Auth.PARAM_LOGIN, login);
         loadInfo.addParam(ApiConstants.LoginPasswordAuth.Auth.PARAM_PASSWORD, password);
-        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+        executeHttpTaskFragment(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
                 AuthorizationInfo res = new AuthorizationInfo();
@@ -220,24 +220,21 @@ public class OpenWorldApi1 {
         });
     }
 
-    private void executeHttpTask(Fragment fragment, String url, IOkHttpLoadInfo.GetLoaderCreateInfo
+    private void executeHttpTaskFragment(Fragment fragment, String url, IOkHttpLoadInfo.GetLoaderCreateInfo
             loadInfo, OkHttpAsyncTask.OnLoadFinishedListener mLoadFinishedListener) {
         final ProgressBar progressBar;
-        if(fragment == null) {
+        if (fragment == null) {
             progressBar = null;
         } else {
             progressBar = (ProgressBar) fragment.getActivity().findViewById(R.id.progress);
         }
-        executeHttpTask1(progressBar, url, loadInfo, mLoadFinishedListener);
+        executeHttpTask(progressBar, url, loadInfo, mLoadFinishedListener);
     }
 
-    private void executeHttpTask1(ProgressBar progressBar, String url, IOkHttpLoadInfo
-            .GetLoaderCreateInfo loadInfo, OkHttpAsyncTask.OnLoadFinishedListener
-            mLoadFinishedListener) {
-        OkHttpClientRunnable mRunnable = new OkHttpClientRunnable(url, loadInfo);
-        OkHttpAsyncTask task = new OkHttpAsyncTask(progressBar, mRunnable);
-        task.setOnLoadFinishedListener(mLoadFinishedListener);
-        task.execute();
+    private void executeHttpTask(ProgressBar progressBar, String url, IOkHttpLoadInfo
+            .GetLoaderCreateInfo
+            loadInfo, OkHttpAsyncTask.OnLoadFinishedListener mLoadFinishedListener) {
+        HttpRequestsCreator.createTask(progressBar, url, loadInfo, mLoadFinishedListener).execute();
     }
 
     private TvMenuInfo parseJsonTvMenuInfo(String tvInfoJsonString) {
@@ -275,7 +272,7 @@ public class OpenWorldApi1 {
     public void macIpTvMenu(Fragment fragment, final ResultListener mListener) throws IOException {
         String url = ApiUtils.getApiUrl(ApiConstants.IpTvMenu.URL);
         IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
-        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+        executeHttpTaskFragment(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
                 TvMenuInfo res = parseJsonTvMenuInfo(result);
@@ -296,11 +293,11 @@ public class OpenWorldApi1 {
     public void macVodMenu(Fragment fragment, final ResultListener mListener) throws IOException {
         String url = ApiUtils.getApiUrl(ApiConstants.VodMenu.URL);
         IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
-        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+        executeHttpTaskFragment(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
                 TvMenuInfo res = parseJsonTvMenuInfo(result);
-                if(mListener != null) {
+                if (mListener != null) {
                     mListener.onResult(res);
                 }
             }
@@ -378,7 +375,7 @@ public class OpenWorldApi1 {
         loadInfo.addParam(ApiConstants.GetChannels.PARAM_GENRE_ID, "" + categoryId);
         loadInfo.addParam(ApiConstants.GetChannels.PARAM_PER_PAGE, "" + 0);
         loadInfo.addParam(ApiConstants.GetChannels.PARAM_PAGE, "" + 0);
-        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+        executeHttpTaskFragment(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
                 ChannelsInfo res = parseChannelsInfo(result);
@@ -401,7 +398,7 @@ public class OpenWorldApi1 {
         String url = ApiUtils.getApiUrl(ApiConstants.ToggleIpTvFavorites.URL);
         IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
         loadInfo.addParam(ApiConstants.ToggleIpTvFavorites.PARAM_IP_TV, channelId + "");
-        executeHttpTask(null, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+        executeHttpTaskFragment(null, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
                 boolean res = false;
@@ -433,13 +430,13 @@ public class OpenWorldApi1 {
         IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
         loadInfo.addParam(ApiConstants.GetArchiveUrl.PARAM_ID, id + "");
         loadInfo.addParam(ApiConstants.GetArchiveUrl.PARAM_TIMESTAMP, timestamp + "");
-        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+        executeHttpTaskFragment(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
                 GetUrlItem res = new GetUrlItem();
                 try {
                     JSONObject localJSONObject = new JSONObject(result);
-                    if(localJSONObject.has(GetUrlItem.IP)) {
+                    if (localJSONObject.has(GetUrlItem.IP)) {
                         res.setUrl(localJSONObject.getString(GetUrlItem.IP));
                     } else {
                         res.setUrl(localJSONObject.getString(GetUrlItem.URL));
@@ -470,13 +467,13 @@ public class OpenWorldApi1 {
         String url = ApiUtils.getApiUrl(ApiConstants.GetChannelIp.URL);
         IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
         loadInfo.addParam(ApiConstants.GetChannelIp.PARAM_ID, channelId + "");
-        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+        executeHttpTaskFragment(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
                 GetUrlItem res = new GetUrlItem();
                 try {
                     JSONObject localJSONObject = new JSONObject(result);
-                    if(localJSONObject.has(GetUrlItem.IP)) {
+                    if (localJSONObject.has(GetUrlItem.IP)) {
                         res.setUrl(localJSONObject.getString(GetUrlItem.IP));
                     } else {
                         res.setUrl(localJSONObject.getString(GetUrlItem.URL));
@@ -502,6 +499,15 @@ public class OpenWorldApi1 {
         });
     }
 
+    public OkHttpClientRunnable macGetChannelOsd(int channelId, int serviceId, long timestamp) {
+        String url = ApiUtils.getApiUrl(ApiConstants.GetChannelOsd.URL);
+        IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
+        loadInfo.addParam(ApiConstants.GetChannelOsd.PARAM_CHANNEL_ID, channelId + "");
+        loadInfo.addParam(ApiConstants.GetChannelOsd.PARAM_SERVICE_ID, serviceId + "");
+        loadInfo.addParam(ApiConstants.GetChannelOsd.PARAM_TIMESTAMP, timestamp + "");
+        return HttpRequestsCreator.createRunnable(url, loadInfo);
+    }
+
     public void macGetChannelOsd(Fragment fragment, int channelId, int serviceId, long timestamp,
                                  final ResultListener mListener)
             throws IOException {
@@ -510,7 +516,7 @@ public class OpenWorldApi1 {
         loadInfo.addParam(ApiConstants.GetChannelOsd.PARAM_CHANNEL_ID, channelId + "");
         loadInfo.addParam(ApiConstants.GetChannelOsd.PARAM_SERVICE_ID, serviceId + "");
         loadInfo.addParam(ApiConstants.GetChannelOsd.PARAM_TIMESTAMP, timestamp + "");
-        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+        executeHttpTaskFragment(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
                 OsdItem res = new OsdItem();
@@ -522,7 +528,7 @@ public class OpenWorldApi1 {
                         JSONObject programObj = programsArr.getJSONObject(i);
                         ua.opensvit.data.osd.ProgramItem programItem = new ua.opensvit.data.osd
                                 .ProgramItem();
-                        programItem.setDuration(programObj.getInt(ua.opensvit.data.osd
+                        programItem.setAbsTimeElapsedInPercent(programObj.getInt(ua.opensvit.data.osd
                                 .ProgramItem.DURATION));
                         programItem.setTitle(programObj.getString(ua.opensvit.data.osd
                                 .ProgramItem.TITLE));
@@ -557,7 +563,7 @@ public class OpenWorldApi1 {
         IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
         loadInfo.addParam(ApiConstants.GetCreepingLine.PARAM_SERVICE, service + "");
         loadInfo.addParam(ApiConstants.GetCreepingLine.PARAM_LOOKING, looking + "");
-        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+        executeHttpTaskFragment(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
                 CreepingLineItem res = new CreepingLineItem();
@@ -594,7 +600,7 @@ public class OpenWorldApi1 {
         loadInfo.addParam(ApiConstants.GetEpg.PARAM_END_UT, endUT + "");
         loadInfo.addParam(ApiConstants.GetEpg.PARAM_PER_PAGE, perPage + "");
         loadInfo.addParam(ApiConstants.GetEpg.PARAM_PAGE, page + "");
-        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+        executeHttpTaskFragment(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
                 EpgItem res = ParseUtils.parseEpg(result);
@@ -627,7 +633,7 @@ public class OpenWorldApi1 {
         runnable.setOnLoadResultListener(new OkHttpClientRunnable.OnLoadResultListener() {
             @Override
             public void onLoadResult(boolean isSuccess, String result) {
-                if(isSuccess) {
+                if (isSuccess) {
                     EpgItem res = ParseUtils.parseEpg(result);
                     mListener.onResult(res);
                 } else {
@@ -645,7 +651,7 @@ public class OpenWorldApi1 {
         loadInfo.addParam(ApiConstants.GetFilms.PARAM_GENRE_ID, genre + "");
         loadInfo.addParam(ApiConstants.GetFilms.PARAM_PER_PAGE, perPage + "");
         loadInfo.addParam(ApiConstants.GetFilms.PARAM_PAGE, page + "");
-        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+        executeHttpTaskFragment(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
                 Object res = new Object();
@@ -675,7 +681,7 @@ public class OpenWorldApi1 {
         String url = ApiUtils.getApiUrl(ApiConstants.GetFilm.URL);
         IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
         loadInfo.addParam(ApiConstants.GetFilm.PARAM_ID, filmId + "");
-        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+        executeHttpTaskFragment(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
                 Object res = new Object();
@@ -705,7 +711,7 @@ public class OpenWorldApi1 {
             IOException {
         String url = ApiUtils.getApiUrl(ApiConstants.GetImages.URL);
         IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
-        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+        executeHttpTaskFragment(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
                 ImageInfo res = new ImageInfo();
@@ -741,7 +747,7 @@ public class OpenWorldApi1 {
             IOException {
         String url = ApiUtils.getApiUrl(ApiConstants.I18n.URL);
         IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
-        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+        executeHttpTaskFragment(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
                 Object res = new Object();
@@ -771,7 +777,7 @@ public class OpenWorldApi1 {
             throws IOException {
         String url = ApiUtils.getApiUrl(ApiConstants.InfoAbout.URL);
         IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
-        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+        executeHttpTaskFragment(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
                 InfoAbout res = new InfoAbout();
@@ -800,7 +806,7 @@ public class OpenWorldApi1 {
     public void macKeepAlive(Fragment fragment, final ResultListener mListener) throws IOException {
         String url = ApiUtils.getApiUrl(ApiConstants.KeepAlive.URL);
         IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
-        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+        executeHttpTaskFragment(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
                 long res = -1;
@@ -832,7 +838,7 @@ public class OpenWorldApi1 {
         IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
         loadInfo.addParam(ApiConstants.OrderFilm.PARAM_ID, id + "");
         loadInfo.addParam(ApiConstants.OrderFilm.PARAM_PIN, pin + "");
-        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+        executeHttpTaskFragment(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
                 Object res = new Object();
@@ -864,7 +870,7 @@ public class OpenWorldApi1 {
         IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
         loadInfo.addParam(ApiConstants.LoginPasswordAuth.ResetPin.PARAM_OLD_PIN, oldPin + "");
         loadInfo.addParam(ApiConstants.LoginPasswordAuth.ResetPin.PARAM_PIN, pin + "");
-        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+        executeHttpTaskFragment(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
                 Object res = new Object();
@@ -891,7 +897,7 @@ public class OpenWorldApi1 {
 
     public void macUpdateProfile(Fragment fragment, int id, int type, String language, String
             ratio, String resolution, String skin, String transparency, String startPage, String
-            networkPath, String volume, int reminder, final ResultListener mListener) throws
+                                         networkPath, String volume, int reminder, final ResultListener mListener) throws
             IOException {
         String url = ApiUtils.getApiUrl(ApiConstants.UpdateProfile.URL);
         IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
@@ -906,7 +912,7 @@ public class OpenWorldApi1 {
         loadInfo.addParam(ApiConstants.UpdateProfile.PARAM_NETWORK_PATH, networkPath);
         loadInfo.addParam(ApiConstants.UpdateProfile.PARAM_VOLUME, volume);
         loadInfo.addParam(ApiConstants.UpdateProfile.PARAM_REMINDER, reminder + "");
-        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+        executeHttpTaskFragment(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
                 Object res = new Object();
@@ -936,7 +942,7 @@ public class OpenWorldApi1 {
         String runUrl = ApiUtils.getApiUrl(ApiConstants.LoginPasswordAuth.CheckAvailability.URL);
         IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
         loadInfo.addParam(ApiConstants.LoginPasswordAuth.CheckAvailability.PARAM_URL, url);
-        executeHttpTask(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+        executeHttpTaskFragment(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
                 boolean res = false;

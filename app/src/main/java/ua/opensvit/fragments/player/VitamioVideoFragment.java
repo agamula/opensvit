@@ -1,20 +1,33 @@
 package ua.opensvit.fragments.player;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.lang.reflect.Field;
+import java.util.concurrent.TimeUnit;
 
 import ua.opensvit.R;
 
 import io.vov.vitamio.MediaPlayer;
 import io.vov.vitamio.widget.MediaController;
 import io.vov.vitamio.widget.VideoView;
+import ua.opensvit.VideoStreamApp;
+import ua.opensvit.services.NextProgramNotifyService;
 
 public class VitamioVideoFragment extends Fragment implements MediaPlayer
         .OnBufferingUpdateListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnInfoListener,
@@ -25,17 +38,66 @@ public class VitamioVideoFragment extends Fragment implements MediaPlayer
     public VitamioVideoFragment() {
     }
 
-    public static VitamioVideoFragment newInstance(String url) {
+    public static VitamioVideoFragment newInstance(String url, int channelId, int serviceId, long
+            timestamp) {
         VitamioVideoFragment fragment = new VitamioVideoFragment();
         Bundle args = new Bundle();
         args.putString(URL_TAG, url);
+        args.putInt(NextProgramNotifyService.CHANNEL_ID, channelId);
+        args.putInt(NextProgramNotifyService.SERVICE_ID, serviceId);
+        args.putLong(NextProgramNotifyService.TIMESTAMP, timestamp);
         fragment.setArguments(args);
         return fragment;
     }
 
     private VideoView mVideoView;
+    private TextView mNextProgramText;
     private String mPath;
     private boolean mShown;
+    private int channelId, serviceId;
+    private long timestamp;
+    private ProgressBar mProgress;
+
+    private BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(NextProgramNotifyService.BROADCAST_NAME)) {
+                mNextProgramText.setVisibility(View.GONE);
+                String text = createTextToShow(intent.getStringExtra(NextProgramNotifyService
+                        .PARAM_TIME_TILL), intent.getStringExtra(NextProgramNotifyService
+                        .PARAM_NEXT_PROGRAM_NAME), intent.getIntExtra(NextProgramNotifyService
+                        .PARAM_TIME_TILL, 0));
+
+                if (text != null) {
+                    mNextProgramText.setVisibility(View.VISIBLE);
+                    mNextProgramText.setText(text);
+                    if (mNextProgramText.getAnimation() != null) {
+                        mNextProgramText.getAnimation().start();
+                    } else {
+                        Animation a = AnimationUtils.loadAnimation(getActivity(), R.anim
+                                .anim_move_next_program);
+                        a.setAnimationListener(new Animation.AnimationListener() {
+                            @Override
+                            public void onAnimationStart(Animation animation) {
+
+                            }
+
+                            @Override
+                            public void onAnimationEnd(Animation animation) {
+                                mNextProgramText.setVisibility(View.GONE);
+                            }
+
+                            @Override
+                            public void onAnimationRepeat(Animation animation) {
+
+                            }
+                        });
+                        mNextProgramText.setAnimation(a);
+                    }
+                }
+            }
+        }
+    };
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -45,11 +107,20 @@ public class VitamioVideoFragment extends Fragment implements MediaPlayer
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        Bundle args = getArguments();
 
-        this.mVideoView = ((VideoView) view.findViewById(R.id.surface_view));
-        mPath = getArguments().getString(URL_TAG);
-        this.mVideoView.setVideoQuality(16);
-        this.mVideoView.setVideoLayout(VideoView.VIDEO_LAYOUT_STRETCH, 0.0F);
+        channelId = args.getInt(NextProgramNotifyService.CHANNEL_ID);
+        serviceId = args.getInt(NextProgramNotifyService.SERVICE_ID);
+        timestamp = args.getLong(NextProgramNotifyService.TIMESTAMP);
+        mPath = args.getString(URL_TAG);
+
+        mNextProgramText = (TextView) view.findViewById(R.id.next_program_text);
+        mProgress = (ProgressBar) getActivity().findViewById(R.id.progress);
+        mProgress.setVisibility(View.VISIBLE);
+
+        mVideoView = ((VideoView) view.findViewById(R.id.surface_view));
+        mVideoView.setVideoQuality(16);
+        mVideoView.setVideoLayout(VideoView.VIDEO_LAYOUT_STRETCH, 0.0F);
         MediaController controller = new MediaController(getActivity());
         controller.setInstantSeeking(false);
         controller.setOnShownListener(this);
@@ -65,6 +136,38 @@ public class VitamioVideoFragment extends Fragment implements MediaPlayer
         mShown = false;
     }
 
+    private void scheduleAlarmShowNextProgram(boolean isPaused) {
+        AlarmManager manager = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
+        long nowTime = SystemClock.elapsedRealtime();
+        long timeBetweenAlarms = TimeUnit.MINUTES.toMillis(getResources().getInteger(R.integer
+                .time_between_show_programs_minutes));
+        if (!isPaused) {
+            timeBetweenAlarms += TimeUnit.SECONDS.toMillis(getResources().getInteger(R.integer
+                    .time_till_display_notify_string_seconds));
+        }
+
+        manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME, nowTime, timeBetweenAlarms,
+                createPendingIntent());
+    }
+
+    private PendingIntent createPendingIntent() {
+        VideoStreamApp app = VideoStreamApp.getInstance();
+
+        Intent intent = new Intent(app.getApplicationContext(),
+                NextProgramNotifyService.class);
+        intent.putExtra(NextProgramNotifyService.CHANNEL_ID, channelId);
+        intent.putExtra(NextProgramNotifyService.SERVICE_ID, serviceId);
+        intent.putExtra(NextProgramNotifyService.TIMESTAMP, timestamp);
+
+        PendingIntent pe = PendingIntent.getService(app.getApplicationContext(), 0, intent, 0);
+        return pe;
+    }
+
+    private void stopSchedulingAlarm() {
+        AlarmManager manager = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
+        manager.cancel(createPendingIntent());
+    }
+
     private long mPosition;
 
     @Override
@@ -72,16 +175,28 @@ public class VitamioVideoFragment extends Fragment implements MediaPlayer
         mPosition = mVideoView.getCurrentPosition();
         mVideoView.stopPlayback();
         super.onPause();
+        stopNextProgramNotifier();
+    }
+
+    private void stopNextProgramNotifier() {
+        stopSchedulingAlarm();
+        getActivity().getApplicationContext().unregisterReceiver(mReceiver);
     }
 
     @Override
     public void onResume() {
-        if (mPosition > 0) {
+        boolean isPaused = mPosition > 0;
+
+        if (isPaused) {
             mVideoView.seekTo(mPosition);
             mPosition = 0;
         }
         super.onResume();
         mVideoView.start();
+        //mProgress.setVisibility(View.GONE);
+        scheduleAlarmShowNextProgram(isPaused);
+        getActivity().getApplicationContext().registerReceiver(mReceiver, new IntentFilter
+                (NextProgramNotifyService.BROADCAST_NAME));
     }
 
     @Override
@@ -118,6 +233,25 @@ public class VitamioVideoFragment extends Fragment implements MediaPlayer
     @Override
     public void onPrepared(MediaPlayer mediaPlayer) {
         mediaPlayer.setPlaybackSpeed(1.0f);
+        mProgress.setVisibility(View.GONE);
+    }
+
+    private String createTextToShow(String paramTimeTill, String paramNextProgramName, int
+            tillOrdinal) {
+        NextProgramNotifyService.Till till = NextProgramNotifyService.Till.values()[tillOrdinal];
+        String res = null;
+        switch (till) {
+            case Till:
+                res = String.format(getString(R.string.till), paramTimeTill, paramNextProgramName);
+                break;
+            case EndedAfter:
+                res = String.format(getString(R.string.ended_after), paramNextProgramName, paramTimeTill);
+                break;
+            case EndedAs:
+                res = String.format(getString(R.string.ended_as), paramNextProgramName, paramTimeTill);
+                break;
+        }
+        return res;
     }
 
     @Override

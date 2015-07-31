@@ -7,17 +7,17 @@ public class ProgramItem {
     public static final String START = "start";
     public static final String END = "end";
 
-    private int duration;
+    private int absTimeElapsedInPercent;
     private String title;
     private String start;
     private String end;
 
-    public int getDuration() {
-        return duration;
+    public int getAbsTimeElapsedInPercent() {
+        return absTimeElapsedInPercent;
     }
 
-    public void setDuration(int duration) {
-        this.duration = duration;
+    public void setAbsTimeElapsedInPercent(int absTimeElapsedInPercent) {
+        this.absTimeElapsedInPercent = absTimeElapsedInPercent;
     }
 
     public String getTitle() {
