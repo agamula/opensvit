@@ -50,6 +50,7 @@ public final class VideoStreamApp extends Application {
     private boolean mIsTest;
     private boolean mMacSet;
     private boolean mTestSet;
+    private boolean mFirstNotOnline;
 
     public void setIsMac(boolean mIsMac) {
         mMacSet = true;
@@ -101,5 +102,13 @@ public final class VideoStreamApp extends Application {
 
     public TvMenuInfo getMenuInfo() {
         return menuInfo;
+    }
+
+    public void setFirstNotOnline(boolean mFirstNotOnline) {
+        this.mFirstNotOnline = mFirstNotOnline;
+    }
+
+    public boolean isFirstNotOnline() {
+        return mFirstNotOnline;
     }
 }

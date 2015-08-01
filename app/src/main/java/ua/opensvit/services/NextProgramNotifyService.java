@@ -47,8 +47,13 @@ public class NextProgramNotifyService extends IntentService implements OkHttpCli
         int serviceId = intent.getIntExtra(SERVICE_ID, 0);
         long timestamp = intent.getLongExtra(TIMESTAMP, 0);
 
+        if(mApp.isFirstNotOnline()) {
+            timestamp += TimeUnit.MINUTES.toSeconds(1);
+            mApp.setFirstNotOnline(false);
+        }
+
         OkHttpClientRunnable runnable = mApp.getApi1().macGetChannelOsd(channelId, serviceId,
-                timestamp / 1000);
+                timestamp);
         runnable.setOnLoadResultListener(this);
         runnable.run();
     }

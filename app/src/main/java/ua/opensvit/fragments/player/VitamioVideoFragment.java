@@ -19,6 +19,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.lang.reflect.Field;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import ua.opensvit.R;
@@ -57,6 +58,7 @@ public class VitamioVideoFragment extends Fragment implements MediaPlayer
     private int channelId, serviceId;
     private long timestamp;
     private ProgressBar mProgress;
+    private int requestCode;
 
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
@@ -142,11 +144,11 @@ public class VitamioVideoFragment extends Fragment implements MediaPlayer
         long timeBetweenAlarms = TimeUnit.MINUTES.toMillis(getResources().getInteger(R.integer
                 .time_between_show_programs_minutes));
         if (!isPaused) {
-            timeBetweenAlarms += TimeUnit.SECONDS.toMillis(getResources().getInteger(R.integer
+            nowTime += TimeUnit.SECONDS.toMillis(getResources().getInteger(R.integer
                     .time_till_display_notify_string_seconds));
         }
 
-        manager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME, nowTime, timeBetweenAlarms,
+        manager.setRepeating(AlarmManager.ELAPSED_REALTIME, nowTime, timeBetweenAlarms,
                 createPendingIntent());
     }
 
@@ -159,13 +161,19 @@ public class VitamioVideoFragment extends Fragment implements MediaPlayer
         intent.putExtra(NextProgramNotifyService.SERVICE_ID, serviceId);
         intent.putExtra(NextProgramNotifyService.TIMESTAMP, timestamp);
 
-        PendingIntent pe = PendingIntent.getService(app.getApplicationContext(), 0, intent, 0);
+        if (requestCode == 0) {
+            requestCode = new Random().nextInt(100);
+        }
+
+        PendingIntent pe = PendingIntent.getService(app.getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         return pe;
     }
 
     private void stopSchedulingAlarm() {
         AlarmManager manager = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
-        manager.cancel(createPendingIntent());
+        PendingIntent pe = createPendingIntent();
+        manager.cancel(pe);
+        pe.cancel();
     }
 
     private long mPosition;
