@@ -8,6 +8,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -19,6 +22,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.lang.reflect.Field;
+import java.util.Calendar;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -29,12 +33,14 @@ import io.vov.vitamio.widget.MediaController;
 import io.vov.vitamio.widget.VideoView;
 import ua.opensvit.VideoStreamApp;
 import ua.opensvit.services.NextProgramNotifyService;
+import ua.opensvit.utils.DateUtils;
 
 public class VitamioVideoFragment extends Fragment implements MediaPlayer
         .OnBufferingUpdateListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnInfoListener,
         MediaPlayer.OnTimedTextListener, MediaPlayer.OnPreparedListener, MediaController.OnShownListener {
 
     private static final String URL_TAG = "url";
+    private static final int MESSAGE_START_NOTIFY_SERVICE = 1;
 
     public VitamioVideoFragment() {
     }
@@ -59,6 +65,32 @@ public class VitamioVideoFragment extends Fragment implements MediaPlayer
     private long timestamp;
     private ProgressBar mProgress;
     private int requestCode;
+
+    private static final Handler DELAY_HANDLER = new Handler(Looper.getMainLooper()) {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            if (msg.what == MESSAGE_START_NOTIFY_SERVICE) {
+                VideoStreamApp mApp = VideoStreamApp.getInstance();
+                ObjectForNotify notifObj = (ObjectForNotify) msg.obj;
+                Intent intent = createNotifyIntent(mApp, notifObj.channelId, notifObj.serviceId,
+                        notifObj.timestamp);
+                mApp.getApplicationContext().startService(intent);
+            }
+        }
+    };
+
+    private static class ObjectForNotify {
+        public final int channelId;
+        public final int serviceId;
+        public final long timestamp;
+
+        ObjectForNotify(int channelId, int serviceId, long timestamp) {
+            this.channelId = channelId;
+            this.serviceId = serviceId;
+            this.timestamp = timestamp;
+        }
+    }
 
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
@@ -143,10 +175,19 @@ public class VitamioVideoFragment extends Fragment implements MediaPlayer
         long nowTime = SystemClock.elapsedRealtime();
         long timeBetweenAlarms = TimeUnit.MINUTES.toMillis(getResources().getInteger(R.integer
                 .time_between_show_programs_minutes));
+
+        long delay = 0;
+
         if (!isPaused) {
-            nowTime += TimeUnit.SECONDS.toMillis(getResources().getInteger(R.integer
+            delay = TimeUnit.SECONDS.toMillis(getResources().getInteger(R.integer
                     .time_till_display_notify_string_seconds));
         }
+        Message msg = DELAY_HANDLER.obtainMessage(MESSAGE_START_NOTIFY_SERVICE);
+        msg.obj = new ObjectForNotify(channelId, serviceId, timestamp);
+
+        DELAY_HANDLER.sendMessageDelayed(msg, delay);
+
+        nowTime += timeBetweenAlarms;
 
         manager.setRepeating(AlarmManager.ELAPSED_REALTIME, nowTime, timeBetweenAlarms,
                 createPendingIntent());
@@ -155,11 +196,7 @@ public class VitamioVideoFragment extends Fragment implements MediaPlayer
     private PendingIntent createPendingIntent() {
         VideoStreamApp app = VideoStreamApp.getInstance();
 
-        Intent intent = new Intent(app.getApplicationContext(),
-                NextProgramNotifyService.class);
-        intent.putExtra(NextProgramNotifyService.CHANNEL_ID, channelId);
-        intent.putExtra(NextProgramNotifyService.SERVICE_ID, serviceId);
-        intent.putExtra(NextProgramNotifyService.TIMESTAMP, timestamp);
+        Intent intent = createNotifyIntent(app, channelId, serviceId, timestamp);
 
         if (requestCode == 0) {
             requestCode = new Random().nextInt(100);
@@ -167,6 +204,18 @@ public class VitamioVideoFragment extends Fragment implements MediaPlayer
 
         PendingIntent pe = PendingIntent.getService(app.getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         return pe;
+    }
+
+    private static Intent createNotifyIntent(VideoStreamApp app, int channelId, int serviceId,
+                                             long timestamp) {
+        Intent intent = new Intent(app.getApplicationContext(),
+                NextProgramNotifyService.class);
+        intent.putExtra(NextProgramNotifyService.CHANNEL_ID, channelId);
+        intent.putExtra(NextProgramNotifyService.SERVICE_ID, serviceId);
+        intent.putExtra(NextProgramNotifyService.TIMESTAMP, timestamp);
+        intent.putExtra(NextProgramNotifyService.PARAM_NOW_TIME, Calendar.getInstance(DateUtils
+                .getTimeZone()).getTimeInMillis());
+        return intent;
     }
 
     private void stopSchedulingAlarm() {

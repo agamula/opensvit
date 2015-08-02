@@ -2,7 +2,7 @@ package ua.opensvit.utils;
 
 import com.nostra13.universalimageloader.core.download.ImageDownloader;
 
-public class Utils {
+public class ImageLoaderUtils {
 
     public static String wrapUrlForImageLoader(String imageUrl) {
         String url;

@@ -9,6 +9,7 @@ import org.json.JSONObject;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
@@ -18,6 +19,7 @@ import ua.opensvit.VideoStreamApp;
 import ua.opensvit.data.osd.OsdItem;
 import ua.opensvit.data.osd.ProgramItem;
 import ua.opensvit.http.OkHttpClientRunnable;
+import ua.opensvit.utils.DateUtils;
 
 public class NextProgramNotifyService extends IntentService implements OkHttpClientRunnable.OnLoadResultListener {
 
@@ -28,6 +30,7 @@ public class NextProgramNotifyService extends IntentService implements OkHttpCli
     public static final String PARAM_TIME_TILL = "param_time_till_next";
     public static final String PARAM_NEXT_PROGRAM_NAME = "param_next_program_name";
     public static final String PARAM_TILL_AFTER_TILL_END = "param_after_till";
+    public static final String PARAM_NOW_TIME = "param_now_time";
 
     public NextProgramNotifyService() {
         super("Notify Next Program Service");
@@ -50,6 +53,11 @@ public class NextProgramNotifyService extends IntentService implements OkHttpCli
         if(mApp.isFirstNotOnline()) {
             timestamp += TimeUnit.MINUTES.toSeconds(1);
             mApp.setFirstNotOnline(false);
+        } else {
+            Calendar calendar = Calendar.getInstance(DateUtils.getTimeZone());
+            long diff = (calendar.getTimeInMillis() - intent.getLongExtra(PARAM_NOW_TIME, 0)) /
+                    1000;
+            timestamp += diff;
         }
 
         OkHttpClientRunnable runnable = mApp.getApi1().macGetChannelOsd(channelId, serviceId,
@@ -90,9 +98,8 @@ public class NextProgramNotifyService extends IntentService implements OkHttpCli
             }
 
             if (res != null) {
-                TimeZone timeZone = TimeZone.getTimeZone("GMT");
                 SimpleDateFormat format = new SimpleDateFormat("HH:mm");
-                format.setTimeZone(timeZone);
+                format.setTimeZone(DateUtils.getTimeZone());
                 List<ProgramItem> programItems = res.getUnmodifiablePrograms();
 
                 if (programItems != null && !programItems.isEmpty()) {

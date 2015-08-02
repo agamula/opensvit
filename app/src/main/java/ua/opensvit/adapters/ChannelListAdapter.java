@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Point;
-import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.view.Display;
 import android.view.LayoutInflater;
@@ -21,8 +20,6 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.ImageScaleType;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 import java.util.List;
 
 import ua.opensvit.R;
@@ -30,7 +27,7 @@ import ua.opensvit.VideoStreamApp;
 import ua.opensvit.api.OpenWorldApi1;
 import ua.opensvit.data.channels.Channel;
 import ua.opensvit.utils.ApiUtils;
-import ua.opensvit.utils.Utils;
+import ua.opensvit.utils.ImageLoaderUtils;
 
 @SuppressLint({"NewApi"})
 public class ChannelListAdapter extends BaseExpandableListAdapter implements OpenWorldApi1.ResultListener {
@@ -89,7 +86,7 @@ public class ChannelListAdapter extends BaseExpandableListAdapter implements Ope
         ImageView imageView = (ImageView) convertView.findViewById(R.id.imageView1);
 
         try {
-            ImageLoader.getInstance().displayImage(Utils.wrapUrlForImageLoader(ApiUtils
+            ImageLoader.getInstance().displayImage(ImageLoaderUtils.wrapUrlForImageLoader(ApiUtils
                     .getBaseUrl() + "/" + channel.getLogo()), imageView, options);
         } catch (Exception e) {
             e.printStackTrace();
