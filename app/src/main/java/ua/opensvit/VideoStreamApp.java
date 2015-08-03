@@ -5,7 +5,14 @@ import android.content.Context;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
+import com.squareup.leakcanary.LeakCanary;
+import com.squareup.leakcanary.RefWatcher;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import ua.opensvit.adapters.ChannelListAdapter;
+import ua.opensvit.adapters.ChannelListData;
 import ua.opensvit.api.OpenWorldApi;
 import ua.opensvit.api.OpenWorldApi1;
 import ua.opensvit.data.menu.TvMenuInfo;
@@ -18,6 +25,29 @@ public final class VideoStreamApp extends Application {
         return sInstance;
     }
 
+    public final void onCreate() {
+        super.onCreate();
+        sInstance = this;
+        mRefWatcher = LeakCanary.install(this);
+        initServerConfigs();
+        initImageLoader(getApplicationContext());
+    }
+
+    private RefWatcher mRefWatcher;
+
+    public RefWatcher getRefWatcher() {
+        return mRefWatcher;
+    }
+
+    private boolean mIsMac;
+    private boolean mIsTest;
+    private boolean mMacSet;
+    private boolean mTestSet;
+
+    private void initServerConfigs() {
+        mMacSet = mTestSet = false;
+    }
+
     public boolean isTest() {
         return mTestSet ? mIsTest : getResources().getBoolean(R.bool.is_test);
     }
@@ -25,32 +55,6 @@ public final class VideoStreamApp extends Application {
     public boolean isMac() {
         return mMacSet ? mIsMac : getResources().getBoolean(R.bool.is_mac);
     }
-
-    public final void onCreate() {
-        super.onCreate();
-        mMacSet = mTestSet = false;
-        sInstance = this;
-        initImageLoader(getApplicationContext());
-    }
-
-    public static void initImageLoader(Context context) {
-        ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(context)
-                .threadPoolSize(5)
-                .threadPriority(Thread.MIN_PRIORITY + 3)
-                .build();
-
-        ImageLoader.getInstance().init(config);
-    }
-
-    private OpenWorldApi mApi;
-    private OpenWorldApi1 mApi1;
-    private int mChannelId = 0;
-    private int mIpTvServiceId;
-    private boolean mIsMac;
-    private boolean mIsTest;
-    private boolean mMacSet;
-    private boolean mTestSet;
-    private boolean mFirstNotOnline;
 
     public void setIsMac(boolean mIsMac) {
         mMacSet = true;
@@ -61,6 +65,31 @@ public final class VideoStreamApp extends Application {
         mTestSet = true;
         this.mIsTest = mIsTest;
     }
+
+    private void initImageLoader(Context context) {
+        ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(context)
+                .threadPoolSize(5)
+                .threadPriority(Thread.MIN_PRIORITY + 3)
+                .build();
+
+        ImageLoader.getInstance().init(config);
+    }
+
+    private final Map<Integer, Object> mLoaderObjects = new HashMap<>();
+
+    public void setTempLoaderObject(int loaderId, Object mTempLoaderObject) {
+        mLoaderObjects.put(loaderId, mTempLoaderObject);
+    }
+
+    public Object getTempLoaderObject(int loaderId) {
+        return mLoaderObjects.get(loaderId);
+    }
+
+    private OpenWorldApi mApi;
+    private OpenWorldApi1 mApi1;
+    private int mChannelId = 0;
+    private int mIpTvServiceId;
+    private boolean mFirstNotOnline;
 
     public int getChannelId() {
         return this.mChannelId;

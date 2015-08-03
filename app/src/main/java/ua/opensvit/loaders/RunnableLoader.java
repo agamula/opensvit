@@ -3,12 +3,17 @@ package ua.opensvit.loaders;
 import android.content.Context;
 import android.support.v4.content.AsyncTaskLoader;
 
+import ua.opensvit.VideoStreamApp;
+
 public class RunnableLoader extends AsyncTaskLoader<String> {
 
-    private final Runnable mRunnable;
+    private Runnable mRunnable;
 
-    public RunnableLoader(Context context, Runnable mRunnable) {
-        super(context);
+    public RunnableLoader() {
+        super(VideoStreamApp.getInstance().getApplicationContext());
+    }
+
+    public void setRunnable(Runnable mRunnable) {
         this.mRunnable = mRunnable;
     }
 
@@ -19,13 +24,18 @@ public class RunnableLoader extends AsyncTaskLoader<String> {
         super.deliverResult(data);
         if (isReset()) {
             // An async query came in while the loader is stopped
-            if (res != null) {
-                res = null;
-            }
+            clearData();
             return;
         }
         if (isStarted()) {
             super.deliverResult(res);
+        }
+    }
+
+    private void clearData() {
+        if (res != null) {
+            res = null;
+            mRunnable = null;
         }
     }
 
@@ -52,9 +62,7 @@ public class RunnableLoader extends AsyncTaskLoader<String> {
 
     @Override
     public void onCanceled(String data) {
-        if (res != null) {
-            res = null;
-        }
+        clearData();
     }
 
     @Override
@@ -64,9 +72,7 @@ public class RunnableLoader extends AsyncTaskLoader<String> {
         // Ensure the loader is stopped
         onStopLoading();
 
-        if (res != null) {
-            res = null;
-        }
+        clearData();
     }
 
     @Override

@@ -21,6 +21,8 @@ import android.view.animation.AnimationUtils;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.squareup.leakcanary.RefWatcher;
+
 import java.lang.reflect.Field;
 import java.util.Calendar;
 import java.util.Random;
@@ -100,7 +102,7 @@ public class VitamioVideoFragment extends Fragment implements MediaPlayer
                 String text = createTextToShow(intent.getStringExtra(NextProgramNotifyService
                         .PARAM_TIME_TILL), intent.getStringExtra(NextProgramNotifyService
                         .PARAM_NEXT_PROGRAM_NAME), intent.getIntExtra(NextProgramNotifyService
-                        .PARAM_TIME_TILL, 0));
+                        .PARAM_TILL_AFTER_TILL_END, 0));
 
                 if (text != null) {
                     mNextProgramText.setVisibility(View.VISIBLE);
@@ -327,5 +329,12 @@ public class VitamioVideoFragment extends Fragment implements MediaPlayer
             }
             mShown = true;
         }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        RefWatcher refWatcher = VideoStreamApp.getInstance().getRefWatcher();
+        refWatcher.watch(this);
     }
 }

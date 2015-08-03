@@ -40,13 +40,11 @@ public class ChannelListAdapter extends BaseExpandableListAdapter implements Ope
     private int mSelectedGroup;
     private int mSelectedChild;
 
-    public ChannelListAdapter(Context paramContext, List<String> groups,
-                              List<List<Channel>> channels, OpenWorldApi1 api) {
-        this.context = paramContext;
+    public ChannelListAdapter(List<String> groups,
+                              List<List<Channel>> channels, OpenWorldApi1 api, Context context) {
         this.groups = groups;
         this.channels = channels;
         this.api = api;
-        this.inflater = LayoutInflater.from(paramContext);
         options = new DisplayImageOptions.Builder()
                 .showImageOnLoading(android.R.drawable.screen_background_light_transparent)
                 .cacheInMemory(true)
@@ -56,6 +54,8 @@ public class ChannelListAdapter extends BaseExpandableListAdapter implements Ope
                 .imageScaleType(ImageScaleType.EXACTLY)
                 .considerExifParams(true)
                 .build();
+        this.context = context;
+        this.inflater = LayoutInflater.from(context);
     }
 
     public Object getChild(int groupPosition, int childPosition) {

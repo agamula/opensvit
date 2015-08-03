@@ -16,6 +16,7 @@ import android.util.Log;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -219,6 +220,6 @@ public class EventLogger implements ExoPlayerImpl.Listener, ExoPlayerImpl.InfoLi
 
 
     private String getTimeString(long timeMs) {
-        return TIME_FORMAT.format((timeMs) / 1000f);
+        return TIME_FORMAT.format(TimeUnit.MILLISECONDS.toSeconds(timeMs));
     }
 }

@@ -50,13 +50,13 @@ public class NextProgramNotifyService extends IntentService implements OkHttpCli
         int serviceId = intent.getIntExtra(SERVICE_ID, 0);
         long timestamp = intent.getLongExtra(TIMESTAMP, 0);
 
-        if(mApp.isFirstNotOnline()) {
+        if (mApp.isFirstNotOnline()) {
             timestamp += TimeUnit.MINUTES.toSeconds(1);
             mApp.setFirstNotOnline(false);
         } else {
             Calendar calendar = Calendar.getInstance(DateUtils.getTimeZone());
-            long diff = (calendar.getTimeInMillis() - intent.getLongExtra(PARAM_NOW_TIME, 0)) /
-                    1000;
+            long diff = TimeUnit.MILLISECONDS.toSeconds(calendar.getTimeInMillis() - intent
+                    .getLongExtra(PARAM_NOW_TIME, 0));
             timestamp += diff;
         }
 
@@ -167,7 +167,9 @@ public class NextProgramNotifyService extends IntentService implements OkHttpCli
     }
 
     private String createTimeText(long diffTime) {
-        return String.format("%02d h %02d m", TimeUnit.MILLISECONDS.toHours(diffTime), TimeUnit
+        long hours = TimeUnit.MILLISECONDS.toHours(diffTime);
+        diffTime -= TimeUnit.HOURS.toMillis(hours);
+        return String.format("%02d h %02d m", hours, TimeUnit
                 .MILLISECONDS.toMinutes(diffTime));
     }
 }

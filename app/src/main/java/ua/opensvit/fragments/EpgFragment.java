@@ -13,8 +13,11 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.squareup.leakcanary.RefWatcher;
+
 import java.io.IOException;
 import java.util.Calendar;
+import java.util.concurrent.TimeUnit;
 
 import ua.opensvit.R;
 import ua.opensvit.VideoStreamApp;
@@ -27,12 +30,16 @@ import ua.opensvit.data.epg.ProgramItem;
 import ua.opensvit.fragments.player.VitamioVideoFragment;
 import ua.opensvit.loaders.RunnableLoader;
 
-public class EpgFragment extends Fragment implements LoaderManager.LoaderCallbacks<String>, OpenWorldApi1.ResultListener, AdapterView.OnItemClickListener {
+public class EpgFragment extends Fragment implements LoaderManager.LoaderCallbacks<String>,
+        OpenWorldApi1.ResultListener, AdapterView.OnItemClickListener {
     private static final String CHANNEL_ID_TAG = "channelId";
     private static final String ONLINE_URL_TAG = "onlineUrl";
+    private static final String SERVICE_TAG = "service";
+    private static final String START_UT_TAG = "startUT";
+    private static final String END_UT_TAG = "endUT";
+    private static final String PER_PAGE_TAG = "perPage";
+    private static final String PAGE_TAG = "page";
     private static final int LOAD_PROGRAMS_LOADER_ID = 1;
-
-    private static final long DAY = 24 * 60 * 60 * 1000;
 
     private ListView mPrograms;
     private EpgItem epgItem;
@@ -49,10 +56,11 @@ public class EpgFragment extends Fragment implements LoaderManager.LoaderCallbac
     public EpgFragment() {
     }
 
-    public static EpgFragment newInstance(int channelId, String onlineUrl) {
+    public static EpgFragment newInstance(int channelId, int serviceId, String onlineUrl) {
         EpgFragment res = new EpgFragment();
         Bundle args = new Bundle();
         args.putInt(CHANNEL_ID_TAG, channelId);
+        args.putInt(SERVICE_TAG, serviceId);
         args.putString(ONLINE_URL_TAG, onlineUrl);
         res.setArguments(args);
         return res;
@@ -74,16 +82,25 @@ public class EpgFragment extends Fragment implements LoaderManager.LoaderCallbac
         mPrograms = (ListView) view.findViewById(R.id.programs);
         mPrograms.setOnItemClickListener(this);
 
-        channelId = getArguments().getInt(CHANNEL_ID_TAG);
         onlineUrl = getArguments().getString(ONLINE_URL_TAG);
 
-        serviceId = VideoStreamApp.getInstance().getMenuInfo().getService();
-        perPage = 0;
-        page = -1;
+        channelId = getArguments().getInt(CHANNEL_ID_TAG);
+        serviceId = getArguments().getInt(SERVICE_TAG);
+
         Calendar calendar = Calendar.getInstance();
         long now = calendar.getTimeInMillis();
-        endUt = now / 1000;
-        startUt = (now - DAY) / 1000;
+        endUt = TimeUnit.MILLISECONDS.toSeconds(now);
+        startUt = TimeUnit.MILLISECONDS.toSeconds(now - TimeUnit.DAYS.toMillis(1));
+        perPage = 0;
+        page = -1;
+
+        Bundle args = new Bundle();
+        args.putInt(CHANNEL_ID_TAG, channelId);
+        args.putInt(SERVICE_TAG, serviceId);
+        args.putLong(START_UT_TAG, startUt);
+        args.putLong(END_UT_TAG, endUt);
+        args.putInt(PER_PAGE_TAG, perPage);
+        args.putInt(PAGE_TAG, page);
 
         getLoaderManager().initLoader(LOAD_PROGRAMS_LOADER_ID, null, this);
     }
@@ -93,7 +110,15 @@ public class EpgFragment extends Fragment implements LoaderManager.LoaderCallbac
         final Loader<String> res;
         switch (id) {
             case LOAD_PROGRAMS_LOADER_ID:
-                res = new RunnableLoader(getActivity(), mApp.getApi1()
+                int channelId = args.getInt(CHANNEL_ID_TAG);
+                int serviceId = args.getInt(SERVICE_TAG);
+                long startUt = args.getLong(START_UT_TAG);
+                long endUt = args.getLong(END_UT_TAG);
+                int perPage = args.getInt(PER_PAGE_TAG);
+                int page = args.getInt(PAGE_TAG);
+
+                res = new RunnableLoader();
+                ((RunnableLoader) res).setRunnable(mApp.getApi1()
                         .macGetEpgRunnable(channelId, serviceId, startUt, endUt, perPage, page,
                                 this));
                 break;
@@ -108,6 +133,8 @@ public class EpgFragment extends Fragment implements LoaderManager.LoaderCallbac
     public void onLoadFinished(Loader<String> loader, String data) {
         switch (loader.getId()) {
             case LOAD_PROGRAMS_LOADER_ID:
+                epgItem = (EpgItem) VideoStreamApp.getInstance().getTempLoaderObject
+                        (LOAD_PROGRAMS_LOADER_ID);
                 mProgress.setVisibility(View.GONE);
                 mPrograms.setAdapter(new EpgAdapter(epgItem, getActivity()));
                 break;
@@ -124,7 +151,7 @@ public class EpgFragment extends Fragment implements LoaderManager.LoaderCallbac
     @Override
     public void onResult(Object res) {
         if (res != null) {
-            epgItem = (EpgItem) res;
+            VideoStreamApp.getInstance().setTempLoaderObject(LOAD_PROGRAMS_LOADER_ID, res);
         }
     }
 
@@ -137,7 +164,8 @@ public class EpgFragment extends Fragment implements LoaderManager.LoaderCallbac
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         if (EpgAdapter.calculatePlayOnlineView(position)) {
             MainActivity.startFragment(getActivity(), VitamioVideoFragment.newInstance(onlineUrl,
-                    channelId, mApp.getMenuInfo().getService(), System.currentTimeMillis() / 1000));
+                    channelId, mApp.getMenuInfo().getService(), TimeUnit.MILLISECONDS.toSeconds(System
+                            .currentTimeMillis())));
         } else {
             final ProgramItem programItem = (ProgramItem) parent.getAdapter().getItem(position);
             if (true/*programItem.isArchive()*/) {
@@ -167,5 +195,18 @@ public class EpgFragment extends Fragment implements LoaderManager.LoaderCallbac
                 }
             }
         }
+    }
+
+    @Override
+    public void onDestroyView() {
+        mPrograms.setOnItemClickListener(null);
+        super.onDestroyView();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        RefWatcher refWatcher = VideoStreamApp.getInstance().getRefWatcher();
+        refWatcher.watch(this);
     }
 }

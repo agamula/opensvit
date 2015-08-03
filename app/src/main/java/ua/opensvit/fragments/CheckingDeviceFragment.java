@@ -10,6 +10,8 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.squareup.leakcanary.RefWatcher;
+
 import java.io.IOException;
 
 import ua.opensvit.R;
@@ -60,5 +62,12 @@ public class CheckingDeviceFragment extends Fragment implements OpenWorldApi1.Re
                 getActivity().finish();
             }
         }, 700);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        RefWatcher refWatcher = VideoStreamApp.getInstance().getRefWatcher();
+        refWatcher.watch(this);
     }
 }

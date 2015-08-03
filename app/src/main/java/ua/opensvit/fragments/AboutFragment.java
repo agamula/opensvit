@@ -8,9 +8,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import ua.opensvit.R;
+import com.squareup.leakcanary.RefWatcher;
 
-public class AboutFragment extends Fragment{
+import ua.opensvit.R;
+import ua.opensvit.VideoStreamApp;
+
+public class AboutFragment extends Fragment {
 
     private TextView mAbout;
 
@@ -25,5 +28,12 @@ public class AboutFragment extends Fragment{
         mAbout = (TextView) view.findViewById(R.id.textAbout);
         mAbout.setText(getString(R.string.about_text));
         Linkify.addLinks(mAbout, Linkify.ALL);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        RefWatcher refWatcher = VideoStreamApp.getInstance().getRefWatcher();
+        refWatcher.watch(this);
     }
 }

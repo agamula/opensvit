@@ -1,6 +1,8 @@
 package ua.opensvit.fragments;
 
+import android.app.Activity;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
@@ -11,6 +13,8 @@ import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
 import android.widget.Toast;
 
+import com.squareup.leakcanary.RefWatcher;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,13 +23,12 @@ import ua.opensvit.R;
 import ua.opensvit.VideoStreamApp;
 import ua.opensvit.activities.fragments.MainActivity;
 import ua.opensvit.adapters.ChannelListAdapter;
+import ua.opensvit.adapters.ChannelListData;
 import ua.opensvit.api.OpenWorldApi1;
 import ua.opensvit.data.GetUrlItem;
-import ua.opensvit.data.InfoAbout;
 import ua.opensvit.data.channels.Channel;
 import ua.opensvit.data.menu.TvMenuInfo;
 import ua.opensvit.data.menu.TvMenuItem;
-import ua.opensvit.data.osd.OsdItem;
 import ua.opensvit.loaders.RunnableLoader;
 
 public class MenuFragment extends Fragment implements LoaderManager.LoaderCallbacks<String>,
@@ -44,14 +47,23 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
     }
 
     private TvMenuInfo mMenuInfo;
-    private ExpandableListAdapter mExpListAdapter;
     private ExpandableListView mExpandableListView;
+    private ExpandableListAdapter mExpListAdapter;
     private View mProgress;
-    private Channel mChannel;
+    private static boolean sLoaded;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_menu, container, false);
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if(savedInstanceState == null) {
+            sLoaded = false;
+        }
+        setRetainInstance(true);
     }
 
     @Override
@@ -68,12 +80,14 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
     @Override
     public Loader<String> onCreateLoader(int id, Bundle args) {
         if (id == LOAD_MENUS_ID) {
-            return new RunnableLoader(getActivity(), new Runnable() {
+            RunnableLoader loader = new RunnableLoader();
+            loader.setRunnable(new Runnable() {
                 @Override
                 public void run() {
                     try {
-                        OpenWorldApi1 api1 = VideoStreamApp.getInstance().getApi1();
-                        List<TvMenuItem> tvMenuItems = mMenuInfo.getUnmodifiableTVItems();
+                        VideoStreamApp mApp = VideoStreamApp.getInstance();
+                        OpenWorldApi1 api1 = mApp.getApi1();
+                        List<TvMenuItem> tvMenuItems = mApp.getMenuInfo().getUnmodifiableTVItems();
                         List<String> groupsList = new ArrayList<>();
                         for (int i = 0; i < tvMenuItems.size(); i++) {
                             groupsList.add(tvMenuItems.get(i).getName());
@@ -81,13 +95,15 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
 
                         List<List<Channel>> channels = api1.macGetChannels(tvMenuItems);
 
-                        mExpListAdapter = new ChannelListAdapter(getActivity(), groupsList,
-                                channels, api1);
+                        mApp.setTempLoaderObject(LOAD_MENUS_ID, new ChannelListData(groupsList,
+                                channels));
+                        SystemClock.sleep(5000);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
             });
+            return loader;
         } else {
             return null;
         }
@@ -95,10 +111,23 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
 
     @Override
     public void onLoadFinished(Loader<String> loader, String data) {
-        if (loader.getId() == LOAD_MENUS_ID) {
-            mProgress.setVisibility(View.GONE);
-            mExpandableListView.setAdapter(mExpListAdapter);
-            mExpandableListView.setOnChildClickListener(this);
+        switch (loader.getId()) {
+            case LOAD_MENUS_ID:
+                if (isVisible()) {
+                    //synchronized (VideoStreamApp.class) {
+                    mProgress.setVisibility(View.GONE);
+                    VideoStreamApp mApp = VideoStreamApp.getInstance();
+                    ChannelListData mExpListData = (ChannelListData) mApp.getTempLoaderObject(LOAD_MENUS_ID);
+                    mExpListAdapter = new ChannelListAdapter(mExpListData.groups, mExpListData.channels,
+                            mApp.getApi1(), getActivity());
+                    mExpandableListView.setAdapter(mExpListAdapter);
+                    mExpandableListView.setOnChildClickListener(this);
+                    sLoaded = true;
+                    //}
+                }
+                break;
+            default:
+                break;
         }
     }
 
@@ -110,10 +139,13 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
     @Override
     public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int
             childPosition, long id) {
-        mChannel = (Channel) mExpListAdapter.getChild(groupPosition, childPosition);
+
+        Channel mChannel = (Channel) ((ExpandableListAdapter) parent.getAdapter()).getChild
+                (groupPosition, childPosition);
         try {
             VideoStreamApp app = VideoStreamApp.getInstance();
             OpenWorldApi1 api1 = app.getApi1();
+            app.setChannelId(mChannel.getId());
             api1.macGetChannelIp(this, mChannel.getId(), this);
             return true;
         } catch (IOException e) {
@@ -131,11 +163,30 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
         }
         GetUrlItem urlItem = (GetUrlItem) res;
         String ip = urlItem.getUrl();
-        MainActivity.startFragment(getActivity(), EpgFragment.newInstance(mChannel.getId(), ip));
+        MainActivity.startFragment(getActivity(), EpgFragment.newInstance(VideoStreamApp
+                .getInstance().getChannelId(), mMenuInfo.getService(), ip));
     }
 
     @Override
     public void onError(String result) {
         Toast.makeText(getActivity(), result, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onDestroyView() {
+        mExpandableListView.setOnChildClickListener(null);
+        if (!sLoaded) {
+            synchronized (VideoStreamApp.class) {
+                getLoaderManager().destroyLoader(LOAD_MENUS_ID);
+            }
+        }
+        super.onDestroyView();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        RefWatcher refWatcher = VideoStreamApp.getInstance().getRefWatcher();
+        refWatcher.watch(this);
     }
 }
