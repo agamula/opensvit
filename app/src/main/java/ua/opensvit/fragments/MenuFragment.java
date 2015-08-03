@@ -50,7 +50,7 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
     private ExpandableListView mExpandableListView;
     private ExpandableListAdapter mExpListAdapter;
     private View mProgress;
-    private static boolean sLoaded;
+    private boolean mLoaded;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -60,9 +60,6 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if(savedInstanceState == null) {
-            sLoaded = false;
-        }
         setRetainInstance(true);
     }
 
@@ -74,6 +71,8 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
         mMenuInfo = getArguments().getParcelable(MENU_INFO_TAG);
         VideoStreamApp.getInstance().setMenuInfo(mMenuInfo);
         mExpandableListView = (ExpandableListView) view.findViewById(R.id.menu_list);
+
+        mLoaded = false;
         getLoaderManager().initLoader(LOAD_MENUS_ID, null, this);
     }
 
@@ -113,8 +112,7 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
     public void onLoadFinished(Loader<String> loader, String data) {
         switch (loader.getId()) {
             case LOAD_MENUS_ID:
-                if (isVisible()) {
-                    //synchronized (VideoStreamApp.class) {
+                if (isAdded() && !isDetached()) {
                     mProgress.setVisibility(View.GONE);
                     VideoStreamApp mApp = VideoStreamApp.getInstance();
                     ChannelListData mExpListData = (ChannelListData) mApp.getTempLoaderObject(LOAD_MENUS_ID);
@@ -122,8 +120,7 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
                             mApp.getApi1(), getActivity());
                     mExpandableListView.setAdapter(mExpListAdapter);
                     mExpandableListView.setOnChildClickListener(this);
-                    sLoaded = true;
-                    //}
+                    mLoaded = true;
                 }
                 break;
             default:
@@ -175,11 +172,6 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
     @Override
     public void onDestroyView() {
         mExpandableListView.setOnChildClickListener(null);
-        if (!sLoaded) {
-            synchronized (VideoStreamApp.class) {
-                getLoaderManager().destroyLoader(LOAD_MENUS_ID);
-            }
-        }
         super.onDestroyView();
     }
 
