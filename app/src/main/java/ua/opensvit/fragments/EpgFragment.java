@@ -102,7 +102,7 @@ public class EpgFragment extends Fragment implements LoaderManager.LoaderCallbac
         args.putInt(PER_PAGE_TAG, perPage);
         args.putInt(PAGE_TAG, page);
 
-        getLoaderManager().initLoader(LOAD_PROGRAMS_LOADER_ID, null, this);
+        getLoaderManager().initLoader(LOAD_PROGRAMS_LOADER_ID, args, this);
     }
 
     @Override

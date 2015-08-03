@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
@@ -16,6 +17,7 @@ import android.widget.Toast;
 import com.squareup.leakcanary.RefWatcher;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,7 +52,7 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
     private ExpandableListView mExpandableListView;
     private ExpandableListAdapter mExpListAdapter;
     private View mProgress;
-    private boolean mLoaded;
+    private WeakReference<FragmentActivity> weakActivity;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -72,7 +74,9 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
         VideoStreamApp.getInstance().setMenuInfo(mMenuInfo);
         mExpandableListView = (ExpandableListView) view.findViewById(R.id.menu_list);
 
-        mLoaded = false;
+        weakActivity = new WeakReference<>(getActivity());
+        mExpandableListView.setOnChildClickListener(this);
+
         getLoaderManager().initLoader(LOAD_MENUS_ID, null, this);
     }
 
@@ -112,15 +116,14 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
     public void onLoadFinished(Loader<String> loader, String data) {
         switch (loader.getId()) {
             case LOAD_MENUS_ID:
-                if (isAdded() && !isDetached()) {
+                Activity fragment = weakActivity.get();
+                if (fragment != null) {
                     mProgress.setVisibility(View.GONE);
                     VideoStreamApp mApp = VideoStreamApp.getInstance();
                     ChannelListData mExpListData = (ChannelListData) mApp.getTempLoaderObject(LOAD_MENUS_ID);
                     mExpListAdapter = new ChannelListAdapter(mExpListData.groups, mExpListData.channels,
                             mApp.getApi1(), getActivity());
                     mExpandableListView.setAdapter(mExpListAdapter);
-                    mExpandableListView.setOnChildClickListener(this);
-                    mLoaded = true;
                 }
                 break;
             default:
@@ -136,17 +139,19 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
     @Override
     public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int
             childPosition, long id) {
-
-        Channel mChannel = (Channel) ((ExpandableListAdapter) parent.getAdapter()).getChild
-                (groupPosition, childPosition);
-        try {
-            VideoStreamApp app = VideoStreamApp.getInstance();
-            OpenWorldApi1 api1 = app.getApi1();
-            app.setChannelId(mChannel.getId());
-            api1.macGetChannelIp(this, mChannel.getId(), this);
-            return true;
-        } catch (IOException e) {
-            e.printStackTrace();
+        Activity fragment = weakActivity.get();
+        if (fragment != null) {
+            Channel mChannel = (Channel) parent.getExpandableListAdapter().getChild
+                    (groupPosition, childPosition);
+            try {
+                VideoStreamApp app = VideoStreamApp.getInstance();
+                OpenWorldApi1 api1 = app.getApi1();
+                app.setChannelId(mChannel.getId());
+                api1.macGetChannelIp(this, mChannel.getId(), this);
+                return true;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         return false;
     }
@@ -167,12 +172,6 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
     @Override
     public void onError(String result) {
         Toast.makeText(getActivity(), result, Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onDestroyView() {
-        mExpandableListView.setOnChildClickListener(null);
-        super.onDestroyView();
     }
 
     @Override
