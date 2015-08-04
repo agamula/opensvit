@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
@@ -50,9 +49,8 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
 
     private TvMenuInfo mMenuInfo;
     private ExpandableListView mExpandableListView;
-    private ExpandableListAdapter mExpListAdapter;
     private View mProgress;
-    private WeakReference<FragmentActivity> weakActivity;
+    private WeakReference<MenuFragment> weakFragment;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -74,10 +72,21 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
         VideoStreamApp.getInstance().setMenuInfo(mMenuInfo);
         mExpandableListView = (ExpandableListView) view.findViewById(R.id.menu_list);
 
-        weakActivity = new WeakReference<>(getActivity());
-        mExpandableListView.setOnChildClickListener(this);
+        weakFragment = new WeakReference<>(this);
 
         getLoaderManager().initLoader(LOAD_MENUS_ID, null, this);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        mExpandableListView.setOnChildClickListener(this);
+    }
+
+    @Override
+    public void onPause() {
+        mExpandableListView.setOnChildClickListener(null);
+        super.onPause();
     }
 
     @Override
@@ -100,7 +109,6 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
 
                         mApp.setTempLoaderObject(LOAD_MENUS_ID, new ChannelListData(groupsList,
                                 channels));
-                        SystemClock.sleep(5000);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -116,14 +124,15 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
     public void onLoadFinished(Loader<String> loader, String data) {
         switch (loader.getId()) {
             case LOAD_MENUS_ID:
-                Activity fragment = weakActivity.get();
+                MenuFragment fragment = weakFragment.get();
                 if (fragment != null) {
-                    mProgress.setVisibility(View.GONE);
+                    fragment.mProgress.setVisibility(View.GONE);
                     VideoStreamApp mApp = VideoStreamApp.getInstance();
                     ChannelListData mExpListData = (ChannelListData) mApp.getTempLoaderObject(LOAD_MENUS_ID);
-                    mExpListAdapter = new ChannelListAdapter(mExpListData.groups, mExpListData.channels,
-                            mApp.getApi1(), getActivity());
-                    mExpandableListView.setAdapter(mExpListAdapter);
+                    ExpandableListAdapter mExpListAdapter = new ChannelListAdapter(mExpListData
+                            .groups, mExpListData.channels,
+                            mApp.getApi1(), fragment.getActivity());
+                    fragment.mExpandableListView.setAdapter(mExpListAdapter);
                 }
                 break;
             default:
@@ -139,19 +148,16 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
     @Override
     public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int
             childPosition, long id) {
-        Activity fragment = weakActivity.get();
-        if (fragment != null) {
-            Channel mChannel = (Channel) parent.getExpandableListAdapter().getChild
-                    (groupPosition, childPosition);
-            try {
-                VideoStreamApp app = VideoStreamApp.getInstance();
-                OpenWorldApi1 api1 = app.getApi1();
-                app.setChannelId(mChannel.getId());
-                api1.macGetChannelIp(this, mChannel.getId(), this);
-                return true;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        Channel mChannel = (Channel) parent.getExpandableListAdapter().getChild
+                (groupPosition, childPosition);
+        try {
+            VideoStreamApp app = VideoStreamApp.getInstance();
+            OpenWorldApi1 api1 = app.getApi1();
+            app.setChannelId(mChannel.getId());
+            api1.macGetChannelIp(this, mChannel.getId(), this);
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         return false;
     }
