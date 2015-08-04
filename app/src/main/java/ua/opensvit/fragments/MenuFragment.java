@@ -78,6 +78,18 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        mExpandableListView.setOnChildClickListener(this);
+    }
+
+    @Override
+    public void onPause() {
+        mExpandableListView.setOnChildClickListener(null);
+        super.onPause();
+    }
+
+    @Override
     public Loader<String> onCreateLoader(int id, Bundle args) {
         if (id == LOAD_MENUS_ID) {
             RunnableLoader loader = new RunnableLoader();
@@ -144,11 +156,11 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
                 VideoStreamApp app = VideoStreamApp.getInstance();
                 OpenWorldApi1 api1 = app.getApi1();
                 app.setChannelId(mChannel.getId());
-                //api1.macGetChannelIp(fragment, mChannel.getId(), fragment);
+                api1.macGetChannelIp(fragment, mChannel.getId(), fragment);
                 return true;
-            } /*catch (IOException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
-            }*/ finally {
+            } finally {
 
             }
         }
@@ -157,20 +169,26 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
 
     @Override
     public void onResult(Object res) {
-        if (res == null) {
-            Toast.makeText(getActivity(), getString(R.string.load_failed_message), Toast
-                    .LENGTH_SHORT).show();
-            return;
+        MenuFragment fragment = weakFragment.get();
+        if (fragment != null) {
+            if (res == null) {
+                Toast.makeText(fragment.getActivity(), getString(R.string.load_failed_message), Toast
+                        .LENGTH_SHORT).show();
+                return;
+            }
+            GetUrlItem urlItem = (GetUrlItem) res;
+            String ip = urlItem.getUrl();
+            MainActivity.startFragment(fragment.getActivity(), EpgFragment.newInstance
+                    (VideoStreamApp.getInstance().getChannelId(), fragment.mMenuInfo.getService()
+                            , ip));
         }
-        GetUrlItem urlItem = (GetUrlItem) res;
-        String ip = urlItem.getUrl();
-        MainActivity.startFragment(getActivity(), EpgFragment.newInstance(VideoStreamApp
-                .getInstance().getChannelId(), mMenuInfo.getService(), ip));
     }
 
     @Override
     public void onError(String result) {
-        Toast.makeText(getActivity(), result, Toast.LENGTH_SHORT).show();
+        if (weakFragment.get() != null) {
+            Toast.makeText(weakFragment.get().getActivity(), result, Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
