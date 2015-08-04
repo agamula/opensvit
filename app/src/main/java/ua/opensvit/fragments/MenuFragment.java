@@ -78,18 +78,6 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        mExpandableListView.setOnChildClickListener(this);
-    }
-
-    @Override
-    public void onPause() {
-        mExpandableListView.setOnChildClickListener(null);
-        super.onPause();
-    }
-
-    @Override
     public Loader<String> onCreateLoader(int id, Bundle args) {
         if (id == LOAD_MENUS_ID) {
             RunnableLoader loader = new RunnableLoader();
@@ -150,14 +138,19 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
             childPosition, long id) {
         Channel mChannel = (Channel) parent.getExpandableListAdapter().getChild
                 (groupPosition, childPosition);
-        try {
-            VideoStreamApp app = VideoStreamApp.getInstance();
-            OpenWorldApi1 api1 = app.getApi1();
-            app.setChannelId(mChannel.getId());
-            api1.macGetChannelIp(this, mChannel.getId(), this);
-            return true;
-        } catch (IOException e) {
-            e.printStackTrace();
+        MenuFragment fragment = weakFragment.get();
+        if (fragment != null) {
+            try {
+                VideoStreamApp app = VideoStreamApp.getInstance();
+                OpenWorldApi1 api1 = app.getApi1();
+                app.setChannelId(mChannel.getId());
+                //api1.macGetChannelIp(fragment, mChannel.getId(), fragment);
+                return true;
+            } /*catch (IOException e) {
+                e.printStackTrace();
+            }*/ finally {
+
+            }
         }
         return false;
     }

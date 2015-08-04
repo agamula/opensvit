@@ -60,6 +60,11 @@ public class OkHttpAsyncTask extends AsyncTask<Void, Void, Void> implements
         }
     }
 
+    @Override
+    protected void onCancelled() {
+        super.onCancelled();
+    }
+
     public interface OnLoadFinishedListener {
         void onLoadFinished(String result);
         void onLoadError(String errMsg);
