@@ -40,6 +40,8 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
     public static final int LOAD_MENUS_ID = 0;
 
     public static MenuFragment newInstance(TvMenuInfo menuInfo) {
+        VideoStreamApp.getInstance().setMenuInfo(menuInfo);
+
         MenuFragment fragment = new MenuFragment();
         Bundle args = new Bundle();
         args.putParcelable(MENU_INFO_TAG, menuInfo);
@@ -69,12 +71,14 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
         mProgress = view.findViewById(R.id.load_progress);
         mProgress.setVisibility(View.VISIBLE);
         mMenuInfo = getArguments().getParcelable(MENU_INFO_TAG);
-        VideoStreamApp.getInstance().setMenuInfo(mMenuInfo);
         mExpandableListView = (ExpandableListView) view.findViewById(R.id.menu_list);
 
         weakFragment = new WeakReference<>(this);
 
-        getLoaderManager().initLoader(LOAD_MENUS_ID, null, this);
+        Bundle args = new Bundle();
+        args.putParcelable(MENU_INFO_TAG, mMenuInfo);
+
+        getLoaderManager().initLoader(LOAD_MENUS_ID, args, this);
     }
 
     @Override
@@ -92,6 +96,7 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
     @Override
     public Loader<String> onCreateLoader(int id, Bundle args) {
         if (id == LOAD_MENUS_ID) {
+            final TvMenuInfo menuInfo = args.getParcelable(MENU_INFO_TAG);
             RunnableLoader loader = new RunnableLoader();
             loader.setRunnable(new Runnable() {
                 @Override
@@ -99,7 +104,7 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
                     try {
                         VideoStreamApp mApp = VideoStreamApp.getInstance();
                         OpenWorldApi1 api1 = mApp.getApi1();
-                        List<TvMenuItem> tvMenuItems = mApp.getMenuInfo().getUnmodifiableTVItems();
+                        List<TvMenuItem> tvMenuItems = menuInfo.getUnmodifiableTVItems();
                         List<String> groupsList = new ArrayList<>();
                         for (int i = 0; i < tvMenuItems.size(); i++) {
                             groupsList.add(tvMenuItems.get(i).getName());
