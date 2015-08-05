@@ -5,16 +5,35 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <io.vov.vitamio.widget.CenterLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+    <ua.opensvit.widgets.RespondedLayout
+        android:id="@+id/video_responded"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <io.vov.vitamio.widget.VideoView
-            android:id="@+id/surface_view"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-    </io.vov.vitamio.widget.CenterLayout>
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <io.vov.vitamio.widget.VideoView
+                android:id="@+id/surface_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_centerHorizontal="true"/>
+
+            <io.vov.vitamio.widget.MediaController
+                android:id="@+id/media_controller"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom">
+
+                <include
+                    layout="@layout/mediacontroller"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+            </io.vov.vitamio.widget.MediaController>
+        </FrameLayout>
+    </ua.opensvit.widgets.RespondedLayout>
 
     <TextView
         android:id="@+id/next_program_text"

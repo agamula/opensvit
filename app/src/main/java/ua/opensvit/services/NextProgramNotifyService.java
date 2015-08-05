@@ -156,7 +156,7 @@ public class NextProgramNotifyService extends IntentService implements OkHttpCli
 
                     if (till != null) {
                         Intent intent = new Intent(BROADCAST_NAME);
-                        intent.putExtra(PARAM_TIME_TILL, timeTill);
+                        intent .putExtra(PARAM_TIME_TILL, timeTill);
                         intent.putExtra(PARAM_NEXT_PROGRAM_NAME, nextProgramName);
                         intent.putExtra(PARAM_TILL_AFTER_TILL_END, till.ordinal());
                         mApp.getApplicationContext().sendBroadcast(intent);

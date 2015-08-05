@@ -119,8 +119,6 @@ public class PlayActivity extends AppCompatActivity implements LoaderManager
         }
     }
 
-    ;
-
     @Override
     public Loader<String> onCreateLoader(int id, Bundle args) {
         final Loader<String> res;

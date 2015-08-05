@@ -131,10 +131,10 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
                 if (fragment != null) {
                     fragment.mProgress.setVisibility(View.GONE);
                     VideoStreamApp mApp = VideoStreamApp.getInstance();
-                    ChannelListData mExpListData = (ChannelListData) mApp.getTempLoaderObject(LOAD_MENUS_ID);
+                    ChannelListData mExpListData = (ChannelListData) mApp.getTempLoaderObject
+                            (LOAD_MENUS_ID);
                     ExpandableListAdapter mExpListAdapter = new ChannelListAdapter(mExpListData
-                            .groups, mExpListData.channels,
-                            mApp.getApi1(), fragment.getActivity());
+                            .groups, mExpListData.channels, mApp.getApi1(), fragment.getActivity());
                     fragment.mExpandableListView.setAdapter(mExpListAdapter);
                 }
                 break;
@@ -171,6 +171,8 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
                     OpenWorldApi1 api1 = app.getApi1();
                     app.setChannelId(mChannel.getId());
                     mPressTask = api1.macGetChannelIp(fragment, mChannel.getId(), this);
+
+                    //TODO implement loading channels and start programs fragment
                     return true;
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -181,7 +183,7 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
             return false;
         }
 
-        public void onDestroy() {
+        public void onDestroyView() {
             if (mPressTask != null && mPressTask.getStatus() != AsyncTask.Status.FINISHED) {
                 mPressTask.cancel(true);
                 mPressTask = null;
@@ -214,9 +216,14 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
     }
 
     @Override
+    public void onDestroyView() {
+        mListener.onDestroyView();
+        super.onDestroyView();
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
-        mListener.onDestroy();
         RefWatcher refWatcher = VideoStreamApp.getInstance().getRefWatcher();
         refWatcher.watch(this);
     }

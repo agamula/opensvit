@@ -12,7 +12,7 @@ public class ParcelUtils {
     }
 
     public static void writeToParcel(String nullString, Parcel dest, int flags) {
-        if(nullString != null) {
+        if (nullString != null) {
             dest.writeInt(1);
             dest.writeString(nullString);
         } else {
@@ -21,7 +21,7 @@ public class ParcelUtils {
     }
 
     public static void writeToParcel(Parcelable nullParcelable, Parcel dest, int flags) {
-        if(nullParcelable != null) {
+        if (nullParcelable != null) {
             dest.writeInt(1);
             dest.writeParcelable(nullParcelable, flags);
         } else {
@@ -30,14 +30,14 @@ public class ParcelUtils {
     }
 
     public static void writeToParcel(List<? extends Parcelable> parcelables, Parcel dest, int flags) {
-        if(parcelables == null || parcelables.isEmpty()) {
+        if (parcelables == null || parcelables.isEmpty()) {
             dest.writeInt(0);
         } else {
             int size = parcelables.size();
             dest.writeInt(size);
             for (int i = 0; i < size; i++) {
                 Parcelable p = parcelables.get(i);
-                if(p == null) {
+                if (p == null) {
                     dest.writeInt(0);
                 } else {
                     dest.writeInt(1);
@@ -48,7 +48,7 @@ public class ParcelUtils {
     }
 
     public static String readStringFromParcel(Parcel source) {
-        if(source.readInt() == 1) {
+        if (source.readInt() == 1) {
             return source.readString();
         } else {
             return null;
@@ -56,25 +56,29 @@ public class ParcelUtils {
     }
 
     public static Parcelable readParcelableFromParcel(Parcel source) {
-        if(source.readInt() == 1) {
-            return source.readParcelable(Thread.currentThread().getContextClassLoader());
+        if (source.readInt() == 1) {
+            return source.readParcelable(getParcelReadLoader());
         } else {
             return null;
         }
     }
 
+    public static ClassLoader getParcelReadLoader() {
+        return Thread.currentThread().getContextClassLoader();
+    }
+
     public static List<Parcelable> readListFromParcel(Parcel source) {
         int size = source.readInt();
-        if(size == 0) {
+        if (size == 0) {
             return new ArrayList<>(1);
         }
         List<Parcelable> res = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {
             boolean isNull = source.readInt() != 1;
-            if(isNull) {
+            if (isNull) {
                 res.add(null);
             } else {
-                res.add(source.readParcelable(Thread.currentThread().getContextClassLoader()));
+                res.add(source.readParcelable(getParcelReadLoader()));
             }
         }
         return res;

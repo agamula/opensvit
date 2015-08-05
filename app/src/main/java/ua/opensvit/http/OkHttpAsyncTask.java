@@ -43,7 +43,7 @@ public class OkHttpAsyncTask extends AsyncTask<Void, Void, Void> implements
     @Override
     protected Void doInBackground(Void... params) {
         mOkHttpClientRunnable.run();
-        SystemClock.sleep(5000);
+        //SystemClock.sleep(5000);
         return null;
     }
 
