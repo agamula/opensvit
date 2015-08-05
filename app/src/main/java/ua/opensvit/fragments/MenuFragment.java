@@ -1,8 +1,7 @@
 package ua.opensvit.fragments;
 
-import android.app.Activity;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
@@ -32,9 +31,7 @@ import ua.opensvit.data.menu.TvMenuInfo;
 import ua.opensvit.data.menu.TvMenuItem;
 import ua.opensvit.loaders.RunnableLoader;
 
-public class MenuFragment extends Fragment implements LoaderManager.LoaderCallbacks<String>,
-        OpenWorldApi1.ResultListener,
-        ExpandableListView.OnChildClickListener {
+public class MenuFragment extends Fragment implements LoaderManager.LoaderCallbacks<String> {
 
     private static final String MENU_INFO_TAG = "menu_info";
     public static final int LOAD_MENUS_ID = 0;
@@ -77,6 +74,7 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
 
         Bundle args = new Bundle();
         args.putParcelable(MENU_INFO_TAG, mMenuInfo);
+        mListener = new GetIpAndShowEpgListener(weakFragment);
 
         getLoaderManager().initLoader(LOAD_MENUS_ID, args, this);
     }
@@ -84,7 +82,7 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
     @Override
     public void onResume() {
         super.onResume();
-        mExpandableListView.setOnChildClickListener(this);
+        mExpandableListView.setOnChildClickListener(mListener);
     }
 
     @Override
@@ -150,55 +148,75 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
 
     }
 
-    @Override
-    public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int
-            childPosition, long id) {
-        Channel mChannel = (Channel) parent.getExpandableListAdapter().getChild
-                (groupPosition, childPosition);
-        MenuFragment fragment = weakFragment.get();
-        if (fragment != null) {
-            try {
-                VideoStreamApp app = VideoStreamApp.getInstance();
-                OpenWorldApi1 api1 = app.getApi1();
-                app.setChannelId(mChannel.getId());
-                api1.macGetChannelIp(fragment, mChannel.getId(), fragment);
-                return true;
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
+    private GetIpAndShowEpgListener mListener;
 
+    private static class GetIpAndShowEpgListener implements ExpandableListView.OnChildClickListener,
+            OpenWorldApi1.ResultListener {
+
+        private final WeakReference<MenuFragment> weakFragment;
+        private AsyncTask mPressTask;
+
+        public GetIpAndShowEpgListener(WeakReference<MenuFragment> weakFragment) {
+            this.weakFragment = weakFragment;
+        }
+
+        @Override
+        public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
+            Channel mChannel = (Channel) parent.getExpandableListAdapter().getChild
+                    (groupPosition, childPosition);
+            MenuFragment fragment = weakFragment.get();
+            if (fragment != null) {
+                try {
+                    VideoStreamApp app = VideoStreamApp.getInstance();
+                    OpenWorldApi1 api1 = app.getApi1();
+                    app.setChannelId(mChannel.getId());
+                    mPressTask = api1.macGetChannelIp(fragment, mChannel.getId(), this);
+                    return true;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+
+                }
+            }
+            return false;
+        }
+
+        public void onDestroy() {
+            if (mPressTask != null && mPressTask.getStatus() != AsyncTask.Status.FINISHED) {
+                mPressTask.cancel(true);
+                mPressTask = null;
             }
         }
-        return false;
-    }
 
-    @Override
-    public void onResult(Object res) {
-        MenuFragment fragment = weakFragment.get();
-        if (fragment != null) {
-            if (res == null) {
-                Toast.makeText(fragment.getActivity(), getString(R.string.load_failed_message), Toast
-                        .LENGTH_SHORT).show();
-                return;
+        @Override
+        public void onResult(Object res) {
+            MenuFragment fragment = weakFragment.get();
+            if (fragment != null) {
+                if (res == null) {
+                    Toast.makeText(fragment.getActivity(), fragment.getString(R.string
+                            .load_failed_message), Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                GetUrlItem urlItem = (GetUrlItem) res;
+                String ip = urlItem.getUrl();
+                MainActivity.startFragment(fragment.getActivity(), EpgFragment.newInstance
+                        (VideoStreamApp.getInstance().getChannelId(), fragment.mMenuInfo.getService()
+                                , ip));
             }
-            GetUrlItem urlItem = (GetUrlItem) res;
-            String ip = urlItem.getUrl();
-            MainActivity.startFragment(fragment.getActivity(), EpgFragment.newInstance
-                    (VideoStreamApp.getInstance().getChannelId(), fragment.mMenuInfo.getService()
-                            , ip));
         }
-    }
 
-    @Override
-    public void onError(String result) {
-        if (weakFragment.get() != null) {
-            Toast.makeText(weakFragment.get().getActivity(), result, Toast.LENGTH_SHORT).show();
+        @Override
+        public void onError(String result) {
+            if (weakFragment.get() != null) {
+                Toast.makeText(weakFragment.get().getActivity(), result, Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+        mListener.onDestroy();
         RefWatcher refWatcher = VideoStreamApp.getInstance().getRefWatcher();
         refWatcher.watch(this);
     }

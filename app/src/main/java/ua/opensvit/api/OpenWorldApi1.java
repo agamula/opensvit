@@ -3,6 +3,7 @@ package ua.opensvit.api;
 import android.content.Context;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.support.v4.app.Fragment;
 import android.widget.ProgressBar;
@@ -220,7 +221,8 @@ public class OpenWorldApi1 {
         });
     }
 
-    private void executeHttpTaskFragment(Fragment fragment, String url, IOkHttpLoadInfo.GetLoaderCreateInfo
+    private AsyncTask executeHttpTaskFragment(Fragment fragment, String url, IOkHttpLoadInfo
+            .GetLoaderCreateInfo
             loadInfo, OkHttpAsyncTask.OnLoadFinishedListener mLoadFinishedListener) {
         final ProgressBar progressBar;
         if (fragment == null) {
@@ -228,13 +230,14 @@ public class OpenWorldApi1 {
         } else {
             progressBar = (ProgressBar) fragment.getActivity().findViewById(R.id.progress);
         }
-        executeHttpTask(progressBar, url, loadInfo, mLoadFinishedListener);
+        return executeHttpTask(progressBar, url, loadInfo, mLoadFinishedListener);
     }
 
-    private void executeHttpTask(ProgressBar progressBar, String url, IOkHttpLoadInfo
+    private AsyncTask executeHttpTask(ProgressBar progressBar, String url, IOkHttpLoadInfo
             .GetLoaderCreateInfo
             loadInfo, OkHttpAsyncTask.OnLoadFinishedListener mLoadFinishedListener) {
-        HttpRequestsCreator.createTask(progressBar, url, loadInfo, mLoadFinishedListener).execute();
+        return HttpRequestsCreator.createTask(progressBar, url, loadInfo, mLoadFinishedListener)
+                .execute();
     }
 
     private TvMenuInfo parseJsonTvMenuInfo(String tvInfoJsonString) {
@@ -462,12 +465,13 @@ public class OpenWorldApi1 {
         });
     }
 
-    public void macGetChannelIp(Fragment fragment, int channelId, final ResultListener mListener)
+    public AsyncTask macGetChannelIp(Fragment fragment, int channelId, final ResultListener mListener)
             throws IOException {
         String url = ApiUtils.getApiUrl(ApiConstants.GetChannelIp.URL);
         IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
         loadInfo.addParam(ApiConstants.GetChannelIp.PARAM_ID, channelId + "");
-        executeHttpTaskFragment(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
+        return executeHttpTaskFragment(fragment, url, loadInfo, new OkHttpAsyncTask
+                .OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
                 GetUrlItem res = new GetUrlItem();

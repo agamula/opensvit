@@ -1,16 +1,17 @@
 package ua.opensvit.http;
 
+import android.app.Activity;
 import android.os.AsyncTask;
+import android.os.SystemClock;
 import android.view.View;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
-import ua.opensvit.VideoStreamApp;
+import java.lang.ref.WeakReference;
 
 public class OkHttpAsyncTask extends AsyncTask<Void, Void, Void> implements
         OkHttpClientRunnable.OnLoadResultListener {
 
-    private final ProgressBar mProgress;
+    private final WeakReference<ProgressBar> mProgress;
     private final OkHttpClientRunnable mOkHttpClientRunnable;
     private String mResult;
     private boolean mSuccess;
@@ -18,7 +19,11 @@ public class OkHttpAsyncTask extends AsyncTask<Void, Void, Void> implements
 
     public OkHttpAsyncTask(ProgressBar mProgress, OkHttpClientRunnable
             mOkHttpClientRunnable) {
-        this.mProgress = mProgress;
+        if (mProgress != null) {
+            this.mProgress = new WeakReference<>(mProgress);
+        } else {
+            this.mProgress = null;
+        }
         this.mOkHttpClientRunnable = mOkHttpClientRunnable;
     }
 
@@ -29,8 +34,8 @@ public class OkHttpAsyncTask extends AsyncTask<Void, Void, Void> implements
     @Override
     protected final void onPreExecute() {
         super.onPreExecute();
-        if(mProgress != null) {
-            mProgress.setVisibility(View.VISIBLE);
+        if (mProgress != null && mProgress.get() != null) {
+            mProgress.get().setVisibility(View.VISIBLE);
         }
         mOkHttpClientRunnable.setOnLoadResultListener(this);
     }
@@ -38,6 +43,7 @@ public class OkHttpAsyncTask extends AsyncTask<Void, Void, Void> implements
     @Override
     protected Void doInBackground(Void... params) {
         mOkHttpClientRunnable.run();
+        SystemClock.sleep(5000);
         return null;
     }
 
@@ -48,10 +54,10 @@ public class OkHttpAsyncTask extends AsyncTask<Void, Void, Void> implements
     @Override
     protected final void onPostExecute(Void res) {
         super.onPostExecute(res);
-        if(mProgress != null) {
-            mProgress.setVisibility(View.GONE);
+        if (mProgress != null && mProgress.get() != null) {
+            mProgress.get().setVisibility(View.GONE);
         }
-        if(mOnLoadFinishedListener != null) {
+        if (mOnLoadFinishedListener != null) {
             if (mSuccess) {
                 mOnLoadFinishedListener.onLoadFinished(mResult);
             } else {
@@ -67,6 +73,7 @@ public class OkHttpAsyncTask extends AsyncTask<Void, Void, Void> implements
 
     public interface OnLoadFinishedListener {
         void onLoadFinished(String result);
+
         void onLoadError(String errMsg);
     }
 
