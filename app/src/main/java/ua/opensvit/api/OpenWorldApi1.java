@@ -23,10 +23,7 @@ import ua.opensvit.data.CreepingLineItem;
 import ua.opensvit.data.GetUrlItem;
 import ua.opensvit.data.InfoAbout;
 import ua.opensvit.data.constants.ApiConstants;
-import ua.opensvit.data.authorization.AuthorizationInfoBase;
-import ua.opensvit.data.authorization.UserProfileBase;
 import ua.opensvit.data.authorization.login_password.AuthorizationInfo;
-import ua.opensvit.data.authorization.login_password.UserInfo;
 import ua.opensvit.data.authorization.login_password.UserProfile;
 import ua.opensvit.data.authorization.mac.AuthorizationInfoMac;
 import ua.opensvit.data.authorization.mac.UserProfileMac;
@@ -38,6 +35,7 @@ import ua.opensvit.data.images.ImageItem;
 import ua.opensvit.data.menu.TvMenuInfo;
 import ua.opensvit.data.menu.TvMenuItem;
 import ua.opensvit.data.osd.OsdItem;
+import ua.opensvit.data.osd.ProgramDurationItem;
 import ua.opensvit.http.IOkHttpLoadInfo;
 import ua.opensvit.http.OkHttpAsyncTask;
 import ua.opensvit.http.OkHttpClientRunnable;
@@ -47,45 +45,13 @@ import ua.opensvit.utils.ParseUtils;
 
 public class OpenWorldApi1 {
 
-    private boolean parseAuthorizationInfoBase(AuthorizationInfoBase res, JSONObject jsonObj) {
-        boolean isAuthenticated = false;
-        try {
-            if (jsonObj.has(AuthorizationInfoBase.ERROR)) {
-                res.setError(jsonObj.getString(AuthorizationInfoBase.ERROR));
-            } else if (jsonObj.getBoolean(AuthorizationInfoBase.IS_AUTHENTICATED)) {
-                res.setIsAuthenticated(true);
-                isAuthenticated = true;
-                if (jsonObj.getBoolean(AuthorizationInfoBase.IS_ACTIVE)) {
-                    res.setIsActive(true);
-                }
-            }
+    public interface ResultListener {
+        void onResult(Object res);
 
-            if (isAuthenticated) {
-                JSONObject userProfileObj = jsonObj.getJSONObject(UserProfileBase.JSON_NAME);
-                UserProfileBase userProfileBase = res.getUserProfileBase();
-                userProfileBase.setTransparency(userProfileObj.getInt(UserProfileBase.TRANSPARENCY));
-                userProfileBase.setId(userProfileObj.getInt(UserProfileBase.ID));
-                userProfileBase.setReminder(userProfileObj.getInt(UserProfileBase.REMINDER));
-                userProfileBase.setVolume(userProfileObj.getInt(UserProfileBase.VOLUME));
-                userProfileBase.setRatio(userProfileObj.getString(UserProfileBase.RATIO));
-                userProfileBase.setResolution(userProfileObj.getString(UserProfileBase.RESOLUTION));
-                userProfileBase.setLanguage(userProfileObj.getString(UserProfileBase.LANGUAGE));
-                userProfileBase.setStartPage(userProfileObj.getString(UserProfileBase.START_PAGE));
-                userProfileBase.setType(userProfileObj.getString(UserProfileBase.TYPE));
-                userProfileBase.setSkin(userProfileObj.getString(UserProfileBase.SKIN));
-                userProfileBase.setShowWelcome(userProfileObj.getBoolean(UserProfileBase
-                        .SHOW_WELCOME));
-            } else {
-                return false;
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return false;
-        }
-        return true;
+        void onError(String result);
     }
 
-    private void parseAuthorizationInfoMac(ProgressBar mProgress, final AuthorizationInfoMac res, String
+    private void executeAuthorizationInfoMac(ProgressBar mProgress, String
             url, final ResultListener mListener, String... params) throws IOException {
         IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
         for (int i = 0; i < params.length; i += 2) {
@@ -94,26 +60,10 @@ public class OpenWorldApi1 {
         executeHttpTask(mProgress, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
-                try {
-                    JSONObject jsonObj = new JSONObject(result);
-                    res.setUserProfileBase(new UserProfileMac());
-                    if (!parseAuthorizationInfoBase(res, jsonObj)) {
-                        res.setUserProfileBase(null);
-                        if (mListener != null) {
-                            mListener.onResult(res);
-                        }
-                        return;
-                    }
-
-                    res.setSession(jsonObj.getString(AuthorizationInfoMac.J_SESSION));
-                    JSONObject userProfileObj = jsonObj.getJSONObject(UserProfileMac.JSON_NAME);
-                    UserProfileMac userProfileMac = (UserProfileMac) res.getUserProfileBase();
-                    if (userProfileObj.has(UserProfileMac.NETWORK_PATH)) {
-                        userProfileMac.setNetworkPath(userProfileObj.getString(UserProfileMac
-                                .NETWORK_PATH));
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                AuthorizationInfoMac res = new AuthorizationInfoMac();
+                res.setUserProfileBase(new UserProfileMac());
+                if (!ParseUtils.parseAuthMac(res, result)) {
+                    res.setUserProfileBase(null);
                 }
                 if (mListener != null) {
                     mListener.onResult(res);
@@ -129,12 +79,6 @@ public class OpenWorldApi1 {
         });
     }
 
-    public interface ResultListener {
-        void onResult(Object res);
-
-        void onError(String result);
-    }
-
     public void macAuth(ProgressBar mProgress, ResultListener mListener)
             throws IOException {
         WifiManager manager = (WifiManager) VideoStreamApp.getInstance()
@@ -145,7 +89,7 @@ public class OpenWorldApi1 {
             String sn = Build.SERIAL;
             String url = ApiUtils.getApiUrl(ApiConstants.MacAddressAuth.Auth.URL);
 
-            parseAuthorizationInfoMac(mProgress, new AuthorizationInfoMac(), url, mListener,
+            executeAuthorizationInfoMac(mProgress, url, mListener,
                     ApiConstants.MacAddressAuth.Auth.PARAM_MAC, mac, ApiConstants.MacAddressAuth
                             .Auth.PARAM_SN, sn);
         } else {
@@ -165,8 +109,8 @@ public class OpenWorldApi1 {
             String sn = Build.SERIAL;
             String url = ApiUtils.getApiUrl(ApiConstants.MacAddressAuth.Auth.URL);
 
-            parseAuthorizationInfoMac((ProgressBar) fragment.getActivity().findViewById(R.id
-                    .progress), new AuthorizationInfoMac(), url, mListener, ApiConstants
+            executeAuthorizationInfoMac((ProgressBar) fragment.getActivity().findViewById(R.id
+                    .progress), url, mListener, ApiConstants
                     .MacAddressAuth.Auth.PARAM_MAC, mac, ApiConstants.MacAddressAuth
                     .Auth.PARAM_SN, sn, ApiConstants.MacAddressAuth.Auth.LoginPassword
                     .PARAM_LOGIN, login, ApiConstants.MacAddressAuth.Auth.LoginPassword
@@ -188,25 +132,12 @@ public class OpenWorldApi1 {
             @Override
             public void onLoadFinished(String result) {
                 AuthorizationInfo res = new AuthorizationInfo();
-                try {
-                    JSONObject jsonObj = new JSONObject(result);
-                    res.setUserProfileBase(new UserProfile());
+                res.setUserProfileBase(new UserProfile());
 
-                    if (!parseAuthorizationInfoBase(res, jsonObj)) {
-                        res.setUserProfileBase(null);
-                        if (mListener != null) {
-                            mListener.onResult(res);
-                        }
-                        return;
-                    }
-                    JSONObject userInfoObj = jsonObj.getJSONObject(UserInfo.JSON_NAME);
-                    UserInfo userInfo = new UserInfo();
-                    userInfo.setBalance(userInfoObj.getInt(UserInfo.BALANCE));
-                    userInfo.setName(userInfoObj.getString(UserInfo.NAME));
-                    res.setUserInfo(userInfo);
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                if (!ParseUtils.parseAuthLoginPassword(res, result)) {
+                    res.setUserProfileBase(null);
                 }
+
                 if (mListener != null) {
                     mListener.onResult(res);
                 }
@@ -240,45 +171,13 @@ public class OpenWorldApi1 {
                 .execute();
     }
 
-    private TvMenuInfo parseJsonTvMenuInfo(String tvInfoJsonString) {
-        TvMenuInfo res = new TvMenuInfo();
-        try {
-            JSONObject jsonObj = new JSONObject(tvInfoJsonString);
-            if (jsonObj.has(TvMenuInfo.SUCCESS)) {
-                boolean isSuccess = jsonObj.getBoolean(TvMenuInfo.SUCCESS);
-                res.setSuccess(isSuccess);
-                if (isSuccess) {
-                    if (jsonObj.has(TvMenuInfo.SERVICE)) {
-                        res.setService(jsonObj.getInt(TvMenuInfo.SERVICE));
-                    }
-                    JSONArray ipTvItemsArr = jsonObj.getJSONArray(TvMenuItem.JSON_NAME);
-                    for (int i = 0; i < ipTvItemsArr.length(); i++) {
-                        JSONObject localJSONObject = ipTvItemsArr.getJSONObject(i);
-                        TvMenuItem item = new TvMenuItem();
-                        item.setId(localJSONObject.getInt(TvMenuItem.ID));
-                        item.setName(localJSONObject.getString(TvMenuItem.NAME));
-                        res.addItem(item);
-                    }
-                }
-            } else if (jsonObj.has(TvMenuInfo.ERROR)) {
-                String error = jsonObj.getString(TvMenuInfo.ERROR);
-                res.setError(error);
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-            res.setSuccess(false);
-            return res;
-        }
-        return res;
-    }
-
     public void macIpTvMenu(Fragment fragment, final ResultListener mListener) throws IOException {
         String url = ApiUtils.getApiUrl(ApiConstants.IpTvMenu.URL);
         IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
         executeHttpTaskFragment(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
-                TvMenuInfo res = parseJsonTvMenuInfo(result);
+                TvMenuInfo res = ParseUtils.parseTvMenuInfo(result);
                 if (mListener != null) {
                     mListener.onResult(res);
                 }
@@ -299,7 +198,7 @@ public class OpenWorldApi1 {
         executeHttpTaskFragment(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
-                TvMenuInfo res = parseJsonTvMenuInfo(result);
+                TvMenuInfo res = ParseUtils.parseTvMenuInfo(result);
                 if (mListener != null) {
                     mListener.onResult(res);
                 }
@@ -314,39 +213,6 @@ public class OpenWorldApi1 {
         });
     }
 
-    private ChannelsInfo parseChannelsInfo(String result) {
-        ChannelsInfo res = new ChannelsInfo();
-        try {
-            JSONObject jsonObj = new JSONObject(result);
-            boolean isSuccess = jsonObj.getBoolean(ChannelsInfo.SUCCESS);
-            res.setSuccess(isSuccess);
-            if (isSuccess) {
-                res.setTotal(jsonObj.getInt(ChannelsInfo.TOTAL));
-                JSONArray channelsArr = jsonObj.getJSONArray(Channel.JSON_NAME);
-                for (int i = 0; i < channelsArr.length(); i++) {
-                    JSONObject channelObj = channelsArr.getJSONObject(i);
-                    Channel channel = new Channel();
-                    channel.setId(channelObj.getInt(Channel.ID));
-                    channel.setName(channelObj.getString(Channel.NAME));
-                    channel.setLogo(channelObj.getString(Channel.LOGO));
-                    channel.setFavorits(channelObj.getBoolean(Channel.FAVORITS));
-                    if (channelObj.has(Channel.ARCHIVE)) {
-                        channel.setArchive(channelObj.getString(Channel.ARCHIVE));
-                    }
-                    //res.Iptv_channels.IptvChanelsItems.allowed.addElement(Boolean.valueOf
-                    //        (localJSONObject.getBoolean("allowed")));
-
-                    //res.Iptv_channels.IptvChanelsItems.logo.addElement("/lev.png");
-                    res.addChannel(channel);
-                }
-            }
-        } catch (JSONException paramObject) {
-            paramObject.printStackTrace();
-            res.setSuccess(false);
-        }
-        return res;
-    }
-
     public List<List<Channel>> macGetChannels(List<TvMenuItem> tvMenuItems) throws IOException {
         String url = ApiUtils.getApiUrl(ApiConstants.GetChannels.URL);
         final List<List<Channel>> res = new ArrayList<>(tvMenuItems.size());
@@ -356,12 +222,12 @@ public class OpenWorldApi1 {
                     .getId());
             loadInfo.addParam(ApiConstants.GetChannels.PARAM_PER_PAGE, "" + 0);
             loadInfo.addParam(ApiConstants.GetChannels.PARAM_PAGE, "" + 0);
-            OkHttpClientRunnable mRunnable = new OkHttpClientRunnable(url, loadInfo);
+            OkHttpClientRunnable mRunnable = HttpRequestsCreator.createRunnable(url, loadInfo);
             mRunnable.setOnLoadResultListener(new OkHttpClientRunnable.OnLoadResultListener() {
                 @Override
                 public void onLoadResult(boolean isSuccess, String result) {
                     if (isSuccess) {
-                        ChannelsInfo info = parseChannelsInfo(result);
+                        ChannelsInfo info = ParseUtils.parseChannelsInfo(result);
                         res.add(new ArrayList<>(info.getUnmodifiableChannels()));
                     }
                 }
@@ -381,7 +247,7 @@ public class OpenWorldApi1 {
         executeHttpTaskFragment(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
-                ChannelsInfo res = parseChannelsInfo(result);
+                ChannelsInfo res = ParseUtils.parseChannelsInfo(result);
                 if (mListener != null) {
                     mListener.onResult(res);
                 }
@@ -426,30 +292,39 @@ public class OpenWorldApi1 {
         });
     }
 
-    public void macGetArchiveUrl(Fragment fragment, int id, long timestamp, final ResultListener
+    public OkHttpClientRunnable macGetArchiveUrlRunnable(int channelId, long timestamp, final
+    ResultListener
+            mListener) {
+        String url = ApiUtils.getApiUrl(ApiConstants.GetArchiveUrl.URL);
+        IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
+        loadInfo.addParam(ApiConstants.GetArchiveUrl.PARAM_ID, channelId + "");
+        loadInfo.addParam(ApiConstants.GetArchiveUrl.PARAM_TIMESTAMP, timestamp + "");
+        OkHttpClientRunnable runnable = HttpRequestsCreator.createRunnable(url, loadInfo);
+        runnable.setOnLoadResultListener(new OkHttpClientRunnable.OnLoadResultListener() {
+            @Override
+            public void onLoadResult(boolean isSuccess, String result) {
+                if (isSuccess) {
+                    GetUrlItem res = ParseUtils.parseGetUrl(result);
+                    mListener.onResult(res);
+                } else {
+                    mListener.onError(result);
+                }
+            }
+        });
+        return runnable;
+    }
+
+    public void macGetArchiveUrl(Fragment fragment, int channelId, long timestamp, final ResultListener
             mListener)
             throws IOException {
         String url = ApiUtils.getApiUrl(ApiConstants.GetArchiveUrl.URL);
         IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
-        loadInfo.addParam(ApiConstants.GetArchiveUrl.PARAM_ID, id + "");
+        loadInfo.addParam(ApiConstants.GetArchiveUrl.PARAM_ID, channelId + "");
         loadInfo.addParam(ApiConstants.GetArchiveUrl.PARAM_TIMESTAMP, timestamp + "");
         executeHttpTaskFragment(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
-                GetUrlItem res = new GetUrlItem();
-                try {
-                    JSONObject localJSONObject = new JSONObject(result);
-                    if (localJSONObject.has(GetUrlItem.IP)) {
-                        res.setUrl(localJSONObject.getString(GetUrlItem.IP));
-                    } else {
-                        res.setUrl(localJSONObject.getString(GetUrlItem.URL));
-                    }
-                    res.setHasInfoLine(localJSONObject.getBoolean(GetUrlItem.HAS_INFO_LINE));
-                    res.setSuccess(localJSONObject.getBoolean(GetUrlItem.SUCCESS));
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    res = null;
-                }
+                GetUrlItem res = ParseUtils.parseGetUrl(result);
 
                 if (mListener != null) {
                     mListener.onResult(res);
@@ -465,6 +340,13 @@ public class OpenWorldApi1 {
         });
     }
 
+    public OkHttpClientRunnable macGetChannelIpRunnable(int channelId) throws IOException {
+        String url = ApiUtils.getApiUrl(ApiConstants.GetChannelIp.URL);
+        IOkHttpLoadInfo.GetLoaderCreateInfo loadInfo = new IOkHttpLoadInfo.GetLoaderCreateInfo();
+        loadInfo.addParam(ApiConstants.GetChannelIp.PARAM_ID, channelId + "");
+        return HttpRequestsCreator.createRunnable(url, loadInfo);
+    }
+
     public AsyncTask macGetChannelIp(Fragment fragment, int channelId, final ResultListener mListener)
             throws IOException {
         String url = ApiUtils.getApiUrl(ApiConstants.GetChannelIp.URL);
@@ -474,20 +356,7 @@ public class OpenWorldApi1 {
                 .OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
-                GetUrlItem res = new GetUrlItem();
-                try {
-                    JSONObject localJSONObject = new JSONObject(result);
-                    if (localJSONObject.has(GetUrlItem.IP)) {
-                        res.setUrl(localJSONObject.getString(GetUrlItem.IP));
-                    } else {
-                        res.setUrl(localJSONObject.getString(GetUrlItem.URL));
-                    }
-                    res.setHasInfoLine(localJSONObject.getBoolean(GetUrlItem.HAS_INFO_LINE));
-                    res.setSuccess(localJSONObject.getBoolean(GetUrlItem.SUCCESS));
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    res = null;
-                }
+                GetUrlItem res = ParseUtils.parseGetUrl(result);
 
                 if (mListener != null) {
                     mListener.onResult(res);
@@ -523,29 +392,7 @@ public class OpenWorldApi1 {
         executeHttpTaskFragment(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
-                OsdItem res = new OsdItem();
-                try {
-                    JSONObject localJSONObject = new JSONObject(result);
-                    JSONArray programsArr = localJSONObject.getJSONArray(ua.opensvit.data.osd
-                            .ProgramItem.JSON_NAME);
-                    for (int i = 0; i < programsArr.length(); i++) {
-                        JSONObject programObj = programsArr.getJSONObject(i);
-                        ua.opensvit.data.osd.ProgramItem programItem = new ua.opensvit.data.osd
-                                .ProgramItem();
-                        programItem.setAbsTimeElapsedInPercent(programObj.getInt(ua.opensvit.data.osd
-                                .ProgramItem.DURATION));
-                        programItem.setTitle(programObj.getString(ua.opensvit.data.osd
-                                .ProgramItem.TITLE));
-                        programItem.setStart(programObj.getString(ua.opensvit.data.osd
-                                .ProgramItem.START));
-                        programItem.setEnd(programObj.getString(ua.opensvit.data.osd
-                                .ProgramItem.END));
-                        res.addProgram(programItem);
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    res = null;
-                }
+                OsdItem res = ParseUtils.parseOsd(result);
 
                 if (mListener != null) {
                     mListener.onResult(res);
@@ -570,15 +417,7 @@ public class OpenWorldApi1 {
         executeHttpTaskFragment(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
-                CreepingLineItem res = new CreepingLineItem();
-                try {
-                    JSONObject localJSONObject = new JSONObject(result);
-                    res.setSuccess(localJSONObject.getBoolean(CreepingLineItem.SUCCESS));
-                    res.setText(localJSONObject.getString(CreepingLineItem.TEXT));
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    res = null;
-                }
+                CreepingLineItem res = ParseUtils.parseCreepingLine(result);
 
                 if (mListener != null) {
                     mListener.onResult(res);
@@ -633,7 +472,7 @@ public class OpenWorldApi1 {
         loadInfo.addParam(ApiConstants.GetEpg.PARAM_END_UT, endUT + "");
         loadInfo.addParam(ApiConstants.GetEpg.PARAM_PER_PAGE, perPage + "");
         loadInfo.addParam(ApiConstants.GetEpg.PARAM_PAGE, page + "");
-        OkHttpClientRunnable runnable = new OkHttpClientRunnable(url, loadInfo);
+        OkHttpClientRunnable runnable = HttpRequestsCreator.createRunnable(url, loadInfo);
         runnable.setOnLoadResultListener(new OkHttpClientRunnable.OnLoadResultListener() {
             @Override
             public void onLoadResult(boolean isSuccess, String result) {
@@ -718,20 +557,7 @@ public class OpenWorldApi1 {
         executeHttpTaskFragment(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
-                ImageInfo res = new ImageInfo();
-                try {
-                    JSONObject localJSONObject = new JSONObject(result);
-                    res.setSuccess(localJSONObject.getBoolean(ImageInfo.SUCCESS));
-                    JSONArray imageItemsObj = localJSONObject.getJSONArray(ImageItem.JSON_NAME);
-                    for (int i = 0; i < imageItemsObj.length(); i++) {
-                        ImageItem imageItem = new ImageItem();
-                        imageItem.setUrl(imageItemsObj.getString(i));
-                        res.addImageItem(imageItem);
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    res = null;
-                }
+                ImageInfo res = ParseUtils.parseImageInfo(result);
 
                 if (mListener != null) {
                     mListener.onResult(res);
@@ -784,14 +610,7 @@ public class OpenWorldApi1 {
         executeHttpTaskFragment(fragment, url, loadInfo, new OkHttpAsyncTask.OnLoadFinishedListener() {
             @Override
             public void onLoadFinished(String result) {
-                InfoAbout res = new InfoAbout();
-                try {
-                    JSONObject localJSONObject = new JSONObject(result);
-                    res.setJava(localJSONObject.getString(InfoAbout.JAVA));
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    res = null;
-                }
+                InfoAbout res = ParseUtils.parseInfoAbout(result);
 
                 if (mListener != null) {
                     mListener.onResult(res);

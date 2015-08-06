@@ -11,9 +11,6 @@ import com.squareup.leakcanary.RefWatcher;
 import java.util.HashMap;
 import java.util.Map;
 
-import ua.opensvit.adapters.ChannelListAdapter;
-import ua.opensvit.adapters.ChannelListData;
-import ua.opensvit.api.OpenWorldApi;
 import ua.opensvit.api.OpenWorldApi1;
 import ua.opensvit.data.menu.TvMenuInfo;
 
@@ -85,7 +82,6 @@ public final class VideoStreamApp extends Application {
         return mLoaderObjects.get(loaderId);
     }
 
-    private OpenWorldApi mApi;
     private OpenWorldApi1 mApi1;
     private int mChannelId = 0;
     private int mIpTvServiceId;
@@ -95,16 +91,8 @@ public final class VideoStreamApp extends Application {
         return this.mChannelId;
     }
 
-    public OpenWorldApi getApi() {
-        return this.mApi;
-    }
-
     public void setChannelId(int paramInt) {
         this.mChannelId = paramInt;
-    }
-
-    public void setDbApi(OpenWorldApi paramOpenWorldApi) {
-        this.mApi = paramOpenWorldApi;
     }
 
     public void setApi1(OpenWorldApi1 mApi1) {

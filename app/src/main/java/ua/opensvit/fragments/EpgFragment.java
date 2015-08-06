@@ -1,7 +1,6 @@
 package ua.opensvit.fragments;
 
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
@@ -21,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 
 import ua.opensvit.R;
 import ua.opensvit.VideoStreamApp;
-import ua.opensvit.activities.fragments.MainActivity;
+import ua.opensvit.activities.MainActivity;
 import ua.opensvit.adapters.EpgAdapter;
 import ua.opensvit.api.OpenWorldApi1;
 import ua.opensvit.data.GetUrlItem;

@@ -3,6 +3,10 @@ package ua.opensvit.data;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import ua.opensvit.utils.ParcelUtils;
 
 public class ParcelableArray<T extends Parcelable> implements Parcelable {
@@ -11,6 +15,18 @@ public class ParcelableArray<T extends Parcelable> implements Parcelable {
 
     public ParcelableArray(T[] values) {
         this.values = values;
+    }
+
+    public int size() {
+        return values == null ? 0 : values.length;
+    }
+
+    public T get(int position) {
+        return values != null && values.length > position ? values[position] : null;
+    }
+
+    public List<T> toList() {
+        return values == null ? new ArrayList<T>() : Arrays.asList(values);
     }
 
     @Override

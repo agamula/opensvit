@@ -1,4 +1,4 @@
-package ua.opensvit.activities.fragments;
+package ua.opensvit.activities;
 
 import android.app.Activity;
 import android.os.SystemClock;
@@ -13,7 +13,6 @@ import android.widget.ProgressBar;
 import com.squareup.leakcanary.RefWatcher;
 
 import java.lang.ref.WeakReference;
-import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,12 +24,12 @@ import ua.opensvit.data.channels.Channel;
 import ua.opensvit.loaders.RunnableLoader;
 import ua.opensvit.utils.ChannelFactory;
 
-public class PlayActivity extends AppCompatActivity implements LoaderManager
+public class TestActivity extends AppCompatActivity implements LoaderManager
         .LoaderCallbacks<String>, ExpandableListView.OnChildClickListener {
 
     private static final int LOAD_MENUS_ID = 0;
     private ExpandableListView mExpandableListView;
-    private WeakReference<PlayActivity> weakActivity;
+    private WeakReference<TestActivity> weakActivity;
     private ProgressBar mProgress;
 
     @Override
@@ -51,9 +50,9 @@ public class PlayActivity extends AppCompatActivity implements LoaderManager
     private static final class LoaderManagerCallbacks implements LoaderManager
             .LoaderCallbacks<String> {
 
-        private final WeakReference<PlayActivity> weakActivity;
+        private final WeakReference<TestActivity> weakActivity;
 
-        public LoaderManagerCallbacks(WeakReference<PlayActivity> weakActivity) {
+        public LoaderManagerCallbacks(WeakReference<TestActivity> weakActivity) {
             this.weakActivity = weakActivity;
         }
 
@@ -102,7 +101,7 @@ public class PlayActivity extends AppCompatActivity implements LoaderManager
 
         @Override
         public void onLoadFinished(Loader<String> loader, String data) {
-            PlayActivity fragment = weakActivity.get();
+            TestActivity fragment = weakActivity.get();
             if (fragment != null) {
                 fragment.mProgress.setVisibility(View.GONE);
                 VideoStreamApp mApp = VideoStreamApp.getInstance();

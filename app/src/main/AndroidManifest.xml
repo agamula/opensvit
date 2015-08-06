@@ -14,7 +14,7 @@
         android:icon="@drawable/ic_launcher"
         android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
         <activity
-            android:name=".activities.fragments.MainActivity"
+            android:name=".activities.MainActivity"
             android:label="@string/app_name1"
             android:theme="@style/AppThemeCompat">
             <intent-filter>
@@ -23,19 +23,6 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".activities.MainMenu"/>
-        <activity android:name=".activities.VideoViewDemo"/>
-        <activity
-            android:name=".activities.VideoViewPlayer"
-            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|smallestScreenSize"
-            android:screenOrientation="sensorLandscape"
-            android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-            </intent-filter>
-        </activity>
-        <activity android:name=".activities.FilmAct"/>
-        <activity android:name=".activities.IcAbout"/>
         <activity
             android:name="io.vov.vitamio.activity.InitActivity"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|smallestScreenSize"
@@ -43,7 +30,7 @@
             android:theme="@android:style/Theme.NoTitleBar"
             android:windowSoftInputMode="stateAlwaysHidden"/>
         <activity
-            android:name=".activities.fragments.PlayActivity"
+            android:name=".activities.TestActivity"
             android:label="@string/title_activity_play"
             android:theme="@style/AppThemeCompat">
         </activity>

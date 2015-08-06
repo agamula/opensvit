@@ -5,13 +5,13 @@ import java.util.Collections;
 import java.util.List;
 
 public class OsdItem {
-    private final List<ProgramItem> programs = new ArrayList<>();
+    private final List<ProgramDurationItem> programs = new ArrayList<>();
 
-    public void addProgram(ProgramItem programItem) {
-        programs.add(programItem);
+    public void addProgram(ProgramDurationItem programDurationItem) {
+        programs.add(programDurationItem);
     }
 
-    public List<ProgramItem> getUnmodifiablePrograms() {
+    public List<ProgramDurationItem> getUnmodifiablePrograms() {
         return Collections.unmodifiableList(programs);
     }
 }

@@ -14,7 +14,7 @@ import java.io.IOException;
 
 import ua.opensvit.R;
 import ua.opensvit.VideoStreamApp;
-import ua.opensvit.activities.fragments.MainActivity;
+import ua.opensvit.activities.MainActivity;
 import ua.opensvit.api.OpenWorldApi1;
 import ua.opensvit.data.authorization.AuthorizationInfoBase;
 import ua.opensvit.data.menu.TvMenuInfo;

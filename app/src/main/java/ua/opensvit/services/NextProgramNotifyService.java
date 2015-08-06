@@ -12,12 +12,11 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 import ua.opensvit.VideoStreamApp;
 import ua.opensvit.data.osd.OsdItem;
-import ua.opensvit.data.osd.ProgramItem;
+import ua.opensvit.data.osd.ProgramDurationItem;
 import ua.opensvit.http.OkHttpClientRunnable;
 import ua.opensvit.utils.DateUtils;
 
@@ -76,21 +75,15 @@ public class NextProgramNotifyService extends IntentService implements OkHttpCli
             OsdItem res = new OsdItem();
             try {
                 JSONObject localJSONObject = new JSONObject(result);
-                JSONArray programsArr = localJSONObject.getJSONArray(ua.opensvit.data.osd
-                        .ProgramItem.JSON_NAME);
+                JSONArray programsArr = localJSONObject.getJSONArray(ProgramDurationItem.JSON_NAME);
                 for (int i = 0; i < programsArr.length(); i++) {
                     JSONObject programObj = programsArr.getJSONObject(i);
-                    ua.opensvit.data.osd.ProgramItem programItem = new ua.opensvit.data.osd
-                            .ProgramItem();
-                    programItem.setAbsTimeElapsedInPercent(programObj.getInt(ua.opensvit.data.osd
-                            .ProgramItem.DURATION));
-                    programItem.setTitle(programObj.getString(ua.opensvit.data.osd
-                            .ProgramItem.TITLE));
-                    programItem.setStart(programObj.getString(ua.opensvit.data.osd
-                            .ProgramItem.START));
-                    programItem.setEnd(programObj.getString(ua.opensvit.data.osd
-                            .ProgramItem.END));
-                    res.addProgram(programItem);
+                    ProgramDurationItem programDurationItem = new ProgramDurationItem();
+                    programDurationItem.setAbsTimeElapsedInPercent(programObj.getInt(ProgramDurationItem.DURATION));
+                    programDurationItem.setTitle(programObj.getString(ProgramDurationItem.TITLE));
+                    programDurationItem.setStart(programObj.getString(ProgramDurationItem.START));
+                    programDurationItem.setEnd(programObj.getString(ProgramDurationItem.END));
+                    res.addProgram(programDurationItem);
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -100,50 +93,50 @@ public class NextProgramNotifyService extends IntentService implements OkHttpCli
             if (res != null) {
                 SimpleDateFormat format = new SimpleDateFormat("HH:mm");
                 format.setTimeZone(DateUtils.getTimeZone());
-                List<ProgramItem> programItems = res.getUnmodifiablePrograms();
+                List<ProgramDurationItem> programDurationItems = res.getUnmodifiablePrograms();
 
-                if (programItems != null && !programItems.isEmpty()) {
+                if (programDurationItems != null && !programDurationItems.isEmpty()) {
                     String timeTill = null;
                     String nextProgramName = null;
                     Till till = null;
 
-                    ProgramItem programItem = programItems.get(0);
+                    ProgramDurationItem programDurationItem = programDurationItems.get(0);
                     try {
-                        Date startDate = format.parse(programItem.getStart());
-                        Date endDate = format.parse(programItem.getEnd());
-                        if (programItem.getAbsTimeElapsedInPercent() >= 100) {
-                            if (programItems.size() > 1) {
-                                programItem = programItems.get(1);
-                                startDate = format.parse(programItem.getStart());
+                        Date startDate = format.parse(programDurationItem.getStart());
+                        Date endDate = format.parse(programDurationItem.getEnd());
+                        if (programDurationItem.getAbsTimeElapsedInPercent() >= 100) {
+                            if (programDurationItems.size() > 1) {
+                                programDurationItem = programDurationItems.get(1);
+                                startDate = format.parse(programDurationItem.getStart());
                                 Date curDate = new Date((long) (startDate.getTime() + (endDate
-                                        .getTime() - startDate.getTime()) * (programItem
+                                        .getTime() - startDate.getTime()) * (programDurationItem
                                         .getAbsTimeElapsedInPercent()) / 100f));
-                                nextProgramName = programItem.getTitle();
+                                nextProgramName = programDurationItem.getTitle();
                                 long diffTime = endDate.getTime() - curDate.getTime();
                                 timeTill = createTimeText(diffTime);
                                 till = Till.EndedAfter;
                             } else {
                                 Date curDate = new Date((long) (startDate.getTime() + (endDate
-                                        .getTime() - startDate.getTime()) * (programItem
+                                        .getTime() - startDate.getTime()) * (programDurationItem
                                         .getAbsTimeElapsedInPercent()) / 100f));
-                                nextProgramName = programItem.getTitle();
+                                nextProgramName = programDurationItem.getTitle();
                                 long diffTime = curDate.getTime() - endDate.getTime();
                                 timeTill = createTimeText(diffTime);
                                 till = Till.EndedAs;
                             }
                         } else {
                             Date curDate = new Date((long) (startDate.getTime() + (endDate
-                                    .getTime() - startDate.getTime()) * (programItem
+                                    .getTime() - startDate.getTime()) * (programDurationItem
                                     .getAbsTimeElapsedInPercent()) / 100f));
-                            if (programItems.size() > 1) {
-                                programItem = programItems.get(1);
-                                startDate = format.parse(programItem.getStart());
+                            if (programDurationItems.size() > 1) {
+                                programDurationItem = programDurationItems.get(1);
+                                startDate = format.parse(programDurationItem.getStart());
                                 long diffTime = startDate.getTime() - curDate.getTime();
                                 timeTill = createTimeText(diffTime);
-                                nextProgramName = programItem.getTitle();
+                                nextProgramName = programDurationItem.getTitle();
                                 till = Till.Till;
                             } else {
-                                nextProgramName = programItem.getTitle();
+                                nextProgramName = programDurationItem.getTitle();
                                 long diffTime = endDate.getTime() - curDate.getTime();
                                 timeTill = createTimeText(diffTime);
                                 till = Till.EndedAfter;

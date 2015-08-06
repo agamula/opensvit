@@ -17,8 +17,8 @@ import java.io.IOException;
 
 import ua.opensvit.R;
 import ua.opensvit.VideoStreamApp;
-import ua.opensvit.activities.fragments.MainActivity;
-import ua.opensvit.activities.fragments.PlayActivity;
+import ua.opensvit.activities.MainActivity;
+import ua.opensvit.activities.TestActivity;
 import ua.opensvit.api.OpenWorldApi1;
 import ua.opensvit.data.authorization.mac.AuthorizationInfoMac;
 
@@ -62,7 +62,7 @@ public class CheckingDeviceFragment extends Fragment implements OpenWorldApi1.Re
             @Override
             public void run() {
                 getActivity().finish();
-                getActivity().startActivity(new Intent(getActivity(), PlayActivity.class));
+                getActivity().startActivity(new Intent(getActivity(), TestActivity.class));
             }
         }, 700);
     }

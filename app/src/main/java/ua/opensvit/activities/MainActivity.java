@@ -1,4 +1,4 @@
-package ua.opensvit.activities.fragments;
+package ua.opensvit.activities;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -16,10 +16,10 @@ import io.vov.vitamio.LibsChecker;
 import io.vov.vitamio.Vitamio;
 import ua.opensvit.R;
 import ua.opensvit.VideoStreamApp;
-import ua.opensvit.api.OpenWorldApi;
 import ua.opensvit.api.OpenWorldApi1;
 import ua.opensvit.fragments.CheckingDeviceFragment;
 import ua.opensvit.fragments.MainFragment;
+import ua.opensvit.utils.ApiUtils;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -30,17 +30,17 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if(!LibsChecker.checkVitamioLibs(this)) {
+        if (!LibsChecker.checkVitamioLibs(this)) {
             return;
         }
         setContentView(R.layout.activity_main);
 
-        mToolbar = (Toolbar)findViewById(R.id.toolbar);
+        mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
 
         mDrawerFragmentView = findViewById(R.id.drawer_fragment);
 
-        if(savedInstanceState == null) {
+        if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new
                     CheckingDeviceFragment()).commit();
         } else {
@@ -52,12 +52,12 @@ public class MainActivity extends AppCompatActivity {
         ab.setDisplayHomeAsUpEnabled(true);
         ab.setDisplayShowTitleEnabled(false);
 
-        mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         setupDrawerToggle();
 
         VideoStreamApp app = VideoStreamApp.getInstance();
-        app.setDbApi(new OpenWorldApi());
         app.setApi1(new OpenWorldApi1());
+        ApiUtils.getBaseUrl();
     }
 
     private void setupDrawerToggle() {

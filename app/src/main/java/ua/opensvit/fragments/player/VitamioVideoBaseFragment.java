@@ -1,11 +1,13 @@
 package ua.opensvit.fragments.player;
 
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -23,12 +25,14 @@ import android.widget.TextView;
 
 import com.squareup.leakcanary.RefWatcher;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Calendar;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import io.vov.vitamio.MediaFormat;
+import io.vov.vitamio.MediaMetadataRetriever;
 import io.vov.vitamio.MediaPlayer;
 import io.vov.vitamio.widget.MediaController;
 import io.vov.vitamio.widget.VideoView;
@@ -195,7 +199,15 @@ public abstract class VitamioVideoBaseFragment extends Fragment implements Media
     @Override
     public final View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle
             savedInstanceState) {
-        return inflater.inflate(getLayoutId(), container, false);
+        View view = inflater.inflate(getLayoutId(), container, false);
+
+        mVideoView = (VideoView) view.findViewById(R.id.surface_view);
+
+        if (mVideoView != null) {
+            mVideoView.setVisibility(View.GONE);
+        }
+
+        return view;
     }
 
     @Override
@@ -210,9 +222,7 @@ public abstract class VitamioVideoBaseFragment extends Fragment implements Media
 
         mNextProgramText = (TextView) view.findViewById(R.id.next_program_text);
 
-        mVideoView = (VideoView) view.findViewById(R.id.surface_view);
-
-        if(mVideoView == null) {
+        if (mVideoView == null) {
             mVideoViewNotExist = true;
         } else {
             mVideoView.setOnInfoListener(this);
@@ -223,14 +233,16 @@ public abstract class VitamioVideoBaseFragment extends Fragment implements Media
             controller.setInstantSeeking(false);
             controller.setOnShownListener(this);
             mVideoView.setMediaController(controller);
+            onShown();
             mRespondedLayout = (RespondedLayout) view.findViewById(R.id.video_responded);
         }
     }
 
     protected void onPostViewCreated() {
-        if(mVideoViewNotExist) {
+        if (mVideoViewNotExist) {
             return;
         }
+        mVideoView.setVisibility(View.VISIBLE);
         mVideoView.setVideoURI(Uri.parse(mPath));
         mVideoView.requestFocus();
         mShown = false;
@@ -288,7 +300,7 @@ public abstract class VitamioVideoBaseFragment extends Fragment implements Media
 
     @Override
     public void onPause() {
-        if(mVideoViewNotExist) {
+        if (mVideoViewNotExist) {
             super.onPause();
             return;
         }
@@ -300,7 +312,7 @@ public abstract class VitamioVideoBaseFragment extends Fragment implements Media
 
     @Override
     public void onResume() {
-        if(mVideoViewNotExist) {
+        if (mVideoViewNotExist) {
             super.onResume();
             return;
         }
@@ -330,7 +342,13 @@ public abstract class VitamioVideoBaseFragment extends Fragment implements Media
     @Override
     public void onPrepared(MediaPlayer mediaPlayer) {
         mediaPlayer.setPlaybackSpeed(1.0f);
+        View videoParent = (View) mVideoView.getParent();
+        ViewGroup.LayoutParams pars = videoParent.getLayoutParams();
+        ViewGroup.LayoutParams videoViewPars = mVideoView.getLayoutParams();
+        pars.width = videoViewPars.width;
+        pars.height = videoViewPars.height;
         audioFormats = mVideoView.getAudioTrackMap("utf-8");
+        mVideoView.setVisibility(View.VISIBLE);
     }
 
     protected SparseArray<MediaFormat> getAudioFormats() {
@@ -347,7 +365,7 @@ public abstract class VitamioVideoBaseFragment extends Fragment implements Media
                 f = MediaController.class.getDeclaredField("mFileName");
                 f.setAccessible(true);
                 TextView mCurrentTime = (TextView) f.get(mediaController);
-                if(mCurrentTime != null) {
+                if (mCurrentTime != null) {
                     mCurrentTime.setVisibility(View.GONE);
                 }
                 mVideoView.setVideoLayout(VideoView.VIDEO_LAYOUT_ORIGIN, 0); //zoom = full screen

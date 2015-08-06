@@ -1,5 +1,7 @@
 package ua.opensvit.fragments;
 
+import android.app.Activity;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -10,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.squareup.leakcanary.RefWatcher;
@@ -19,9 +22,10 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.vov.vitamio.MediaMetadataRetriever;
 import ua.opensvit.R;
 import ua.opensvit.VideoStreamApp;
-import ua.opensvit.activities.fragments.MainActivity;
+import ua.opensvit.activities.MainActivity;
 import ua.opensvit.adapters.ChannelListAdapter;
 import ua.opensvit.adapters.ChannelListData;
 import ua.opensvit.api.OpenWorldApi1;
@@ -29,7 +33,9 @@ import ua.opensvit.data.GetUrlItem;
 import ua.opensvit.data.channels.Channel;
 import ua.opensvit.data.menu.TvMenuInfo;
 import ua.opensvit.data.menu.TvMenuItem;
+import ua.opensvit.http.OkHttpClientRunnable;
 import ua.opensvit.loaders.RunnableLoader;
+import ua.opensvit.utils.ParseUtils;
 
 public class MenuFragment extends Fragment implements LoaderManager.LoaderCallbacks<String> {
 
@@ -154,31 +160,89 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
             OpenWorldApi1.ResultListener {
 
         private final WeakReference<MenuFragment> weakFragment;
-        private AsyncTask mPressTask;
+        private AsyncTask<Void, Void, Void> mPressTask;
 
         public GetIpAndShowEpgListener(WeakReference<MenuFragment> weakFragment) {
             this.weakFragment = weakFragment;
         }
 
+        private int videoWidth;
+        private int videoHeight;
+
         @Override
         public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
-            Channel mChannel = (Channel) parent.getExpandableListAdapter().getChild
+            final Channel mChannel = (Channel) parent.getExpandableListAdapter().getChild
                     (groupPosition, childPosition);
-            MenuFragment fragment = weakFragment.get();
+            final MenuFragment fragment = weakFragment.get();
             if (fragment != null) {
-                try {
-                    VideoStreamApp app = VideoStreamApp.getInstance();
-                    OpenWorldApi1 api1 = app.getApi1();
-                    app.setChannelId(mChannel.getId());
-                    mPressTask = api1.macGetChannelIp(fragment, mChannel.getId(), this);
+                mPressTask = new AsyncTask<Void, Void, Void>() {
 
-                    //TODO implement loading channels and start programs fragment
-                    return true;
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } finally {
+                    private WeakReference<ProgressBar> weakProgress;
 
-                }
+                    @Override
+                    protected void onPreExecute() {
+                        super.onPreExecute();
+                        weakProgress = new WeakReference<>((ProgressBar) fragment.getActivity()
+                                .findViewById(R.id.progress));
+                        weakProgress.get().setVisibility(View.VISIBLE);
+                        videoWidth = videoHeight = 0;
+                    }
+
+                    @Override
+                    protected Void doInBackground(Void... params) {
+                        try {
+                            VideoStreamApp app = VideoStreamApp.getInstance();
+                            OpenWorldApi1 api1 = app.getApi1();
+                            app.setChannelId(mChannel.getId());
+                            OkHttpClientRunnable runnable = api1.macGetChannelIpRunnable(mChannel
+                                    .getId());
+                            runnable.setOnLoadResultListener(new OkHttpClientRunnable.OnLoadResultListener() {
+                                @Override
+                                public void onLoadResult(boolean isSuccess, String result) {
+                                    if (isSuccess) {
+                                        GetUrlItem getUrlItem = ParseUtils.parseGetUrl(result);
+                                        Activity activity = fragment.getActivity();
+
+                                        try {
+                                            MediaMetadataRetriever retriever = new MediaMetadataRetriever
+                                                    (activity);
+                                            if (getUrlItem != null) {
+                                                retriever.setDataSource(activity, Uri.parse(getUrlItem
+                                                        .getUrl()));
+                                            }
+                                            videoWidth = Integer.parseInt(retriever.extractMetadata
+                                                    (MediaMetadataRetriever
+                                                            .METADATA_KEY_VIDEO_WIDTH));
+                                            videoHeight = Integer.parseInt(retriever.extractMetadata
+                                                    (MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT));
+                                            retriever.release();
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
+                                        onResult(getUrlItem);
+                                    } else {
+                                        onError(result);
+                                    }
+                                }
+                            });
+                            runnable.run();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        return null;
+                    }
+
+                    @Override
+                    protected void onPostExecute(Void aVoid) {
+                        super.onPostExecute(aVoid);
+                        if (weakProgress.get() != null) {
+                            weakProgress.get().setVisibility(View.GONE);
+                        }
+                    }
+                };
+                mPressTask.execute();
+
+                return true;
             }
             return false;
         }
@@ -201,9 +265,9 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
                 }
                 GetUrlItem urlItem = (GetUrlItem) res;
                 String ip = urlItem.getUrl();
-                MainActivity.startFragment(fragment.getActivity(), EpgFragment.newInstance
-                        (VideoStreamApp.getInstance().getChannelId(), fragment.mMenuInfo.getService()
-                                , ip));
+                MainActivity.startFragment(fragment.getActivity(), ProgramsFragment.newInstance
+                        (ip, VideoStreamApp.getInstance().getChannelId(), fragment.mMenuInfo
+                                .getService(), videoWidth, videoHeight));
             }
         }
 

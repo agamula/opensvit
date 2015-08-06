@@ -1,6 +1,6 @@
 package ua.opensvit.data.osd;
 
-public class ProgramItem {
+public class ProgramDurationItem {
     public static final String JSON_NAME = "programs";
     public static final String DURATION = "duration";
     public static final String TITLE = "title";

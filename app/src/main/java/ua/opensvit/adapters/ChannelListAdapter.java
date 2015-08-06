@@ -5,6 +5,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.os.Build;
+import android.util.Pair;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,6 +29,7 @@ import ua.opensvit.api.OpenWorldApi1;
 import ua.opensvit.data.channels.Channel;
 import ua.opensvit.utils.ApiUtils;
 import ua.opensvit.utils.ImageLoaderUtils;
+import ua.opensvit.utils.WindowUtils;
 
 @SuppressLint({"NewApi"})
 public class ChannelListAdapter extends BaseExpandableListAdapter implements OpenWorldApi1.ResultListener {
@@ -69,19 +71,8 @@ public class ChannelListAdapter extends BaseExpandableListAdapter implements Ope
         if (convertView == null) {
             convertView = this.inflater.inflate(R.layout.child_row, parent, false);
         }
-        int screenWidth, screenHeight;
-        WindowManager windowManager = (WindowManager) context.getSystemService(Context
-                .WINDOW_SERVICE);
-        if (Build.VERSION.SDK_INT >= 11) {
-            Point p = new Point();
-            windowManager.getDefaultDisplay().getSize(p);
-            screenWidth = p.x;
-            screenHeight = p.y;
-        } else {
-            Display display = windowManager.getDefaultDisplay();
-            screenWidth = display.getWidth();
-            screenHeight = display.getHeight();
-        }
+
+        Pair<Integer, Integer> screenSizes = WindowUtils.getScreenSizes();
 
         ImageView imageView = (ImageView) convertView.findViewById(R.id.imageView1);
 
@@ -92,16 +83,16 @@ public class ChannelListAdapter extends BaseExpandableListAdapter implements Ope
             e.printStackTrace();
             imageView.setImageResource(R.drawable.ic_star);
         }
-        imageView.getLayoutParams().height = ((int) (screenHeight * 0.07D));
-        imageView.getLayoutParams().width = ((int) (screenWidth * 0.07D));
+        imageView.getLayoutParams().height = ((int) (screenSizes.second * 0.07D));
+        imageView.getLayoutParams().width = ((int) (screenSizes.first * 0.07D));
         TextView channelTextView = (TextView) convertView.findViewById(R.id.childname);
         if (channelTextView != null) {
             channelTextView.setText(channel.getName());
         }
         final ImageView imageView2 = (ImageView) convertView.findViewById(R.id.imageView2);
         setImageFavoriteResource(imageView2, channel);
-        imageView2.getLayoutParams().height = ((int) (screenWidth * 0.07D));
-        imageView2.getLayoutParams().width = ((int) (screenHeight * 0.07D));
+        imageView2.getLayoutParams().height = ((int) (screenSizes.first * 0.07D));
+        imageView2.getLayoutParams().width = ((int) (screenSizes.second * 0.07D));
         convertView.findViewById(R.id.frame2).setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 try {
