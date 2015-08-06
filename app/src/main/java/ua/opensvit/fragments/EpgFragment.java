@@ -164,7 +164,7 @@ public class EpgFragment extends Fragment implements LoaderManager.LoaderCallbac
         if (EpgAdapter.calculatePlayOnlineView(position)) {
             MainActivity.startFragment(getActivity(), VitamioVideoFragment.newInstance(onlineUrl,
                     channelId, mApp.getMenuInfo().getService(), TimeUnit.MILLISECONDS.toSeconds(System
-                            .currentTimeMillis())));
+                            .currentTimeMillis()), 0, 0));
         } else {
             final ProgramItem programItem = (ProgramItem) parent.getAdapter().getItem(position);
             if (true/*programItem.isArchive()*/) {
@@ -181,7 +181,7 @@ public class EpgFragment extends Fragment implements LoaderManager.LoaderCallbac
                                     MainActivity.startFragment(getActivity(),
                                             VitamioVideoFragment.newInstance(urlItem.getUrl(),
                                                     channelId, mApp.getMenuInfo().getService(),
-                                                    programItem.getTimestamp()));
+                                                    programItem.getTimestamp(), 0, 0));
                                 }
 
                                 @Override

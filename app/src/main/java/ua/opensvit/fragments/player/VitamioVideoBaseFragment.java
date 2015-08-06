@@ -1,13 +1,11 @@
 package ua.opensvit.fragments.player;
 
-import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -21,18 +19,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.squareup.leakcanary.RefWatcher;
 
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Calendar;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import io.vov.vitamio.MediaFormat;
-import io.vov.vitamio.MediaMetadataRetriever;
 import io.vov.vitamio.MediaPlayer;
 import io.vov.vitamio.widget.MediaController;
 import io.vov.vitamio.widget.VideoView;
@@ -40,6 +37,7 @@ import ua.opensvit.R;
 import ua.opensvit.VideoStreamApp;
 import ua.opensvit.services.NextProgramNotifyService;
 import ua.opensvit.utils.DateUtils;
+import ua.opensvit.utils.WindowUtils;
 import ua.opensvit.widgets.RespondedLayout;
 
 public abstract class VitamioVideoBaseFragment extends Fragment implements MediaPlayer
@@ -85,37 +83,51 @@ public abstract class VitamioVideoBaseFragment extends Fragment implements Media
                 VideoStreamApp mApp = VideoStreamApp.getInstance();
                 ObjectForNotify notifyObj = (ObjectForNotify) msg.obj;
                 Intent intent = createNotifyIntent(mApp, notifyObj.channelId, notifyObj.serviceId,
-                        notifyObj.timestamp);
+                        notifyObj.timestamp, false);
                 mApp.getApplicationContext().startService(intent);
             }
         }
     }
 
     private static Intent createNotifyIntent(VideoStreamApp app, int channelId, int serviceId,
-                                             long timestamp) {
+                                             long timestamp, boolean mStop) {
+        VideoStreamApp mApp = VideoStreamApp.getInstance();
         Intent intent = new Intent(app.getApplicationContext(),
                 NextProgramNotifyService.class);
         intent.putExtra(NextProgramNotifyService.CHANNEL_ID, channelId);
         intent.putExtra(NextProgramNotifyService.SERVICE_ID, serviceId);
         intent.putExtra(NextProgramNotifyService.TIMESTAMP, timestamp);
-        intent.putExtra(NextProgramNotifyService.PARAM_NOW_TIME, Calendar.getInstance(DateUtils
-                .getTimeZone()).getTimeInMillis());
+        if (!mStop) {
+            mApp.getPlayerInfo().setNotifyTime(Calendar.getInstance(DateUtils.getTimeZone())
+                    .getTimeInMillis());
+        }
+        intent.putExtra(NextProgramNotifyService.PARAM_NOW_TIME, mApp.getPlayerInfo()
+                .getNotifyTime());
         return intent;
     }
 
-    private int channelId, serviceId;
-    private long timestamp;
+    private int channelId;
 
     protected int getChannelId() {
         return channelId;
     }
 
+    int serviceId;
+
     protected int getServiceId() {
         return serviceId;
     }
 
+    private long timestamp;
+
     protected long getTimestamp() {
         return timestamp;
+    }
+
+    private String mPath;
+
+    protected String getPath() {
+        return mPath;
     }
 
     private VideoView mVideoView;
@@ -131,7 +143,6 @@ public abstract class VitamioVideoBaseFragment extends Fragment implements Media
     }
 
     private TextView mNextProgramText;
-    private String mPath;
     private boolean mShown;
     private int requestCode;
     private boolean mVideoViewNotExist;
@@ -207,7 +218,13 @@ public abstract class VitamioVideoBaseFragment extends Fragment implements Media
             mVideoView.setVisibility(View.GONE);
         }
 
+        onPreShowView(view);
+
         return view;
+    }
+
+    protected void onPreShowView(View view) {
+
     }
 
     @Override
@@ -224,12 +241,13 @@ public abstract class VitamioVideoBaseFragment extends Fragment implements Media
 
         if (mVideoView == null) {
             mVideoViewNotExist = true;
+            mRespondedLayout = null;
         } else {
+            mVideoViewNotExist = false;
             mVideoView.setOnInfoListener(this);
             mVideoView.setOnPreparedListener(this);
 
-            MediaController controller = (MediaController) view.findViewById(R.id.media_controller);//new
-            // MediaController(getActivity());
+            MediaController controller = (MediaController) view.findViewById(R.id.media_controller);
             controller.setInstantSeeking(false);
             controller.setOnShownListener(this);
             mVideoView.setMediaController(controller);
@@ -268,13 +286,13 @@ public abstract class VitamioVideoBaseFragment extends Fragment implements Media
         nowTime += timeBetweenAlarms;
 
         manager.setRepeating(AlarmManager.ELAPSED_REALTIME, nowTime, timeBetweenAlarms,
-                createPendingIntent());
+                createPendingIntent(false));
     }
 
-    private PendingIntent createPendingIntent() {
+    private PendingIntent createPendingIntent(boolean mStop) {
         VideoStreamApp app = VideoStreamApp.getInstance();
 
-        Intent intent = createNotifyIntent(app, channelId, serviceId, timestamp);
+        Intent intent = createNotifyIntent(app, channelId, serviceId, timestamp, mStop);
 
         if (requestCode == 0) {
             requestCode = new Random().nextInt(100);
@@ -286,7 +304,7 @@ public abstract class VitamioVideoBaseFragment extends Fragment implements Media
 
     private void stopSchedulingAlarm() {
         AlarmManager manager = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
-        PendingIntent pe = createPendingIntent();
+        PendingIntent pe = createPendingIntent(true);
         manager.cancel(pe);
         pe.cancel();
     }
@@ -296,15 +314,15 @@ public abstract class VitamioVideoBaseFragment extends Fragment implements Media
         getActivity().getApplicationContext().unregisterReceiver(mReceiver);
     }
 
-    private long mPosition;
-
     @Override
     public void onPause() {
         if (mVideoViewNotExist) {
             super.onPause();
             return;
         }
-        mPosition = mVideoView.getCurrentPosition();
+        VideoStreamApp mApp = VideoStreamApp.getInstance();
+        mApp.getPlayerInfo().setPlayerPosition(mVideoView.getCurrentPosition());
+        mApp.getPlayerInfo().setPlaying(mVideoView.isPlaying());
         mVideoView.stopPlayback();
         super.onPause();
         stopNextProgramNotifier();
@@ -317,14 +335,21 @@ public abstract class VitamioVideoBaseFragment extends Fragment implements Media
             return;
         }
 
-        boolean isPaused = mPosition > 0;
+        VideoStreamApp mApp = VideoStreamApp.getInstance();
+
+        long playerPosition = mApp.getPlayerInfo().getPlayerPosition();
+
+        boolean isPaused = playerPosition > 0;
 
         if (isPaused) {
-            mVideoView.seekTo(mPosition);
-            mPosition = 0;
+            mVideoView.seekTo(playerPosition);
+            mApp.getPlayerInfo().setPlayerPosition(0);
         }
         super.onResume();
-        mVideoView.start();
+
+        if (mApp.getPlayerInfo().isPlaying()) {
+            mVideoView.start();
+        }
         scheduleAlarmShowNextProgram(isPaused);
         getActivity().getApplicationContext().registerReceiver(mReceiver, new IntentFilter
                 (NextProgramNotifyService.BROADCAST_NAME));
@@ -343,12 +368,15 @@ public abstract class VitamioVideoBaseFragment extends Fragment implements Media
     public void onPrepared(MediaPlayer mediaPlayer) {
         mediaPlayer.setPlaybackSpeed(1.0f);
         View videoParent = (View) mVideoView.getParent();
-        ViewGroup.LayoutParams pars = videoParent.getLayoutParams();
+        LinearLayout.LayoutParams pars = (LinearLayout.LayoutParams) videoParent.getLayoutParams();
         ViewGroup.LayoutParams videoViewPars = mVideoView.getLayoutParams();
         pars.width = videoViewPars.width;
         pars.height = videoViewPars.height;
+        int screenWidth = WindowUtils.getScreenWidth();
+        if (screenWidth != pars.width) {
+            pars.leftMargin = pars.rightMargin = (screenWidth - pars.width) / 2;
+        }
         audioFormats = mVideoView.getAudioTrackMap("utf-8");
-        mVideoView.setVisibility(View.VISIBLE);
     }
 
     protected SparseArray<MediaFormat> getAudioFormats() {

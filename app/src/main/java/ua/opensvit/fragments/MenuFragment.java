@@ -30,6 +30,7 @@ import ua.opensvit.adapters.ChannelListAdapter;
 import ua.opensvit.adapters.ChannelListData;
 import ua.opensvit.api.OpenWorldApi1;
 import ua.opensvit.data.GetUrlItem;
+import ua.opensvit.data.PlayerInfo;
 import ua.opensvit.data.channels.Channel;
 import ua.opensvit.data.menu.TvMenuInfo;
 import ua.opensvit.data.menu.TvMenuItem;
@@ -265,6 +266,9 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
                 }
                 GetUrlItem urlItem = (GetUrlItem) res;
                 String ip = urlItem.getUrl();
+                PlayerInfo playerInfo = VideoStreamApp.getInstance().getPlayerInfo();
+                playerInfo.setPlaying(true);
+                playerInfo.setForceStart(true);
                 MainActivity.startFragment(fragment.getActivity(), ProgramsFragment.newInstance
                         (ip, VideoStreamApp.getInstance().getChannelId(), fragment.mMenuInfo
                                 .getService(), videoWidth, videoHeight));

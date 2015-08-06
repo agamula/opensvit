@@ -19,6 +19,7 @@ import ua.opensvit.VideoStreamApp;
 import ua.opensvit.api.OpenWorldApi1;
 import ua.opensvit.fragments.CheckingDeviceFragment;
 import ua.opensvit.fragments.MainFragment;
+import ua.opensvit.fragments.player.VitamioVideoFragment;
 import ua.opensvit.utils.ApiUtils;
 
 public class MainActivity extends AppCompatActivity {
@@ -102,6 +103,16 @@ public class MainActivity extends AppCompatActivity {
         });
 
         mDrawerLayout.setDrawerListener(mDrawerToggle);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (getSupportFragmentManager().findFragmentById(R.id.fragment_container) instanceof
+                VitamioVideoFragment) {
+            VideoStreamApp.getInstance().getPlayerInfo().setForceStart(false);
+            getSupportActionBar().show();
+        }
+        super.onBackPressed();
     }
 
     public static void startFragment(FragmentActivity activity, Fragment fragment) {
