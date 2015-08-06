@@ -19,14 +19,9 @@ public class WindowUtils {
         int screenWidth;
         WindowManager windowManager = (WindowManager) context.getSystemService(Context
                 .WINDOW_SERVICE);
-        if (Build.VERSION.SDK_INT >= 11) {
-            Point p = new Point();
-            windowManager.getDefaultDisplay().getSize(p);
-            screenWidth = p.x;
-        } else {
-            Display display = windowManager.getDefaultDisplay();
-            screenWidth = display.getWidth();
-        }
+        Point p = new Point();
+        windowManager.getDefaultDisplay().getSize(p);
+        screenWidth = p.x;
         return screenWidth;
     }
 
@@ -35,14 +30,9 @@ public class WindowUtils {
         int screenHeight;
         WindowManager windowManager = (WindowManager) context.getSystemService(Context
                 .WINDOW_SERVICE);
-        if (Build.VERSION.SDK_INT >= 11) {
-            Point p = new Point();
-            windowManager.getDefaultDisplay().getSize(p);
-            screenHeight = p.y;
-        } else {
-            Display display = windowManager.getDefaultDisplay();
-            screenHeight = display.getHeight();
-        }
+        Point p = new Point();
+        windowManager.getDefaultDisplay().getSize(p);
+        screenHeight = p.y;
         return screenHeight;
     }
 
@@ -51,16 +41,10 @@ public class WindowUtils {
         int screenWidth, screenHeight;
         WindowManager windowManager = (WindowManager) context.getSystemService(Context
                 .WINDOW_SERVICE);
-        if (Build.VERSION.SDK_INT >= 11) {
-            Point p = new Point();
-            windowManager.getDefaultDisplay().getSize(p);
-            screenWidth = p.x;
-            screenHeight = p.y;
-        } else {
-            Display display = windowManager.getDefaultDisplay();
-            screenWidth = display.getWidth();
-            screenHeight = display.getHeight();
-        }
+        Point p = new Point();
+        windowManager.getDefaultDisplay().getSize(p);
+        screenWidth = p.x;
+        screenHeight = p.y;
         return new Pair<>(screenWidth, screenHeight);
     }
 }
