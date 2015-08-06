@@ -16,6 +16,7 @@ import com.squareup.leakcanary.RefWatcher;
 
 import java.io.IOException;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import ua.opensvit.R;
@@ -24,10 +25,12 @@ import ua.opensvit.activities.MainActivity;
 import ua.opensvit.adapters.EpgAdapter;
 import ua.opensvit.api.OpenWorldApi1;
 import ua.opensvit.data.GetUrlItem;
+import ua.opensvit.data.constants.LoaderConstants;
 import ua.opensvit.data.epg.EpgItem;
 import ua.opensvit.data.epg.ProgramItem;
 import ua.opensvit.fragments.player.VitamioVideoFragment;
 import ua.opensvit.loaders.RunnableLoader;
+import ua.opensvit.utils.DateUtils;
 
 public class EpgFragment extends Fragment implements LoaderManager.LoaderCallbacks<String>,
         OpenWorldApi1.ResultListener, AdapterView.OnItemClickListener {
@@ -38,16 +41,11 @@ public class EpgFragment extends Fragment implements LoaderManager.LoaderCallbac
     private static final String END_UT_TAG = "endUT";
     private static final String PER_PAGE_TAG = "perPage";
     private static final String PAGE_TAG = "page";
-    private static final int LOAD_PROGRAMS_LOADER_ID = 1;
 
     private ListView mPrograms;
     private EpgItem epgItem;
     private int channelId;
     private int serviceId;
-    private long startUt;
-    private long endUt;
-    private int perPage;
-    private int page;
     private ProgressBar mProgress;
     private String onlineUrl;
     private VideoStreamApp mApp;
@@ -86,12 +84,12 @@ public class EpgFragment extends Fragment implements LoaderManager.LoaderCallbac
         channelId = getArguments().getInt(CHANNEL_ID_TAG);
         serviceId = getArguments().getInt(SERVICE_TAG);
 
-        Calendar calendar = Calendar.getInstance();
+        Calendar calendar = Calendar.getInstance(DateUtils.getTimeZone());
         long now = calendar.getTimeInMillis();
-        endUt = TimeUnit.MILLISECONDS.toSeconds(now);
-        startUt = TimeUnit.MILLISECONDS.toSeconds(now - TimeUnit.DAYS.toMillis(1));
-        perPage = 0;
-        page = -1;
+        long endUt = TimeUnit.MILLISECONDS.toSeconds(now);
+        long startUt = TimeUnit.MILLISECONDS.toSeconds(now - TimeUnit.DAYS.toMillis(1));
+        int perPage = 0;
+        int page = -1;
 
         Bundle args = new Bundle();
         args.putInt(CHANNEL_ID_TAG, channelId);
@@ -101,14 +99,14 @@ public class EpgFragment extends Fragment implements LoaderManager.LoaderCallbac
         args.putInt(PER_PAGE_TAG, perPage);
         args.putInt(PAGE_TAG, page);
 
-        getLoaderManager().initLoader(LOAD_PROGRAMS_LOADER_ID, args, this);
+        getLoaderManager().initLoader(LoaderConstants.LOAD_EPG_LOADER_ID, args, this);
     }
 
     @Override
     public Loader<String> onCreateLoader(int id, Bundle args) {
         final Loader<String> res;
         switch (id) {
-            case LOAD_PROGRAMS_LOADER_ID:
+            case LoaderConstants.LOAD_EPG_LOADER_ID:
                 int channelId = args.getInt(CHANNEL_ID_TAG);
                 int serviceId = args.getInt(SERVICE_TAG);
                 long startUt = args.getLong(START_UT_TAG);
@@ -131,9 +129,9 @@ public class EpgFragment extends Fragment implements LoaderManager.LoaderCallbac
     @Override
     public void onLoadFinished(Loader<String> loader, String data) {
         switch (loader.getId()) {
-            case LOAD_PROGRAMS_LOADER_ID:
+            case LoaderConstants.LOAD_EPG_LOADER_ID:
                 epgItem = (EpgItem) VideoStreamApp.getInstance().getTempLoaderObject
-                        (LOAD_PROGRAMS_LOADER_ID);
+                        (LoaderConstants.LOAD_EPG_LOADER_ID);
                 mProgress.setVisibility(View.GONE);
                 mPrograms.setAdapter(new EpgAdapter(epgItem, getActivity()));
                 break;
@@ -150,7 +148,7 @@ public class EpgFragment extends Fragment implements LoaderManager.LoaderCallbac
     @Override
     public void onResult(Object res) {
         if (res != null) {
-            VideoStreamApp.getInstance().setTempLoaderObject(LOAD_PROGRAMS_LOADER_ID, res);
+            VideoStreamApp.getInstance().setTempLoaderObject(LoaderConstants.LOAD_EPG_LOADER_ID, res);
         }
     }
 

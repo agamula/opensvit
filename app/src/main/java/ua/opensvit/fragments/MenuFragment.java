@@ -32,6 +32,7 @@ import ua.opensvit.api.OpenWorldApi1;
 import ua.opensvit.data.GetUrlItem;
 import ua.opensvit.data.PlayerInfo;
 import ua.opensvit.data.channels.Channel;
+import ua.opensvit.data.constants.LoaderConstants;
 import ua.opensvit.data.menu.TvMenuInfo;
 import ua.opensvit.data.menu.TvMenuItem;
 import ua.opensvit.http.OkHttpClientRunnable;
@@ -41,7 +42,6 @@ import ua.opensvit.utils.ParseUtils;
 public class MenuFragment extends Fragment implements LoaderManager.LoaderCallbacks<String> {
 
     private static final String MENU_INFO_TAG = "menu_info";
-    public static final int LOAD_MENUS_ID = 0;
 
     public static MenuFragment newInstance(TvMenuInfo menuInfo) {
         VideoStreamApp.getInstance().setMenuInfo(menuInfo);
@@ -83,7 +83,7 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
         args.putParcelable(MENU_INFO_TAG, mMenuInfo);
         mListener = new GetIpAndShowEpgListener(weakFragment);
 
-        getLoaderManager().initLoader(LOAD_MENUS_ID, args, this);
+        getLoaderManager().initLoader(LoaderConstants.LOAD_MENU_LOADER_ID, args, this);
     }
 
     @Override
@@ -100,7 +100,7 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
 
     @Override
     public Loader<String> onCreateLoader(int id, Bundle args) {
-        if (id == LOAD_MENUS_ID) {
+        if (id == LoaderConstants.LOAD_MENU_LOADER_ID) {
             final TvMenuInfo menuInfo = args.getParcelable(MENU_INFO_TAG);
             RunnableLoader loader = new RunnableLoader();
             loader.setRunnable(new Runnable() {
@@ -117,7 +117,7 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
 
                         List<List<Channel>> channels = api1.macGetChannels(tvMenuItems);
 
-                        mApp.setTempLoaderObject(LOAD_MENUS_ID, new ChannelListData(groupsList,
+                        mApp.setTempLoaderObject(LoaderConstants.LOAD_MENU_LOADER_ID, new ChannelListData(groupsList,
                                 channels));
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -133,13 +133,13 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
     @Override
     public void onLoadFinished(Loader<String> loader, String data) {
         switch (loader.getId()) {
-            case LOAD_MENUS_ID:
+            case LoaderConstants.LOAD_MENU_LOADER_ID:
                 MenuFragment fragment = weakFragment.get();
                 if (fragment != null) {
                     fragment.mProgress.setVisibility(View.GONE);
                     VideoStreamApp mApp = VideoStreamApp.getInstance();
                     ChannelListData mExpListData = (ChannelListData) mApp.getTempLoaderObject
-                            (LOAD_MENUS_ID);
+                            (LoaderConstants.LOAD_MENU_LOADER_ID);
                     ExpandableListAdapter mExpListAdapter = new ChannelListAdapter(mExpListData
                             .groups, mExpListData.channels, mApp.getApi1(), fragment.getActivity());
                     fragment.mExpandableListView.setAdapter(mExpListAdapter);
