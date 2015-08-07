@@ -12,7 +12,8 @@
     <application
         android:name=".VideoStreamApp"
         android:icon="@drawable/ic_launcher"
-        android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
+        android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+        android:largeHeap="true">
         <activity
             android:name=".activities.MainActivity"
             android:label="@string/app_name1"

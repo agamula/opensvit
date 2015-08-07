@@ -174,6 +174,8 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
         public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
             final Channel mChannel = (Channel) parent.getExpandableListAdapter().getChild
                     (groupPosition, childPosition);
+            final Channel nextChannel = (Channel) parent.getExpandableListAdapter().getChild
+                    (groupPosition, childPosition + 1);
             final MenuFragment fragment = weakFragment.get();
             if (fragment != null) {
                 mPressTask = new AsyncTask<Void, Void, Void>() {
@@ -227,6 +229,17 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
                                 }
                             });
                             runnable.run();
+
+                            OkHttpClientRunnable runnable1 = api1.macGetChannelIpRunnable(nextChannel
+                                    .getId());
+                            runnable1.setOnLoadResultListener(new OkHttpClientRunnable.OnLoadResultListener() {
+                                @Override
+                                public void onLoadResult(boolean isSuccess, String result) {
+                                    GetUrlItem urlItem = ParseUtils.parseGetUrl(result);
+                                    ProgramsFragment.NEXT_URL = urlItem.getUrl();
+                                }
+                            });
+                            runnable1.run();
                         } catch (IOException e) {
                             e.printStackTrace();
                         }

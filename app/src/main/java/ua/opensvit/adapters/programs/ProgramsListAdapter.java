@@ -1,7 +1,11 @@
 package ua.opensvit.adapters.programs;
 
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Pair;
@@ -11,12 +15,15 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 
+import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.List;
 
 import io.vov.vitamio.MediaMetadataRetriever;
 import ua.opensvit.R;
 import ua.opensvit.data.GetUrlItem;
 import ua.opensvit.data.epg.ProgramItem;
+import ua.opensvit.widgets.RespondedLayout;
 
 public class ProgramsListAdapter extends BaseAdapter {
 
@@ -46,41 +53,37 @@ public class ProgramsListAdapter extends BaseAdapter {
         return 0;
     }
 
+    private int mHeight;
+
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        if (convertView == null) {
-            convertView = LayoutInflater.from(mActivity).inflate(R.layout.layout_program, parent,
-                    false);
-        }
-
         final Pair<ProgramItem, GetUrlItem> mDataObj = (Pair<ProgramItem, GetUrlItem>) getItem(position);
+
+        if (convertView == null) {
+            final View resView = LayoutInflater.from(mActivity).inflate(R.layout.layout_program,
+                    parent, false);
+            convertView = resView;
+            if (mHeight == 0) {
+                resView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+                    public void onLayoutChange(View v, int left, int top, int right,
+                                               int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                        resView.removeOnLayoutChangeListener(this);
+                        mHeight = bottom;
+                        ImageView mProgramThumbnail = (ImageView) resView.findViewById(R.id
+                                .program_thumbnail);
+
+                        download(mDataObj.second.getUrl(), mProgramThumbnail, mActivity);
+                    }
+                });
+            }
+        }
 
         final ImageView mProgramThumbnail = (ImageView) convertView.findViewById(R.id
                 .program_thumbnail);
 
-        if (mProgramThumbnail.getDrawable() == null) {
-            new AsyncTask<Void, Void, Bitmap>() {
-                @Override
-                protected Bitmap doInBackground(Void... params) {
-                    try {
-                        MediaMetadataRetriever retriever = new MediaMetadataRetriever(mActivity);
-                        retriever.setDataSource(mActivity, Uri.parse(mDataObj.second.getUrl()));
-                        //retriever.extractMetadata(key)
-                        return retriever.getFrameAtTime(-1);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    return null;
-                }
-
-                @Override
-                protected void onPostExecute(Bitmap bitmap) {
-                    super.onPostExecute(bitmap);
-                    if (bitmap != null) {
-                        mProgramThumbnail.setImageBitmap(bitmap);
-                    }
-                }
-            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        if (mHeight != 0) {
+            download(mDataObj.second.getUrl(), mProgramThumbnail, mActivity);
+        }
 
             /*
             The metadata key to retrieve the information about the album title of the
@@ -228,8 +231,121 @@ public class ProgramsListAdapter extends BaseAdapter {
             ========
             public static final String METADATA_KEY_HAS_VIDEO = "has_video";
              */
-        }
 
         return convertView;
+    }
+
+    private void download(String url, ImageView imageView, Activity activity) {
+        if (cancelPotentialDownload(url, imageView)) {
+            BitmapDownloaderTask task = new BitmapDownloaderTask(imageView, activity, url,
+                    mHeight);
+            DownloadedDrawable downloadedDrawable = new DownloadedDrawable(task);
+            imageView.setImageDrawable(downloadedDrawable);
+            task.execute();
+            //task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        }
+    }
+
+    private static boolean cancelPotentialDownload(String url, ImageView imageView) {
+        BitmapDownloaderTask bitmapDownloaderTask = getBitmapDownloaderTask(imageView);
+
+        if (bitmapDownloaderTask != null) {
+            String bitmapUrl = bitmapDownloaderTask.url;
+            if ((bitmapUrl == null) || (!bitmapUrl.equals(url))) {
+                bitmapDownloaderTask.cancel(true);
+            } else {
+                // The same URL is already being downloaded.
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static BitmapDownloaderTask getBitmapDownloaderTask(ImageView imageView) {
+        if (imageView != null) {
+            Drawable drawable = imageView.getDrawable();
+            if (drawable instanceof DownloadedDrawable) {
+                DownloadedDrawable downloadedDrawable = (DownloadedDrawable) drawable;
+                return downloadedDrawable.getBitmapDownloaderTask();
+            }
+        }
+        return null;
+    }
+
+    static class BitmapDownloaderTask extends AsyncTask<String, Void, Bitmap> {
+
+        private final String url;
+        private final WeakReference<ImageView> imageViewReference;
+        private final WeakReference<Activity> activityReference;
+        private final int height;
+
+        public BitmapDownloaderTask(ImageView imageView, Activity activity, String url, int
+                height) {
+            imageViewReference = new WeakReference<>(imageView);
+            this.height = height;
+            activityReference = new WeakReference<>(activity);
+            this.url = url;
+        }
+
+        @Override
+        protected Bitmap doInBackground(String... params) {
+            Bitmap res = null;
+            if (activityReference.get() != null) {
+                try {
+                    Context context = activityReference.get();
+                    if (context != null) {
+                        MediaMetadataRetriever mRetriever = new MediaMetadataRetriever(context);
+                        try {
+                            mRetriever.setDataSource(context, Uri.parse(url));
+                            res = mRetriever.getFrameAtTime(-1);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        mRetriever.release();
+                    }
+                    if (res != null && res.getHeight() != height && height != 0) {
+                        int width = (res.getWidth() * height) / res.getHeight();
+                        Bitmap bitmap = Bitmap.createScaledBitmap(res, width, height, false);
+                        res.recycle();
+                        System.gc();
+                        res = bitmap;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            return res;
+        }
+
+        @Override
+        protected void onPostExecute(Bitmap bitmap) {
+            super.onPostExecute(bitmap);
+            if (isCancelled()) {
+                // bitmap = null;
+            }
+
+            if (imageViewReference != null) {
+                ImageView imageView = imageViewReference.get();
+                BitmapDownloaderTask bitmapDownloaderTask = getBitmapDownloaderTask(imageView);
+                // Change bitmap only if this process is still associated with it
+                //if (this == bitmapDownloaderTask) {
+                imageView.setImageBitmap(bitmap);
+                //}
+            }
+        }
+    }
+
+    static class DownloadedDrawable extends ColorDrawable {
+        private final WeakReference<BitmapDownloaderTask> bitmapDownloaderTaskReference;
+
+        public DownloadedDrawable(BitmapDownloaderTask bitmapDownloaderTask) {
+            super(Color.WHITE);
+            bitmapDownloaderTaskReference =
+                    new WeakReference<>(bitmapDownloaderTask);
+        }
+
+        public BitmapDownloaderTask getBitmapDownloaderTask() {
+            return bitmapDownloaderTaskReference.get();
+        }
     }
 }

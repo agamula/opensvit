@@ -1,7 +1,13 @@
 package ua.opensvit.adapters.programs;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.ContextWrapper;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.SystemClock;
 import android.support.v4.view.PagerAdapter;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
@@ -9,15 +15,22 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+import io.vov.vitamio.MediaMetadataRetriever;
+import io.vov.vitamio.ThumbnailUtils;
+import io.vov.vitamio.provider.MediaStore;
 import ua.opensvit.R;
 import ua.opensvit.VideoStreamApp;
 import ua.opensvit.api.OpenWorldApi1;
 import ua.opensvit.data.GetUrlItem;
 import ua.opensvit.data.ParcelableArray;
 import ua.opensvit.data.epg.ProgramItem;
+import ua.opensvit.fragments.ProgramsFragment;
 
 public class ProgramsPagerAdapter extends PagerAdapter {
 
@@ -116,9 +129,42 @@ public class ProgramsPagerAdapter extends PagerAdapter {
         return itemView;
     }
 
-    private void setAdapter(ListView mPrograms, int position) {
-        mPrograms.setAdapter(new ProgramsListAdapter(mActivity, programs.valueAt(position).toList
-                (), mGetUrls.valueAt(position)));
+    private void setAdapter(ListView mPrograms, final int position) {
+        if (position != 0) {
+            return;
+        }
+        ParcelableArray<ProgramItem> programsSparse = programs.valueAt(0);
+        final List<GetUrlItem> mUrls = mGetUrls.valueAt(0);
+
+        Handler mHandler = new Handler();
+
+        //TODO thumnail only one recieve
+
+        ExecutorService service = Executors.newSingleThreadExecutor();
+
+        final Context context = mActivity.getApplicationContext();
+
+        service.execute(new Runnable() {
+            @Override
+            public void run() {
+                Bitmap b = ThumbnailUtils.createVideoThumbnail(context, mUrls.get(0).getUrl()
+                        , MediaStore.Video.Thumbnails.MINI_KIND);
+                SystemClock.sleep(5000);
+            }
+        });
+
+        service.execute(new Runnable() {
+            @Override
+            public void run() {
+                Bitmap b = ThumbnailUtils.createVideoThumbnail(new ContextWrapper(context),
+                        ProgramsFragment
+                                .NEXT_URL
+                        , MediaStore.Video.Thumbnails.MINI_KIND);
+                SystemClock.sleep(5000);
+            }
+        });
+        //mPrograms.setAdapter(new ProgramsListAdapter(mActivity, programs.valueAt(position).toList
+        //        (), mGetUrls.valueAt(position)));
     }
 
     @Override

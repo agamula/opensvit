@@ -54,4 +54,5 @@
     <string name="ended_after" formatted="false">\"%s\" ended after %s</string>
     <string name="ended_as" formatted="false">\"%s\" ended as %s</string>
     <string name="selected">Selected</string>
+    <string name="today">Today</string>
 </resources>

@@ -105,6 +105,10 @@ public class MainActivity extends AppCompatActivity {
         mDrawerLayout.setDrawerListener(mDrawerToggle);
     }
 
+    public DrawerLayout getDrawerLayout() {
+        return mDrawerLayout;
+    }
+
     @Override
     public void onBackPressed() {
         if (getSupportFragmentManager().findFragmentById(R.id.fragment_container) instanceof
