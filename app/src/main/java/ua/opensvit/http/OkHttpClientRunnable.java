@@ -45,6 +45,10 @@ public class OkHttpClientRunnable implements Runnable {
         }
     }
 
+    public static OkHttpClient getCLIENT() {
+        return CLIENT;
+    }
+
     private final Resources mResources;
 
     public OkHttpClientRunnable(String url, IOkHttpLoadInfo mOkHttpClientInfo) {

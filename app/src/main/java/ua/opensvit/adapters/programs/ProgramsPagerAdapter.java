@@ -6,6 +6,7 @@ import android.content.ContextWrapper;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.support.v4.view.PagerAdapter;
@@ -14,12 +15,19 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
+import android.widget.SeekBar;
 
+import org.jcodec.api.FrameGrab;
+import org.jcodec.common.SeekableByteChannel;
+
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.zip.ZipInputStream;
 
 import io.vov.vitamio.MediaMetadataRetriever;
 import io.vov.vitamio.ThumbnailUtils;
@@ -31,6 +39,7 @@ import ua.opensvit.data.GetUrlItem;
 import ua.opensvit.data.ParcelableArray;
 import ua.opensvit.data.epg.ProgramItem;
 import ua.opensvit.fragments.ProgramsFragment;
+import ua.opensvit.http.CopyHttpTask;
 
 public class ProgramsPagerAdapter extends PagerAdapter {
 
@@ -66,7 +75,7 @@ public class ProgramsPagerAdapter extends PagerAdapter {
 
     @Override
     public Object instantiateItem(ViewGroup container, final int position) {
-        View itemView = LayoutInflater.from(mActivity).inflate(R.layout.layout_pager_item,
+        final View itemView = LayoutInflater.from(mActivity).inflate(R.layout.layout_pager_item,
                 container, false);
 
         final ListView mProgramsList = (ListView) itemView.findViewById(R.id.program_list);
@@ -117,38 +126,35 @@ public class ProgramsPagerAdapter extends PagerAdapter {
                 protected void onPostExecute(Void aVoid) {
                     super.onPostExecute(aVoid);
                     mActivity.findViewById(R.id.progress).setVisibility(View.GONE);
-                    setAdapter(mProgramsList, position);
+                    setAdapter(itemView, mProgramsList, position);
                 }
             }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
         } else {
-            setAdapter(mProgramsList, position);
+            setAdapter(itemView, mProgramsList, position);
         }
 
         container.addView(itemView);
         return itemView;
     }
 
-    private void setAdapter(ListView mPrograms, final int position) {
+    private void setAdapter(final View mitemView, ListView mPrograms, final int position) {
         if (position != 0) {
             return;
         }
+
         ParcelableArray<ProgramItem> programsSparse = programs.valueAt(0);
         final List<GetUrlItem> mUrls = mGetUrls.valueAt(0);
 
-        Handler mHandler = new Handler();
-
-        //TODO thumnail only one recieve
-
         ExecutorService service = Executors.newSingleThreadExecutor();
 
-        final Context context = mActivity.getApplicationContext();
-
         service.execute(new Runnable() {
             @Override
             public void run() {
-                Bitmap b = ThumbnailUtils.createVideoThumbnail(context, mUrls.get(0).getUrl()
-                        , MediaStore.Video.Thumbnails.MINI_KIND);
+                File f = Environment.getExternalStorageDirectory();
+                String sanDiegoExtSt = new File(f, "San_Diego_Clip.ts").getAbsolutePath();
+                Bitmap b = ThumbnailUtils.createVideoThumbnail(mActivity.getApplication(),
+                        mUrls.get(3).getUrl(), MediaStore.Video.Thumbnails.MINI_KIND);
                 SystemClock.sleep(5000);
             }
         });
@@ -156,14 +162,12 @@ public class ProgramsPagerAdapter extends PagerAdapter {
         service.execute(new Runnable() {
             @Override
             public void run() {
-                Bitmap b = ThumbnailUtils.createVideoThumbnail(new ContextWrapper(context),
-                        ProgramsFragment
-                                .NEXT_URL
-                        , MediaStore.Video.Thumbnails.MINI_KIND);
-                SystemClock.sleep(5000);
+                new CopyHttpTask((SeekBar) mitemView.findViewById(R.id.seekbar), mUrls.get(3).getUrl())
+                        .execute();
             }
         });
-        //mPrograms.setAdapter(new ProgramsListAdapter(mActivity, programs.valueAt(position).toList
+
+        //mPograms.setAdapter(new ProgramsListAdapter(mActivity, programs.valueAt(position).toList
         //        (), mGetUrls.valueAt(position)));
     }
 
