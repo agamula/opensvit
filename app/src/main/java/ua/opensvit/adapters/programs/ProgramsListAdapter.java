@@ -8,21 +8,29 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.SystemClock;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
+import android.widget.TextView;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import io.vov.vitamio.MediaMetadataRetriever;
 import ua.opensvit.R;
 import ua.opensvit.data.GetUrlItem;
 import ua.opensvit.data.epg.ProgramItem;
+import ua.opensvit.http.CopyHttpTask;
+import ua.opensvit.http.CopyUtils;
 import ua.opensvit.widgets.RespondedLayout;
 
 public class ProgramsListAdapter extends BaseAdapter {
@@ -30,12 +38,14 @@ public class ProgramsListAdapter extends BaseAdapter {
     private final List<ProgramItem> mPrograms;
     private final List<GetUrlItem> mProgramUrls;
     private final Activity mActivity;
+    private final int mPagePosition;
 
     public ProgramsListAdapter(Activity activity, List<ProgramItem> mPrograms, List<GetUrlItem>
-            mProgramUrls) {
+            mProgramUrls, int mPagePosition) {
         this.mPrograms = mPrograms;
         this.mProgramUrls = mProgramUrls;
         this.mActivity = activity;
+        this.mPagePosition = mPagePosition;
     }
 
     @Override
@@ -56,7 +66,7 @@ public class ProgramsListAdapter extends BaseAdapter {
     private int mHeight;
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(final int position, View convertView, ViewGroup parent) {
         final Pair<ProgramItem, GetUrlItem> mDataObj = (Pair<ProgramItem, GetUrlItem>) getItem(position);
 
         if (convertView == null) {
@@ -69,20 +79,17 @@ public class ProgramsListAdapter extends BaseAdapter {
                                                int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
                         resView.removeOnLayoutChangeListener(this);
                         mHeight = bottom;
-                        ImageView mProgramThumbnail = (ImageView) resView.findViewById(R.id
-                                .program_thumbnail);
 
-                        download(mDataObj.second.getUrl(), mProgramThumbnail, mActivity);
+                        initContent(resView, position, mDataObj);
                     }
                 });
             }
         }
 
-        final ImageView mProgramThumbnail = (ImageView) convertView.findViewById(R.id
-                .program_thumbnail);
+        final View resView = convertView;
 
         if (mHeight != 0) {
-            download(mDataObj.second.getUrl(), mProgramThumbnail, mActivity);
+            initContent(resView, position, mDataObj);
         }
 
             /*
@@ -235,16 +242,28 @@ public class ProgramsListAdapter extends BaseAdapter {
         return convertView;
     }
 
-    private void download(String url, ImageView imageView, Activity activity) {
+    private void initContent(View resView, int position, Pair<ProgramItem, GetUrlItem> mDataObj) {
+        ImageView mProgramThumbnail = (ImageView) resView.findViewById(R.id
+                .program_thumbnail);
+
+        download(position, mDataObj.second.getUrl(), mDataObj.first.getTimestamp(),
+                mProgramThumbnail, mActivity);
+
+        ((TextView) resView.findViewById(R.id.program_name)).setText(mDataObj.first.getTitle());
+    }
+
+    private void download(int position, String url, long timestamp, ImageView imageView, Activity
+            activity) {
         if (cancelPotentialDownload(url, imageView)) {
             BitmapDownloaderTask task = new BitmapDownloaderTask(imageView, activity, url,
-                    mHeight);
+                    timestamp, mHeight, new CopyHttpTask(null, url, timestamp));
             DownloadedDrawable downloadedDrawable = new DownloadedDrawable(task);
             imageView.setImageDrawable(downloadedDrawable);
-            task.execute();
-            //task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            task.executeOnExecutor(service);
         }
     }
+
+    private static ExecutorService service = Executors.newSingleThreadExecutor();
 
     private static boolean cancelPotentialDownload(String url, ImageView imageView) {
         BitmapDownloaderTask bitmapDownloaderTask = getBitmapDownloaderTask(imageView);
@@ -278,13 +297,17 @@ public class ProgramsListAdapter extends BaseAdapter {
         private final WeakReference<ImageView> imageViewReference;
         private final WeakReference<Activity> activityReference;
         private final int height;
+        private final CopyHttpTask mCopyHttpTask;
+        private final long timestamp;
 
-        public BitmapDownloaderTask(ImageView imageView, Activity activity, String url, int
-                height) {
+        public BitmapDownloaderTask(ImageView imageView, Activity activity, String url, long
+                timestamp, int height, CopyHttpTask mCopyHttpTask) {
             imageViewReference = new WeakReference<>(imageView);
             this.height = height;
             activityReference = new WeakReference<>(activity);
             this.url = url;
+            this.mCopyHttpTask = mCopyHttpTask;
+            this.timestamp = timestamp;
         }
 
         @Override
@@ -293,11 +316,17 @@ public class ProgramsListAdapter extends BaseAdapter {
             if (activityReference.get() != null) {
                 try {
                     Context context = activityReference.get();
+                    File cacheFile = CopyUtils.getCacheFile(CopyUtils.extractFileName(url,
+                            timestamp));
+                    if (!cacheFile.exists()) {
+                        mCopyHttpTask.executeWork();
+                    }
+
                     if (context != null) {
                         MediaMetadataRetriever mRetriever = new MediaMetadataRetriever(context);
                         try {
-                            mRetriever.setDataSource(context, Uri.parse(url));
-                            res = mRetriever.getFrameAtTime(-1);
+                            mRetriever.setDataSource(new FileInputStream(cacheFile).getFD());
+                            res = mRetriever.getFrameAtTime(0);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -314,6 +343,7 @@ public class ProgramsListAdapter extends BaseAdapter {
                     e.printStackTrace();
                 }
             }
+            SystemClock.sleep(100);
             return res;
         }
 
@@ -321,16 +351,16 @@ public class ProgramsListAdapter extends BaseAdapter {
         protected void onPostExecute(Bitmap bitmap) {
             super.onPostExecute(bitmap);
             if (isCancelled()) {
-                // bitmap = null;
+                bitmap = null;
             }
 
             if (imageViewReference != null) {
                 ImageView imageView = imageViewReference.get();
                 BitmapDownloaderTask bitmapDownloaderTask = getBitmapDownloaderTask(imageView);
                 // Change bitmap only if this process is still associated with it
-                //if (this == bitmapDownloaderTask) {
-                imageView.setImageBitmap(bitmap);
-                //}
+                if (this == bitmapDownloaderTask) {
+                    imageView.setImageBitmap(bitmap);
+                }
             }
         }
     }

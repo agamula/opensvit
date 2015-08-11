@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.ParcelFileDescriptor;
 import android.os.SystemClock;
 import android.support.v4.view.PagerAdapter;
 import android.util.SparseArray;
@@ -20,13 +21,26 @@ import android.widget.SeekBar;
 import org.jcodec.api.FrameGrab;
 import org.jcodec.common.SeekableByteChannel;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.regex.Pattern;
 import java.util.zip.ZipInputStream;
 
 import io.vov.vitamio.MediaMetadataRetriever;
@@ -139,36 +153,24 @@ public class ProgramsPagerAdapter extends PagerAdapter {
     }
 
     private void setAdapter(final View mitemView, ListView mPrograms, final int position) {
-        if (position != 0) {
-            return;
-        }
+        /*
 
         ParcelableArray<ProgramItem> programsSparse = programs.valueAt(0);
         final List<GetUrlItem> mUrls = mGetUrls.valueAt(0);
 
         ExecutorService service = Executors.newSingleThreadExecutor();
 
-        service.execute(new Runnable() {
+        / *service.execute(new Runnable() {
             @Override
             public void run() {
-                File f = Environment.getExternalStorageDirectory();
-                String sanDiegoExtSt = new File(f, "San_Diego_Clip.ts").getAbsolutePath();
-                Bitmap b = ThumbnailUtils.createVideoThumbnail(mActivity.getApplication(),
-                        mUrls.get(3).getUrl(), MediaStore.Video.Thumbnails.MINI_KIND);
-                SystemClock.sleep(5000);
-            }
-        });
-
-        service.execute(new Runnable() {
-            @Override
-            public void run() {
-                new CopyHttpTask((SeekBar) mitemView.findViewById(R.id.seekbar), mUrls.get(3).getUrl())
+                new CopyHttpTask((SeekBar) mitemView.findViewById(R.id.seekbar), mUrls.get(11)
+                        .getUrl())
                         .execute();
             }
-        });
+        });*/
 
-        //mPograms.setAdapter(new ProgramsListAdapter(mActivity, programs.valueAt(position).toList
-        //        (), mGetUrls.valueAt(position)));
+        mPrograms.setAdapter(new ProgramsListAdapter(mActivity, programs.valueAt(position).toList
+                (), mGetUrls.valueAt(position), position));
     }
 
     @Override

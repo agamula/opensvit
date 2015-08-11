@@ -2,12 +2,14 @@ package ua.opensvit;
 
 import android.app.Application;
 import android.content.Context;
+import android.os.Environment;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 import com.squareup.leakcanary.LeakCanary;
 import com.squareup.leakcanary.RefWatcher;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -134,5 +136,18 @@ public final class VideoStreamApp extends Application {
 
     public PlayerInfo getPlayerInfo() {
         return playerInfo;
+    }
+
+    private static final File cacheFile = new File(Environment.getExternalStorageDirectory(),
+            "OS_Cache");
+
+    static {
+        if (!cacheFile.exists()) {
+            cacheFile.mkdirs();
+        }
+    }
+
+    public File getCacheDirectory() {
+        return cacheFile;
     }
 }

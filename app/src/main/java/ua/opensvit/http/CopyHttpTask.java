@@ -14,17 +14,28 @@ public class CopyHttpTask extends AsyncTask<Void, Integer, Void> implements OnPr
 
     private final SeekBar mSeekBar;
     private final String url;
+    private final long timestamp;
 
-    public CopyHttpTask(SeekBar mSeekBar, String url) {
+    public CopyHttpTask(SeekBar mSeekBar, String url, long timestamp) {
         this.mSeekBar = mSeekBar;
         this.url = url;
+        this.timestamp = timestamp;
     }
 
     @Override
     protected Void doInBackground(Void... params) {
+        executeWork();
+        return null;
+    }
+
+    public void executeWork() {
         try {
             int ind1 = url.indexOf("!");
             int ind2 = url.lastIndexOf(".");
+
+            String lastPath = url.substring(ind2);
+            String cachePathName = timestamp + "_" + lastPath.substring(lastPath.indexOf("=") + 1,
+                    lastPath.length());
 
             String clientUrl = url.substring(0, ind1) + URLEncoder.encode(url.substring(ind1,
                     ind2), "UTF-8") + url.substring(ind2);
@@ -34,19 +45,20 @@ public class CopyHttpTask extends AsyncTask<Void, Integer, Void> implements OnPr
 
             builder = builder.addHeader("User-Agent", OkHttpClientRunnable.USER_AGENT);
 
-            Request request = builder.build() ;
+            Request request = builder.build();
 
             Response response = OkHttpClientRunnable.getCLIENT().newCall(request).execute();
-            CopyUtils.copy(response.body().byteStream(), this);
+            CopyUtils.copy(response.body().byteStream(), cachePathName, null);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
     }
 
     @Override
     protected void onProgressUpdate(Integer... values) {
-        mSeekBar.setProgress(values[0]);
+        if(mSeekBar != null) {
+            mSeekBar.setProgress(values[0]);
+        }
     }
 
     @Override
