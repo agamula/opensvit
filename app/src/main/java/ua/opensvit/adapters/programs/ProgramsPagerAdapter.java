@@ -1,59 +1,23 @@
 package ua.opensvit.adapters.programs;
 
 import android.app.Activity;
-import android.content.Context;
-import android.content.ContextWrapper;
-import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Environment;
-import android.os.Handler;
-import android.os.ParcelFileDescriptor;
-import android.os.SystemClock;
 import android.support.v4.view.PagerAdapter;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
-import android.widget.SeekBar;
 
-import org.jcodec.api.FrameGrab;
-import org.jcodec.common.SeekableByteChannel;
-
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileDescriptor;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.SocketAddress;
-import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.regex.Pattern;
-import java.util.zip.ZipInputStream;
 
-import io.vov.vitamio.MediaMetadataRetriever;
-import io.vov.vitamio.ThumbnailUtils;
-import io.vov.vitamio.provider.MediaStore;
 import ua.opensvit.R;
 import ua.opensvit.VideoStreamApp;
 import ua.opensvit.api.OpenWorldApi1;
 import ua.opensvit.data.GetUrlItem;
 import ua.opensvit.data.ParcelableArray;
 import ua.opensvit.data.epg.ProgramItem;
-import ua.opensvit.fragments.ProgramsFragment;
-import ua.opensvit.http.CopyHttpTask;
 
 public class ProgramsPagerAdapter extends PagerAdapter {
 
@@ -92,7 +56,7 @@ public class ProgramsPagerAdapter extends PagerAdapter {
         final View itemView = LayoutInflater.from(mActivity).inflate(R.layout.layout_pager_item,
                 container, false);
 
-        final ListView mProgramsList = (ListView) itemView.findViewById(R.id.program_list);
+        final ListView mProgramsList = (ListView) itemView.findViewById(R.id.programs_list);
         if (mGetUrls.indexOfKey(programs.keyAt(position)) < 0) {
             new AsyncTask<Void, Void, Void>() {
 
@@ -169,8 +133,10 @@ public class ProgramsPagerAdapter extends PagerAdapter {
             }
         });*/
 
-        mPrograms.setAdapter(new ProgramsListAdapter(mActivity, programs.valueAt(position).toList
-                (), mGetUrls.valueAt(position), position));
+        int key = programs.keyAt(position);
+
+        mPrograms.setAdapter(new ProgramsListAdapter(mActivity, programs.get(key).toList
+                (), mGetUrls.get(key), position));
     }
 
     @Override

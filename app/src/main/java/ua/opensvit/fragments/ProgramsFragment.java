@@ -1,7 +1,5 @@
 package ua.opensvit.fragments;
 
-import android.content.pm.ActivityInfo;
-import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
@@ -17,7 +15,6 @@ import android.widget.ProgressBar;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -101,7 +98,7 @@ public class ProgramsFragment extends VitamioVideoBaseFragment implements Loader
         mVideoWidth = args.getInt(VIDEO_WIDTH);
         mVideoHeight = args.getInt(VIDEO_HEIGHT);
 
-        mPager = (ViewPager) view.findViewById(R.id.program_list);
+        mPager = (ViewPager) view.findViewById(R.id.days_pager);
         mTabStrip = (PagerTabStrip) view.findViewById(R.id.day_names);
 
         mPrograms = new SparseArray<>();
