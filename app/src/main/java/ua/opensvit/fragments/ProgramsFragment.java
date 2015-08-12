@@ -1,5 +1,6 @@
 package ua.opensvit.fragments;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
@@ -143,11 +144,13 @@ public class ProgramsFragment extends VitamioVideoBaseFragment implements Loader
             respondedLayout.setReactOnLayout(true);
             respondedLayout.requestLayout();
             VideoStreamApp.getInstance().getPlayerInfo().setForceStart(true);
+            VideoStreamApp.getInstance().getPlayerInfo().setVideoPath(getPath());
         } else {
             PlayerInfo playerInfo = VideoStreamApp.getInstance().getPlayerInfo();
             if (playerInfo.isPlaying() && playerInfo.isForceStart()) {
-                MainActivity.startFragment(getActivity(), VitamioVideoFragment.newInstance(getPath(),
-                        getChannelId(), getServiceId(), getTimestamp(), mVideoWidth, mVideoHeight));
+                MainActivity.startFragment(getActivity(), VitamioVideoFragment.newInstance
+                        (playerInfo.getVideoPath(),
+                                getChannelId(), getServiceId(), getTimestamp(), mVideoWidth, mVideoHeight));
             }
         }
 
@@ -192,6 +195,25 @@ public class ProgramsFragment extends VitamioVideoBaseFragment implements Loader
         for (int i = 0; i < mCountDays; i++) {
             mDayNames.add(null);
         }
+    }
+
+    public void setVideoPath(String videoPath) {
+        VideoStreamApp.getInstance().getPlayerInfo().setVideoPath(videoPath);
+        VideoView videoView = getVideoView();
+        if (videoView != null) {
+            videoView.setVideoURI(Uri.parse(videoPath));
+            videoView.requestFocus();
+        } else {
+            PlayerInfo playerInfo = VideoStreamApp.getInstance().getPlayerInfo();
+            MainActivity.startFragment(getActivity(), VitamioVideoFragment.newInstance
+                    (playerInfo.getVideoPath(), getChannelId(), getServiceId(), getTimestamp(),
+                            mVideoWidth, mVideoHeight));
+        }
+    }
+
+    @Override
+    public VideoView getVideoView() {
+        return super.getVideoView();
     }
 
     public ProgressBar getLoadAdapterProgress() {

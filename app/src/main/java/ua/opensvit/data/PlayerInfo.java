@@ -5,6 +5,7 @@ public class PlayerInfo {
     private boolean isPlaying;
     private long notifyTime;
     private boolean mForceStart;
+    private String videoPath;
 
     public void setPlayerPosition(long playPosition) {
         this.playerPosition = playPosition;
@@ -36,5 +37,13 @@ public class PlayerInfo {
 
     public boolean isForceStart() {
         return mForceStart;
+    }
+
+    public void setVideoPath(String videoPath) {
+        this.videoPath = videoPath;
+    }
+
+    public String getVideoPath() {
+        return videoPath;
     }
 }

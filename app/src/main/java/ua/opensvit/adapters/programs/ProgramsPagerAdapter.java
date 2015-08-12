@@ -1,12 +1,14 @@
 package ua.opensvit.adapters.programs;
 
 import android.app.Activity;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v4.view.PagerAdapter;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
 import java.lang.ref.WeakReference;
@@ -21,7 +23,7 @@ import ua.opensvit.data.ParcelableArray;
 import ua.opensvit.data.epg.ProgramItem;
 import ua.opensvit.fragments.ProgramsFragment;
 
-public class ProgramsPagerAdapter extends PagerAdapter {
+public class ProgramsPagerAdapter extends PagerAdapter implements AdapterView.OnItemClickListener {
 
     private final SparseArray<ParcelableArray<ProgramItem>> programs;
     private final List<String> mDayNames;
@@ -140,18 +142,34 @@ public class ProgramsPagerAdapter extends PagerAdapter {
             }
         });*/
 
-        if(position == getCount() - 1) {
+        if (position == getCount() - 1) {
             fragment.getLoadAdapterProgress().setVisibility(View.GONE);
         }
 
-        int key = programs.keyAt(position);
+        final int key = programs.keyAt(position);
+
+        final List<GetUrlItem> curUrls = mGetUrls.get(key);
 
         mPrograms.setAdapter(new ProgramsListAdapter(fragment.getActivity(), programs.get(key).toList
-                (), mGetUrls.get(key), position));
+                (), curUrls, position));
+        mPrograms.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if (weakFragment.get() != null) {
+                    ProgramsFragment fragment = weakFragment.get();
+                    fragment.setVideoPath(curUrls.get(position).getUrl());
+                }
+            }
+        });
     }
 
     @Override
     public CharSequence getPageTitle(int position) {
         return mDayNames.get(position);
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
     }
 }

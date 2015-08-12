@@ -152,6 +152,6 @@ public class VitamioVideoFragment extends VitamioVideoBaseFragment implements Me
         super.onPrepared(mediaPlayer);
         getVideoView().setVideoLayout(VideoView.VIDEO_LAYOUT_STRETCH, 0);
         mProgress.setVisibility(View.GONE);
-        onShown();
+        getVideoView().start();
     }
 }
