@@ -201,8 +201,10 @@ public class ProgramsFragment extends VitamioVideoBaseFragment implements Loader
         VideoStreamApp.getInstance().getPlayerInfo().setVideoPath(videoPath);
         VideoView videoView = getVideoView();
         if (videoView != null) {
+            videoView.stopPlayback();
             videoView.setVideoURI(Uri.parse(videoPath));
             videoView.requestFocus();
+            videoView.start();
         } else {
             PlayerInfo playerInfo = VideoStreamApp.getInstance().getPlayerInfo();
             MainActivity.startFragment(getActivity(), VitamioVideoFragment.newInstance

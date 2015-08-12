@@ -30,7 +30,6 @@ public class TestActivity extends AppCompatActivity implements LoaderManager
     private static final int LOAD_MENUS_ID = 0;
     private ExpandableListView mExpandableListView;
     private WeakReference<TestActivity> weakActivity;
-    private ProgressBar mProgress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,8 +40,6 @@ public class TestActivity extends AppCompatActivity implements LoaderManager
         weakActivity = new WeakReference<>(this);
         mExpandableListView.setOnChildClickListener(this);
 
-        mProgress = (ProgressBar) findViewById(R.id.load_progress);
-        mProgress.setVisibility(View.VISIBLE);
         getSupportLoaderManager().initLoader(LOAD_MENUS_ID, null, new LoaderManagerCallbacks
                 (weakActivity));
     }
@@ -103,7 +100,6 @@ public class TestActivity extends AppCompatActivity implements LoaderManager
         public void onLoadFinished(Loader<String> loader, String data) {
             TestActivity fragment = weakActivity.get();
             if (fragment != null) {
-                fragment.mProgress.setVisibility(View.GONE);
                 VideoStreamApp mApp = VideoStreamApp.getInstance();
                 ChannelListData mExpListData = (ChannelListData) mApp.getTempLoaderObject(LOAD_MENUS_ID);
                 ChannelListAdapter mExpListAdapter = new ChannelListAdapter(mExpListData.groups,
@@ -165,7 +161,6 @@ public class TestActivity extends AppCompatActivity implements LoaderManager
     public void onLoadFinished(Loader<String> loader, String data) {
         Activity fragment = weakActivity.get();
         if (fragment != null) {
-            mProgress.setVisibility(View.GONE);
             VideoStreamApp mApp = VideoStreamApp.getInstance();
             ChannelListData mExpListData = (ChannelListData) mApp.getTempLoaderObject(LOAD_MENUS_ID);
             ChannelListAdapter mExpListAdapter = new ChannelListAdapter(mExpListData.groups,

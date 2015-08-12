@@ -119,7 +119,7 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mProgress = view.findViewById(R.id.load_progress);
+        mProgress = getActivity().findViewById(R.id.progress);
         mProgress.setVisibility(View.VISIBLE);
         mMenuInfo = getArguments().getParcelable(MENU_INFO_TAG);
         mExpandableListView = (ExpandableListView) view.findViewById(R.id.menu_list);
