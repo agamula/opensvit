@@ -4,6 +4,9 @@ import android.app.Activity;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
@@ -22,10 +25,12 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.vov.vitamio.LibsChecker;
 import io.vov.vitamio.MediaMetadataRetriever;
 import ua.opensvit.R;
 import ua.opensvit.VideoStreamApp;
 import ua.opensvit.activities.MainActivity;
+import ua.opensvit.activities.ShowVideoActivity;
 import ua.opensvit.adapters.ChannelListAdapter;
 import ua.opensvit.adapters.ChannelListData;
 import ua.opensvit.api.OpenWorldApi1;
@@ -37,11 +42,13 @@ import ua.opensvit.data.menu.TvMenuInfo;
 import ua.opensvit.data.menu.TvMenuItem;
 import ua.opensvit.http.OkHttpClientRunnable;
 import ua.opensvit.loaders.RunnableLoader;
+import ua.opensvit.utils.CheckVitamioLibs;
 import ua.opensvit.utils.ParseUtils;
 
 public class MenuFragment extends Fragment implements LoaderManager.LoaderCallbacks<String> {
 
     private static final String MENU_INFO_TAG = "menu_info";
+    private static final int START_NEW_ACTIVITY = 10;
 
     public static MenuFragment newInstance(TvMenuInfo menuInfo) {
         VideoStreamApp.getInstance().setMenuInfo(menuInfo);
@@ -57,6 +64,46 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
     private ExpandableListView mExpandableListView;
     private View mProgress;
     private WeakReference<MenuFragment> weakFragment;
+
+    private static class InternalHandler extends Handler {
+
+        InternalHandler(Looper looper) {
+            super(looper);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            if (msg.what == START_NEW_ACTIVITY) {
+                InternalHandlerData data = (InternalHandlerData) msg.obj;
+                ProgramsFragment programsFragment = ProgramsFragment.newInstance
+                        (data.ip, data.channelId, data.service, data.videoWidth, data.videoHeight);
+                MainActivity.startActivity(data.activity, new ShowVideoActivity(),
+                        programsFragment.getArguments());
+            }
+        }
+    }
+
+    private static final InternalHandler sInternalHandler = new InternalHandler(Looper.getMainLooper());
+
+    private static class InternalHandlerData {
+        public final String ip;
+        public final int channelId;
+        public final int service;
+        public final int videoWidth;
+        public final int videoHeight;
+        public final Activity activity;
+
+        InternalHandlerData(String ip, int channelId, int service, int videoWidth, int
+                videoHeight, Activity activity) {
+            this.ip = ip;
+            this.channelId = channelId;
+            this.service = service;
+            this.videoWidth = videoWidth;
+            this.videoHeight = videoHeight;
+            this.activity = activity;
+        }
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -205,6 +252,9 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
                                     if (isSuccess) {
                                         GetUrlItem getUrlItem = ParseUtils.parseGetUrl(result);
                                         Activity activity = fragment.getActivity();
+                                        if (!CheckVitamioLibs.isInited()) {
+                                            CheckVitamioLibs.init();
+                                        }
 
                                         try {
                                             MediaMetadataRetriever retriever = new MediaMetadataRetriever
@@ -282,9 +332,10 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
                 PlayerInfo playerInfo = VideoStreamApp.getInstance().getPlayerInfo();
                 playerInfo.setPlaying(true);
                 playerInfo.setForceStart(true);
-                MainActivity.startFragment(fragment.getActivity(), ProgramsFragment.newInstance
-                        (ip, VideoStreamApp.getInstance().getChannelId(), fragment.mMenuInfo
-                                .getService(), videoWidth, videoHeight));
+
+                Message message = sInternalHandler.obtainMessage(START_NEW_ACTIVITY, new InternalHandlerData(ip, VideoStreamApp.getInstance().getChannelId(), fragment.mMenuInfo
+                        .getService(), videoWidth, videoHeight, fragment.getActivity()));
+                message.sendToTarget();
             }
         }
 

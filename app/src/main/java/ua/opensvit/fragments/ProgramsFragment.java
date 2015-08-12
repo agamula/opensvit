@@ -24,6 +24,7 @@ import io.vov.vitamio.widget.VideoView;
 import ua.opensvit.R;
 import ua.opensvit.VideoStreamApp;
 import ua.opensvit.activities.MainActivity;
+import ua.opensvit.activities.ShowVideoActivity;
 import ua.opensvit.adapters.programs.ProgramsPagerAdapter;
 import ua.opensvit.api.OpenWorldApi1;
 import ua.opensvit.data.ParcelableArray;
@@ -62,6 +63,12 @@ public class ProgramsFragment extends VitamioVideoBaseFragment implements Loader
         setRetainInstance(true);
     }
 
+    public static ProgramsFragment newInstance(Bundle args) {
+        ProgramsFragment programsFragment = new ProgramsFragment();
+        programsFragment.setArguments(args);
+        return programsFragment;
+    }
+
     public static ProgramsFragment newInstance(String url, int channelId, int serviceId, int
             videoWidth, int videoHeight) {
         ProgramsFragment programsFragment = new ProgramsFragment();
@@ -78,7 +85,7 @@ public class ProgramsFragment extends VitamioVideoBaseFragment implements Loader
         return R.layout.layout_programs;
     }
 
-    private ProgressBar mProgress;
+    private ProgressBar mLoadVideoProgress, mLoadAdapterProgress;
     private ViewPager mPager;
     private SparseArray<ParcelableArray<ProgramItem>> mPrograms;
     private List<String> mDayNames;
@@ -91,7 +98,7 @@ public class ProgramsFragment extends VitamioVideoBaseFragment implements Loader
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        MainActivity activity = (MainActivity) getActivity();
+        ShowVideoActivity activity = (ShowVideoActivity) getActivity();
         activity.getDrawerLayout().setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 
         Bundle args = getArguments();
@@ -106,8 +113,8 @@ public class ProgramsFragment extends VitamioVideoBaseFragment implements Loader
         RespondedLayout respondedLayout = getRespondedLayout();
 
         if (respondedLayout != null) {
-            mProgress = (ProgressBar) view.findViewById(R.id.load_video_program_progress);
-            mProgress.setVisibility(View.VISIBLE);
+            mLoadVideoProgress = (ProgressBar) view.findViewById(R.id.load_video_program_progress);
+            mLoadVideoProgress.setVisibility(View.VISIBLE);
 
             respondedLayout.setOnLayoutHappenedListener(new RespondedLayout.OnLayoutHappenedListener() {
                 @Override
@@ -143,6 +150,9 @@ public class ProgramsFragment extends VitamioVideoBaseFragment implements Loader
                         getChannelId(), getServiceId(), getTimestamp(), mVideoWidth, mVideoHeight));
             }
         }
+
+        mLoadAdapterProgress = (ProgressBar) view.findViewById(R.id.load_programs_progress);
+        mLoadAdapterProgress.setVisibility(View.VISIBLE);
 
         Calendar calendar = Calendar.getInstance(DateUtils.getTimeZone());
         calendar.set(Calendar.HOUR_OF_DAY, 23);
@@ -184,10 +194,14 @@ public class ProgramsFragment extends VitamioVideoBaseFragment implements Loader
         }
     }
 
+    public ProgressBar getLoadAdapterProgress() {
+        return mLoadAdapterProgress;
+    }
+
     @Override
     public void onPrepared(MediaPlayer mediaPlayer) {
         super.onPrepared(mediaPlayer);
-        mProgress.setVisibility(View.GONE);
+        mLoadVideoProgress.setVisibility(View.GONE);
     }
 
     @Override
@@ -228,7 +242,7 @@ public class ProgramsFragment extends VitamioVideoBaseFragment implements Loader
 
             int loadPosition = LoaderConstants.LOAD_PROGRAMS_LOADER_ID + mCountDays - loaderId - 1;
 
-            List<ProgramItem> programItems = epgItem.getUnmodifiablePrograms();
+            final List<ProgramItem> programItems = epgItem.getUnmodifiablePrograms();
             ProgramItem programItemsArr[] = new ProgramItem[programItems.size()];
             programItems.toArray(programItemsArr);
             mPrograms.put(loadPosition, new ParcelableArray<>(programItemsArr));
@@ -247,8 +261,7 @@ public class ProgramsFragment extends VitamioVideoBaseFragment implements Loader
             }
 
             if (mCountLoaded == mCountDays) {
-                mProgress.setVisibility(View.GONE);
-                mPager.setAdapter(new ProgramsPagerAdapter(mPrograms, mDayNames, getActivity(),
+                mPager.setAdapter(new ProgramsPagerAdapter(mPrograms, mDayNames, this,
                         getChannelId()));
                 mPager.setCurrentItem(mDayNames.size() - 1);
                 mTabStrip.setTabIndicatorColorResource(R.color.color_login);

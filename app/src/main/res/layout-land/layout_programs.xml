@@ -4,16 +4,29 @@
               android:layout_height="match_parent"
               android:orientation="vertical">
 
-    <android.support.v4.view.ViewPager
-        android:id="@+id/days_pager"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <android.support.v4.view.PagerTabStrip
-            android:id="@+id/day_names"
+        <android.support.v4.view.ViewPager
+            android:id="@+id/days_pager"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="top"/>
+            android:layout_height="match_parent">
 
-    </android.support.v4.view.ViewPager>
+            <android.support.v4.view.PagerTabStrip
+                android:id="@+id/day_names"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top"/>
+
+        </android.support.v4.view.ViewPager>
+
+        <ProgressBar
+            android:id="@+id/load_programs_progress"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone"/>
+    </FrameLayout>
 </LinearLayout>

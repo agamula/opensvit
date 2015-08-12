@@ -1,11 +1,7 @@
 package ua.opensvit.activities;
 
-import android.app.Activity;
-import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -15,16 +11,14 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 
 import io.vov.vitamio.LibsChecker;
-import io.vov.vitamio.Vitamio;
 import ua.opensvit.R;
 import ua.opensvit.VideoStreamApp;
-import ua.opensvit.api.OpenWorldApi1;
 import ua.opensvit.fragments.CheckingDeviceFragment;
-import ua.opensvit.fragments.MainFragment;
+import ua.opensvit.fragments.ProgramsFragment;
 import ua.opensvit.fragments.player.VitamioVideoFragment;
 import ua.opensvit.utils.ApiUtils;
 
-public class MainActivity extends AppCompatActivity {
+public class ShowVideoActivity extends AppCompatActivity {
 
     private DrawerLayout mDrawerLayout;
     private Toolbar mToolbar;
@@ -33,6 +27,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if(!LibsChecker.checkVitamioLibs(this)) {
+            return;
+        }
         setContentView(R.layout.activity_main);
 
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -41,12 +38,9 @@ public class MainActivity extends AppCompatActivity {
         mDrawerFragmentView = findViewById(R.id.drawer_fragment);
 
         if (savedInstanceState == null) {
-            VideoStreamApp app = VideoStreamApp.getInstance();
-            app.setApi1(new OpenWorldApi1());
-            ApiUtils.getBaseUrl();
-
-            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new
-                    CheckingDeviceFragment()).commit();
+            Bundle args = getIntent().getExtras();
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
+                    ProgramsFragment.newInstance(args)).commit();
         } else {
             getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
                     getSupportFragmentManager().findFragmentById(R.id.fragment_container)).commit();
@@ -108,25 +102,13 @@ public class MainActivity extends AppCompatActivity {
         return mDrawerLayout;
     }
 
-    public static void startFragment(FragmentActivity activity, Fragment fragment) {
-        FragmentTransaction transaction = activity.getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.fragment_container, fragment);
-        //TODO add animation
-        transaction.addToBackStack(null);
-        transaction.commit();
-    }
-
-    public static void startFragmentWithoutBack(FragmentActivity activity, Fragment fragment) {
-        FragmentTransaction transaction = activity.getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.fragment_container, fragment);
-        //TODO add animation
-        transaction.commit();
-    }
-
-    public static void startActivity(Activity from, Activity activity, Bundle args) {
-        Intent intent = new Intent(from, activity.getClass());
-        intent.putExtras(args);
-        //TODO add animation
-        from.startActivity(intent);
+    @Override
+    public void onBackPressed() {
+        if (getSupportFragmentManager().findFragmentById(R.id.fragment_container) instanceof
+                VitamioVideoFragment) {
+            VideoStreamApp.getInstance().getPlayerInfo().setForceStart(false);
+            getSupportActionBar().show();
+        }
+        super.onBackPressed();
     }
 }

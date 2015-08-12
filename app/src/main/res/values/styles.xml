@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <style name="Theme.PageIndicatorDefaults" parent="@android:style/Theme">
         <item name="vpiIconPageIndicatorStyle">@style/Widget.IconPageIndicator</item>
         <item name="vpiTabPageIndicatorStyle">@style/Widget.TabPageIndicator</item>
     </style>
-    <style name="Widget" />
+
+    <style name="Widget"/>
+
     <style name="Widget.TabPageIndicator" parent="@style/Widget">
         <item name="android:textAppearance">@style/TextAppearance.TabPageIndicator</item>
         <item name="android:textSize">12.0sp</item>
@@ -16,27 +19,40 @@
         <item name="android:paddingBottom">12.0dip</item>
         <item name="android:maxLines">1</item>
     </style>
+
     <style name="TextAppearance.TabPageIndicator" parent="@style/Widget">
         <item name="android:textStyle">bold</item>
         <item name="android:textColor">@color/vpi__dark_theme</item>
     </style>
+
     <style name="Widget.IconPageIndicator" parent="@style/Widget">
         <item name="android:layout_marginLeft">6.0dip</item>
         <item name="android:layout_marginRight">6.0dip</item>
     </style>
-    <style name="AppBaseTheme" parent="@android:style/Theme.Light" />
-    <style name="AppTheme" parent="@android:style/Theme.Light" />
+
+    <style name="AppBaseTheme" parent="@android:style/Theme.Light"/>
+
+    <style name="AppTheme" parent="@android:style/Theme.Light"/>
+
     <style name="MediaController_SeekBar">
         <item name="android:maxHeight">16.0dip</item>
         <item name="android:progressDrawable">@drawable/mediacontroller_seekbar</item>
         <item name="android:minHeight">16.0dip</item>
         <item name="android:thumb">@drawable/mediacontroller_seekbar_thumb</item>
     </style>
+
     <style name="MediaController_Text">
         <item name="android:textSize">14.0sp</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textColor">#ffffffff</item>
     </style>
+
+    <style name="DemoButton">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minWidth">40dp</item>
+    </style>
+
 
     <style name="AppThemeCompat" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowNoTitle">true</item>
@@ -67,11 +83,5 @@
         <item name="android:textSize">@dimen/edit_text_size_default</item>
         <item name="android:padding">@dimen/edit_padding_default</item>
         <item name="android:background">@android:color/white</item>
-    </style>
-
-    <style name="DemoButton">
-        <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:minWidth">40dp</item>
     </style>
 </resources>

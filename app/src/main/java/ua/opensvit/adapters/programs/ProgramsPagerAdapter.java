@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,20 +19,21 @@ import ua.opensvit.api.OpenWorldApi1;
 import ua.opensvit.data.GetUrlItem;
 import ua.opensvit.data.ParcelableArray;
 import ua.opensvit.data.epg.ProgramItem;
+import ua.opensvit.fragments.ProgramsFragment;
 
 public class ProgramsPagerAdapter extends PagerAdapter {
 
     private final SparseArray<ParcelableArray<ProgramItem>> programs;
     private final List<String> mDayNames;
     private final SparseArray<List<GetUrlItem>> mGetUrls;
-    private final Activity mActivity;
+    private final WeakReference<ProgramsFragment> weakFragment;
     private final int mChannelId;
 
     public ProgramsPagerAdapter(SparseArray<ParcelableArray<ProgramItem>> programs,
-                                List<String> mDayNames, Activity mActivity, int channelId) {
+                                List<String> mDayNames, ProgramsFragment fragment, int channelId) {
         this.programs = programs;
         this.mDayNames = mDayNames;
-        this.mActivity = mActivity;
+        this.weakFragment = new WeakReference<>(fragment);
         this.mGetUrls = new SparseArray<>(programs.size());
         this.mChannelId = channelId;
     }
@@ -53,7 +55,13 @@ public class ProgramsPagerAdapter extends PagerAdapter {
 
     @Override
     public Object instantiateItem(ViewGroup container, final int position) {
-        final View itemView = LayoutInflater.from(mActivity).inflate(R.layout.layout_pager_item,
+        if (weakFragment.get() == null || weakFragment.get().getActivity() == null) {
+            return null;
+        }
+
+        final ProgramsFragment fragment = weakFragment.get();
+
+        final View itemView = LayoutInflater.from(fragment.getActivity()).inflate(R.layout.layout_pager_item,
                 container, false);
 
         final ListView mProgramsList = (ListView) itemView.findViewById(R.id.programs_list);
@@ -75,7 +83,6 @@ public class ProgramsPagerAdapter extends PagerAdapter {
                         mUrls.add(null);
                     }
                     mApi = VideoStreamApp.getInstance().getApi1();
-                    mActivity.findViewById(R.id.progress).setVisibility(View.VISIBLE);
                 }
 
                 @Override
@@ -103,20 +110,20 @@ public class ProgramsPagerAdapter extends PagerAdapter {
                 @Override
                 protected void onPostExecute(Void aVoid) {
                     super.onPostExecute(aVoid);
-                    mActivity.findViewById(R.id.progress).setVisibility(View.GONE);
-                    setAdapter(itemView, mProgramsList, position);
+                    setAdapter(fragment, itemView, mProgramsList, position);
                 }
             }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
         } else {
-            setAdapter(itemView, mProgramsList, position);
+            setAdapter(fragment, itemView, mProgramsList, position);
         }
 
         container.addView(itemView);
         return itemView;
     }
 
-    private void setAdapter(final View mitemView, ListView mPrograms, final int position) {
+    private void setAdapter(final ProgramsFragment fragment, final View mitemView, ListView
+            mPrograms, final int position) {
         /*
 
         ParcelableArray<ProgramItem> programsSparse = programs.valueAt(0);
@@ -133,9 +140,13 @@ public class ProgramsPagerAdapter extends PagerAdapter {
             }
         });*/
 
+        if(position == getCount() - 1) {
+            fragment.getLoadAdapterProgress().setVisibility(View.GONE);
+        }
+
         int key = programs.keyAt(position);
 
-        mPrograms.setAdapter(new ProgramsListAdapter(mActivity, programs.get(key).toList
+        mPrograms.setAdapter(new ProgramsListAdapter(fragment.getActivity(), programs.get(key).toList
                 (), mGetUrls.get(key), position));
     }
 
