@@ -245,9 +245,10 @@ public class ProgramsListAdapter extends BaseAdapter {
     private void initContent(View resView, int position, Pair<ProgramItem, GetUrlItem> mDataObj) {
         ImageView mProgramThumbnail = (ImageView) resView.findViewById(R.id
                 .program_thumbnail);
+        /*
 
         download(position, mDataObj.second.getUrl(), mDataObj.first.getTimestamp(),
-                mProgramThumbnail, mActivity);
+                mProgramThumbnail, mActivity);*/
 
         ((TextView) resView.findViewById(R.id.program_name)).setText(mDataObj.first.getTitle());
     }

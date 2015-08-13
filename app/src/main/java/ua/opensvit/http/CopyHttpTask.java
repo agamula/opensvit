@@ -9,6 +9,8 @@ import com.squareup.okhttp.Response;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CopyHttpTask extends AsyncTask<Void, Integer, Void> implements OnProgressChangedListener {
 
@@ -43,7 +45,12 @@ public class CopyHttpTask extends AsyncTask<Void, Integer, Void> implements OnPr
             Request.Builder builder = new Request.Builder()
                     .url(clientUrl);
 
-            builder = builder.addHeader("User-Agent", OkHttpClientRunnable.USER_AGENT);
+            Map<String, String> headers = new HashMap<>();
+            OkHttpClientRunnable.populateHeaders(headers);
+
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
+                builder = builder.addHeader(entry.getKey(), entry.getValue());
+            }
 
             Request request = builder.build();
 
@@ -56,7 +63,7 @@ public class CopyHttpTask extends AsyncTask<Void, Integer, Void> implements OnPr
 
     @Override
     protected void onProgressUpdate(Integer... values) {
-        if(mSeekBar != null) {
+        if (mSeekBar != null) {
             mSeekBar.setProgress(values[0]);
         }
     }

@@ -28,8 +28,7 @@ public class OkHttpClientRunnable implements Runnable {
     private final Map<String, String> mHeaders;
     private static final OkHttpClient CLIENT = new OkHttpClient();
 
-
-    public static final String USER_AGENT = "OpenSvitAndroidClient." + BuildConfig.VERSION_CODE;
+    private static final String USER_AGENT = "OpenSvitAndroidClient." + BuildConfig.VERSION_CODE;
 
     static {
         java.net.CookieManager cookieManager = new java.net.CookieManager();
@@ -56,6 +55,10 @@ public class OkHttpClientRunnable implements Runnable {
         this.info = mOkHttpClientInfo;
         this.mResources = VideoStreamApp.getInstance().getResources();
         this.mHeaders = new HashMap<>();
+        populateHeaders(mHeaders);
+    }
+
+    public static void populateHeaders(Map<String, String> mHeaders) {
         mHeaders.put("User-Agent", USER_AGENT);
     }
 

@@ -17,7 +17,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import io.vov.vitamio.MediaPlayer;
@@ -35,6 +37,7 @@ import ua.opensvit.data.epg.EpgItem;
 import ua.opensvit.data.epg.ProgramItem;
 import ua.opensvit.fragments.player.VitamioVideoBaseFragment;
 import ua.opensvit.fragments.player.VitamioVideoFragment;
+import ua.opensvit.http.OkHttpClientRunnable;
 import ua.opensvit.loaders.RunnableLoader;
 import ua.opensvit.services.NextProgramNotifyService;
 import ua.opensvit.utils.DateUtils;
@@ -201,8 +204,11 @@ public class ProgramsFragment extends VitamioVideoBaseFragment implements Loader
         VideoStreamApp.getInstance().getPlayerInfo().setVideoPath(videoPath);
         VideoView videoView = getVideoView();
         if (videoView != null) {
-            videoView.stopPlayback();
-            videoView.setVideoURI(Uri.parse(videoPath));
+            //videoView.stopPlayback();
+            //videoView.suspend();
+            Map<String, String> headers = new HashMap<>();
+            OkHttpClientRunnable.populateHeaders(headers);
+            videoView.setVideoURI(Uri.parse(videoPath), headers);
             videoView.requestFocus();
             videoView.start();
         } else {

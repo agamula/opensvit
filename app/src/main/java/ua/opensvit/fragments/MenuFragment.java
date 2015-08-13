@@ -333,8 +333,10 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
                 playerInfo.setPlaying(true);
                 playerInfo.setForceStart(true);
 
-                Message message = sInternalHandler.obtainMessage(START_NEW_ACTIVITY, new InternalHandlerData(ip, VideoStreamApp.getInstance().getChannelId(), fragment.mMenuInfo
-                        .getService(), videoWidth, videoHeight, fragment.getActivity()));
+                InternalHandlerData data = new InternalHandlerData(ip, VideoStreamApp.getInstance().getChannelId(), fragment.mMenuInfo
+                        .getService(), videoWidth, videoHeight, fragment.getActivity());
+
+                Message message = sInternalHandler.obtainMessage(START_NEW_ACTIVITY, data);
                 message.sendToTarget();
             }
         }

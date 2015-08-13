@@ -21,11 +21,14 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.squareup.leakcanary.RefWatcher;
 
 import java.lang.reflect.Field;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -35,6 +38,7 @@ import io.vov.vitamio.widget.MediaController;
 import io.vov.vitamio.widget.VideoView;
 import ua.opensvit.R;
 import ua.opensvit.VideoStreamApp;
+import ua.opensvit.http.OkHttpClientRunnable;
 import ua.opensvit.services.NextProgramNotifyService;
 import ua.opensvit.utils.DateUtils;
 import ua.opensvit.utils.WindowUtils;
@@ -42,7 +46,7 @@ import ua.opensvit.widgets.RespondedLayout;
 
 public abstract class VitamioVideoBaseFragment extends Fragment implements MediaPlayer
         .OnInfoListener, MediaPlayer.OnPreparedListener, MediaController
-        .OnShownListener {
+        .OnShownListener, MediaPlayer.OnErrorListener {
     private static final String URL_TAG = "url";
     private static final int MESSAGE_START_NOTIFY_SERVICE = 1;
 
@@ -56,6 +60,25 @@ public abstract class VitamioVideoBaseFragment extends Fragment implements Media
         args.putInt(NextProgramNotifyService.SERVICE_ID, serviceId);
         args.putLong(NextProgramNotifyService.TIMESTAMP, timestamp);
         return args;
+    }
+
+    @Override
+    public boolean onError(MediaPlayer mp, int what, int extra) {
+        String text = null;
+        switch (what) {
+            case MediaPlayer.MEDIA_ERROR_UNKNOWN:
+                text = getString(R.string.media_error_unknown);
+                break;
+            case MediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK:
+                text = getString(R.string.media_error_not_valid_for_progressive);
+                break;
+        }
+
+        if (text != null) {
+            Toast.makeText(getActivity(), text + " [" + extra + "]", Toast
+                    .LENGTH_LONG).show();
+        }
+        return true;
     }
 
     private static class ObjectForNotify {
@@ -84,7 +107,7 @@ public abstract class VitamioVideoBaseFragment extends Fragment implements Media
                 ObjectForNotify notifyObj = (ObjectForNotify) msg.obj;
                 Intent intent = createNotifyIntent(mApp, notifyObj.channelId, notifyObj.serviceId,
                         notifyObj.timestamp, false);
-                mApp.getApplicationContext().startService(intent);
+                //mApp.getApplicationContext().startService(intent);
             }
         }
     }
@@ -126,7 +149,7 @@ public abstract class VitamioVideoBaseFragment extends Fragment implements Media
 
     private String mPath;
 
-    protected String getPath() {
+    public String getPath() {
         return mPath;
     }
 
@@ -246,6 +269,7 @@ public abstract class VitamioVideoBaseFragment extends Fragment implements Media
             mVideoViewNotExist = false;
             mVideoView.setOnInfoListener(this);
             mVideoView.setOnPreparedListener(this);
+            mVideoView.setOnErrorListener(this);
 
             MediaController controller = (MediaController) view.findViewById(R.id.media_controller);
             controller.setInstantSeeking(false);
@@ -261,7 +285,9 @@ public abstract class VitamioVideoBaseFragment extends Fragment implements Media
             return;
         }
         mVideoView.setVisibility(View.VISIBLE);
-        mVideoView.setVideoURI(Uri.parse(mPath));
+        Map<String, String> headers = new HashMap<>();
+        OkHttpClientRunnable.populateHeaders(headers);
+        mVideoView.setVideoURI(Uri.parse(mPath), headers);
         mVideoView.requestFocus();
         mShown = false;
     }

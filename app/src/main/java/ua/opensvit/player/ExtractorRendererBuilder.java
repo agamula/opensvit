@@ -69,7 +69,7 @@ public class ExtractorRendererBuilder implements ExoPlayerImpl.RendererBuilder, 
 
         try {
             HashMap<String, String> optionalParams = new HashMap<>();
-            optionalParams.put("User-Agent", OkHttpClientRunnable.USER_AGENT);
+            OkHttpClientRunnable.populateHeaders(optionalParams);
             DrmSessionManager drmSessionManager = StreamingDrmSessionManager.newWidevineInstance
                     (playerHandler.getLooper(), this, optionalParams, playerHandler, player);
 

@@ -55,4 +55,6 @@
     <string name="ended_as" formatted="false">\"%s\" ended as %s</string>
     <string name="selected">Selected</string>
     <string name="today">Today</string>
+    <string name="media_error_unknown">Unknown error:</string>
+    <string name="media_error_not_valid_for_progressive">Not valid for progressive error:</string>
 </resources>
