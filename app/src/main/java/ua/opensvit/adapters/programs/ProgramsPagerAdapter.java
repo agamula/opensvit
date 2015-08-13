@@ -151,8 +151,8 @@ public class ProgramsPagerAdapter extends PagerAdapter implements AdapterView.On
 
         final List<GetUrlItem> curUrls = mGetUrls.get(key);
 
-        curUrls.get(1).setUrl(ProgramsFragment.NEXT_URL);
-        curUrls.get(2).setUrl((weakFragment.get()).getPath());
+        //curUrls.get(1).setUrl(ProgramsFragment.NEXT_URL);
+        //curUrls.get(2).setUrl((weakFragment.get()).getPath());
 
         mPrograms.setAdapter(new ProgramsListAdapter(fragment.getActivity(), programs.get(key).toList
                 (), curUrls, position));

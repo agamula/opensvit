@@ -204,8 +204,6 @@ public class ProgramsFragment extends VitamioVideoBaseFragment implements Loader
         VideoStreamApp.getInstance().getPlayerInfo().setVideoPath(videoPath);
         VideoView videoView = getVideoView();
         if (videoView != null) {
-            //videoView.stopPlayback();
-            //videoView.suspend();
             Map<String, String> headers = new HashMap<>();
             OkHttpClientRunnable.populateHeaders(headers);
             videoView.setVideoURI(Uri.parse(videoPath), headers);

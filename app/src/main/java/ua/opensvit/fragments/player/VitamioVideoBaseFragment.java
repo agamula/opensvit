@@ -107,7 +107,7 @@ public abstract class VitamioVideoBaseFragment extends Fragment implements Media
                 ObjectForNotify notifyObj = (ObjectForNotify) msg.obj;
                 Intent intent = createNotifyIntent(mApp, notifyObj.channelId, notifyObj.serviceId,
                         notifyObj.timestamp, false);
-                //mApp.getApplicationContext().startService(intent);
+                mApp.getApplicationContext().startService(intent);
             }
         }
     }
