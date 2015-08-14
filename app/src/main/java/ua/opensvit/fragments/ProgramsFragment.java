@@ -2,6 +2,9 @@ package ua.opensvit.fragments;
 
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.support.v4.view.PagerTabStrip;
@@ -9,10 +12,15 @@ import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Pair;
 import android.util.SparseArray;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
+import org.w3c.dom.Text;
+
+import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -22,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import io.vov.vitamio.MediaFormat;
 import io.vov.vitamio.MediaPlayer;
 import io.vov.vitamio.widget.VideoView;
 import ua.opensvit.R;
@@ -41,11 +50,13 @@ import ua.opensvit.http.OkHttpClientRunnable;
 import ua.opensvit.loaders.RunnableLoader;
 import ua.opensvit.services.NextProgramNotifyService;
 import ua.opensvit.utils.DateUtils;
+import ua.opensvit.utils.InteractHandler;
 import ua.opensvit.utils.WindowUtils;
+import ua.opensvit.widgets.HorizontalScrollAutoSizeDetectable;
 import ua.opensvit.widgets.RespondedLayout;
 
 public class ProgramsFragment extends VitamioVideoBaseFragment implements LoaderManager
-        .LoaderCallbacks<String> {
+        .LoaderCallbacks<String>, View.OnClickListener, Handler.Callback {
 
     private static final String VIDEO_WIDTH = "video_width";
     private static final String VIDEO_HEIGHT = "video_height";
@@ -97,6 +108,10 @@ public class ProgramsFragment extends VitamioVideoBaseFragment implements Loader
     private EpgItem epgItem;
     private int mCountDays;
     private PagerTabStrip mTabStrip;
+    private HorizontalScrollAutoSizeDetectable autoSizeDetectable;
+
+    private static final InteractHandler HANDLER = new InteractHandler(Looper.getMainLooper(),
+            new ProgramsFragment());
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
@@ -108,6 +123,9 @@ public class ProgramsFragment extends VitamioVideoBaseFragment implements Loader
         Bundle args = getArguments();
         mVideoWidth = args.getInt(VIDEO_WIDTH);
         mVideoHeight = args.getInt(VIDEO_HEIGHT);
+
+        autoSizeDetectable = (HorizontalScrollAutoSizeDetectable) view.findViewById(R.id
+                .autosizeable);
 
         mPager = (ViewPager) view.findViewById(R.id.days_pager);
         mTabStrip = (PagerTabStrip) view.findViewById(R.id.day_names);
@@ -230,6 +248,33 @@ public class ProgramsFragment extends VitamioVideoBaseFragment implements Loader
     public void onPrepared(MediaPlayer mediaPlayer) {
         super.onPrepared(mediaPlayer);
         mLoadVideoProgress.setVisibility(View.GONE);
+        SparseArray<MediaFormat> audioFormats = getAudioFormats();
+        if (audioFormats.size() > 1) {
+            autoSizeDetectable.setVisibility(View.VISIBLE);
+            autoSizeDetectable.removeAllViews();
+            for (int i = 0; i < audioFormats.size(); i++) {
+                TextView tv = new TextView(getActivity());
+                tv.setGravity(Gravity.CENTER);
+                tv.setText(audioFormats.valueAt(i).getString(MediaFormat.KEY_LANGUAGE));
+                tv.setTag(audioFormats.keyAt(i));
+                if (i == 0) {
+                    tv.setBackgroundDrawable(getResources().getDrawable(R.drawable.left_language_drawable));
+                } else if (i == audioFormats.size() - 1) {
+                    tv.setBackgroundDrawable(getResources().getDrawable(R.drawable
+                            .right_language_drawable));
+                } else {
+                    tv.setBackgroundDrawable(getResources().getDrawable(R.drawable
+                            .center_language_drawable));
+                }
+                tv.setOnClickListener(this);
+                autoSizeDetectable.addView(tv);
+            }
+
+            mFirstLanguageSelect = true;
+            autoSizeDetectable.getTextViewChildAt(0).performClick();
+        } else {
+            autoSizeDetectable.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -300,6 +345,65 @@ public class ProgramsFragment extends VitamioVideoBaseFragment implements Loader
                     break;
             }
         }
+    }
+
+    @Override
+    public void onClick(View v) {
+        if (!(v instanceof TextView) || v.getTag() == null || !(v.getTag() instanceof Integer)) {
+            return;
+        }
+        for (int i = 0; i < autoSizeDetectable.getTextViewChildCount(); i++) {
+            autoSizeDetectable.getTextViewChildAt(i).setSelected(false);
+        }
+        v.setSelected(true);
+        Integer audioKey = (Integer) v.getTag();
+        VideoView videoView = getVideoView();
+        videoView.pause();
+        long pos = videoView.getCurrentPosition();
+        if(mFirstLanguageSelect) {
+            videoView.setAudioTrack(audioKey);
+            videoView.seekTo(pos);
+            videoView.start();
+        } else {
+            sendSwitchLangMessage(audioKey, pos);
+        }
+        mFirstLanguageSelect = false;
+    }
+
+    private boolean mFirstLanguageSelect;
+
+    private static final int MSG_DELAY_START_TRACK_NEW_LANG = 0;
+
+    private void sendSwitchLangMessage(int audioTrackId, long pos) {
+        WeakReference<ProgramsFragment> fragmentWeakReference = new
+                WeakReference<>(this);
+        Pair<WeakReference<VideoView>, Pair<Integer, Long>> data = new Pair<>(new WeakReference<>
+                (getVideoView()), new Pair<>(audioTrackId, pos));
+        Pair<WeakReference<?>, Object> msgData = new Pair<WeakReference<?>, Object>
+                (fragmentWeakReference, data);
+        Message message = HANDLER.obtainMessage(MSG_DELAY_START_TRACK_NEW_LANG, msgData);
+        HANDLER.sendMessageDelayed(message, VideoStreamApp.getInstance().getResources()
+                .getInteger(R.integer.load_new_lang_delay));
+    }
+
+    @Override
+    public boolean handleMessage(Message msg) {
+        boolean handled;
+        switch (msg.what) {
+            case MSG_DELAY_START_TRACK_NEW_LANG:
+                Pair<WeakReference<VideoView>, Pair<Integer, Long>> data =
+                        (Pair<WeakReference<VideoView>,
+                        Pair<Integer, Long>>) msg.obj;
+                VideoView videoView = data.first.get();
+                videoView.setAudioTrack(data.second.first);
+                //videoView.seekTo(data.second.second);
+                videoView.start();
+                handled = true;
+                break;
+            default:
+                handled = false;
+        }
+        return handled;
     }
 
     private class LoadResultListener implements OpenWorldApi1.ResultListener {

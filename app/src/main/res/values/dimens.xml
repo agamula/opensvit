@@ -30,4 +30,7 @@
     <dimen name="login_btn_size">150dp</dimen>
     <dimen name="login_between_margin">40dp</dimen>
     <dimen name="item_program_height">130dp</dimen>
+    <dimen name="default_horizontal_scroll_child_max_size">190dp</dimen>
+    <dimen name="default_horizontal_scroll_child_min_size">100dp</dimen>
+    <dimen name="lang_radius">3dp</dimen>
 </resources>

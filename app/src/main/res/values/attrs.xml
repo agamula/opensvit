@@ -56,4 +56,9 @@
         </attr>
         <attr name="triangle_text_font" format="string"/>
     </declare-styleable>
+
+    <declare-styleable name="HorizontalScrollAutoSizeDetectable" >
+        <attr name="max_child_size" format="dimension" />
+        <attr name="min_child_size" format="dimension" />
+    </declare-styleable>
 </resources>

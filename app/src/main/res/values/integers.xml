@@ -10,4 +10,5 @@
     <integer name="time_move_showing_millis">8000</integer>
     <integer name="time_till_display_notify_string_seconds">6</integer>
     <integer name="count_days_back">4</integer>
+    <integer name="load_new_lang_delay">120</integer>
 </resources>

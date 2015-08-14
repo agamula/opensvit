@@ -18,6 +18,7 @@ import android.widget.LinearLayout;
 import android.widget.MediaController;
 import android.widget.TextView;
 
+import com.astuetz.PagerSlidingTabStrip;
 import com.google.android.exoplayer.AspectRatioFrameLayout;
 import com.google.android.exoplayer.ExoPlayer;
 import com.google.android.exoplayer.audio.AudioCapabilities;
@@ -90,6 +91,7 @@ public class ExoVideoFragment extends Fragment implements SurfaceHolder.Callback
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        PagerSlidingTabStrip strip = null;
         View root = view.findViewById(R.id.root);
         root.setOnTouchListener(new View.OnTouchListener() {
             @Override
