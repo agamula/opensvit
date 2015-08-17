@@ -63,66 +63,70 @@ public class ProgramsPagerAdapter extends PagerAdapter implements AdapterView.On
         }
 
         final ProgramsFragment fragment = weakFragment.get();
+        if (fragment != null) {
 
-        final View itemView = LayoutInflater.from(fragment.getActivity()).inflate(R.layout.layout_pager_item,
-                container, false);
+            final View itemView = LayoutInflater.from(fragment.getActivity()).inflate(R.layout.layout_pager_item,
+                    container, false);
 
-        final ListView mProgramsList = (ListView) itemView.findViewById(R.id.programs_list);
-        if (mGetUrls.indexOfKey(programs.keyAt(position)) < 0) {
-            new AsyncTask<Void, Void, Void>() {
+            final ListView mProgramsList = (ListView) itemView.findViewById(R.id.programs_list);
+            if (mGetUrls.indexOfKey(programs.keyAt(position)) < 0) {
+                new AsyncTask<Void, Void, Void>() {
 
-                private OpenWorldApi1 mApi;
-                private ParcelableArray<ProgramItem> mPrograms;
-                private List<GetUrlItem> mUrls;
+                    private OpenWorldApi1 mApi;
+                    private ParcelableArray<ProgramItem> mPrograms;
+                    private List<GetUrlItem> mUrls;
 
-                @Override
-                protected void onPreExecute() {
-                    super.onPreExecute();
-                    mPrograms = programs.valueAt(position);
-                    int size = mPrograms.size();
-                    mUrls = new ArrayList<>(size);
-                    mGetUrls.put(programs.keyAt(position), mUrls);
-                    for (int i = 0; i < size; i++) {
-                        mUrls.add(null);
+                    @Override
+                    protected void onPreExecute() {
+                        super.onPreExecute();
+                        mPrograms = programs.valueAt(position);
+                        int size = mPrograms.size();
+                        mUrls = new ArrayList<>(size);
+                        mGetUrls.put(programs.keyAt(position), mUrls);
+                        for (int i = 0; i < size; i++) {
+                            mUrls.add(null);
+                        }
+                        mApi = VideoStreamApp.getInstance().getApi1();
                     }
-                    mApi = VideoStreamApp.getInstance().getApi1();
-                }
 
-                @Override
-                protected Void doInBackground(Void... params) {
-                    for (int i = 0; i < mPrograms.size(); i++) {
-                        final int position = i;
-                        mApi.macGetArchiveUrlRunnable(mChannelId, mPrograms.get(i).getTimestamp()
-                                , new OpenWorldApi1.ResultListener() {
-                            @Override
-                            public void onResult(Object res) {
-                                if (res != null) {
-                                    mUrls.set(position, (GetUrlItem) res);
+                    @Override
+                    protected Void doInBackground(Void... params) {
+                        for (int i = 0; i < mPrograms.size(); i++) {
+                            final int position = i;
+                            mApi.macGetArchiveUrlRunnable(mChannelId, mPrograms.get(i).getTimestamp()
+                                    , new OpenWorldApi1.ResultListener() {
+                                @Override
+                                public void onResult(Object res) {
+                                    if (res != null) {
+                                        mUrls.set(position, (GetUrlItem) res);
+                                    }
                                 }
-                            }
 
-                            @Override
-                            public void onError(String result) {
+                                @Override
+                                public void onError(String result) {
 
-                            }
-                        }).run();
+                                }
+                            }).run();
+                        }
+                        return null;
                     }
-                    return null;
-                }
 
-                @Override
-                protected void onPostExecute(Void aVoid) {
-                    super.onPostExecute(aVoid);
-                    setAdapter(fragment, itemView, mProgramsList, position);
-                }
-            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                    @Override
+                    protected void onPostExecute(Void aVoid) {
+                        super.onPostExecute(aVoid);
+                        setAdapter(fragment, itemView, mProgramsList, position);
+                    }
+                }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
+            } else {
+                setAdapter(fragment, itemView, mProgramsList, position);
+            }
+
+            container.addView(itemView);
+            return itemView;
         } else {
-            setAdapter(fragment, itemView, mProgramsList, position);
+            return null;
         }
-
-        container.addView(itemView);
-        return itemView;
     }
 
     private void setAdapter(final ProgramsFragment fragment, final View mitemView, ListView
