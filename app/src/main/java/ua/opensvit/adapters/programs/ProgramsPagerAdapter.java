@@ -1,6 +1,7 @@
 package ua.opensvit.adapters.programs;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v4.view.PagerAdapter;
@@ -11,10 +12,12 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.vov.vitamio.MediaMetadataRetriever;
 import ua.opensvit.R;
 import ua.opensvit.VideoStreamApp;
 import ua.opensvit.api.OpenWorldApi1;
@@ -158,8 +161,28 @@ public class ProgramsPagerAdapter extends PagerAdapter implements AdapterView.On
         //curUrls.get(1).setUrl(ProgramsFragment.NEXT_URL);
         //curUrls.get(2).setUrl((weakFragment.get()).getPath());
 
-        mPrograms.setAdapter(new ProgramsListAdapter(fragment.getActivity(), programs.get(key).toList
-                (), curUrls, position));
+        List<ProgramItem> programItems = programs.get(key).toList();
+        /*MediaMetadataRetriever mRetriever = new MediaMetadataRetriever(weakFragment.get()
+                .getActivity());
+        try {
+            mRetriever.setDataSource(curUrls.get(0).getUrl());
+            Bitmap bm = mRetriever.getFrameAtTime(0);
+            bm.recycle();
+            System.gc();
+            for (int i = 1; i < curUrls.size(); i++) {
+                long timeMargin = programItems.get(i).getTimestamp() - programItems.get(0)
+                        .getTimestamp();
+                bm = mRetriever.getFrameAtTime(timeMargin * 1000);
+                bm.recycle();
+                System.gc();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }*/
+
+
+        mPrograms.setAdapter(new ProgramsListAdapter(fragment.getActivity(), programItems, curUrls,
+                position));
         mPrograms.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
