@@ -1,10 +1,12 @@
 package ua.opensvit.fragments;
 
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.os.Parcelable;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.support.v4.view.PagerTabStrip;
@@ -20,6 +22,7 @@ import android.widget.TextView;
 
 import org.w3c.dom.Text;
 
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -31,6 +34,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import io.vov.vitamio.MediaFormat;
+import io.vov.vitamio.MediaMetadataRetriever;
 import io.vov.vitamio.MediaPlayer;
 import io.vov.vitamio.widget.VideoView;
 import ua.opensvit.R;
@@ -39,11 +43,13 @@ import ua.opensvit.activities.MainActivity;
 import ua.opensvit.activities.ShowVideoActivity;
 import ua.opensvit.adapters.programs.ProgramsPagerAdapter;
 import ua.opensvit.api.OpenWorldApi1;
+import ua.opensvit.data.GetUrlItem;
 import ua.opensvit.data.ParcelableArray;
 import ua.opensvit.data.PlayerInfo;
 import ua.opensvit.data.constants.LoaderConstants;
 import ua.opensvit.data.epg.EpgItem;
 import ua.opensvit.data.epg.ProgramItem;
+import ua.opensvit.fragments.player.FFMpegVideoFragment;
 import ua.opensvit.fragments.player.VitamioVideoBaseFragment;
 import ua.opensvit.fragments.player.VitamioVideoFragment;
 import ua.opensvit.http.OkHttpClientRunnable;
@@ -67,7 +73,6 @@ public class ProgramsFragment extends VitamioVideoBaseFragment implements Loader
     private static final String PAGE_TAG = "page";
 
     public static String NEXT_URL;
-
 
     public ProgramsFragment() {
     }
@@ -109,6 +114,17 @@ public class ProgramsFragment extends VitamioVideoBaseFragment implements Loader
     private int mCountDays;
     private PagerTabStrip mTabStrip;
     private HorizontalScrollAutoSizeDetectable autoSizeDetectable;
+    private MediaMetadataRetriever mRetriever;
+    private ProgramItem mFirstProgramItem;
+    private GetUrlItem mFirstProgramUrl;
+
+    public void setRetriever(MediaMetadataRetriever mRetriever) {
+        this.mRetriever = mRetriever;
+    }
+
+    public MediaMetadataRetriever getRetriever() {
+        return mRetriever;
+    }
 
     private static final InteractHandler HANDLER = new InteractHandler(Looper.getMainLooper(),
             new ProgramsFragment());
@@ -159,7 +175,11 @@ public class ProgramsFragment extends VitamioVideoBaseFragment implements Loader
                     pars.width = width;
                     pars.height = height;
                     layout.setReactOnLayout(false);
-                    onPostViewCreated();
+                    if (mFirstProgramUrl != null) {
+                        VideoStreamApp.getInstance().getPlayerInfo().setVideoPath
+                                (mFirstProgramUrl.getUrl());
+                        onPostViewCreated();
+                    }
                 }
             });
             respondedLayout.setReactOnLayout(true);
@@ -168,10 +188,14 @@ public class ProgramsFragment extends VitamioVideoBaseFragment implements Loader
             VideoStreamApp.getInstance().getPlayerInfo().setVideoPath(getPath());
         } else {
             PlayerInfo playerInfo = VideoStreamApp.getInstance().getPlayerInfo();
+            playerInfo.setVideoPath(getPath());
             if (playerInfo.isPlaying() && playerInfo.isForceStart()) {
-                MainActivity.startFragment(getActivity(), VitamioVideoFragment.newInstance
+                MainActivity.startFragment(getActivity(), FFMpegVideoFragment.newInstance
+                                (playerInfo.getVideoPath())
+                        /*VitamioVideoFragment.newInstance
                         (playerInfo.getVideoPath(),
-                                getChannelId(), getServiceId(), getTimestamp(), mVideoWidth, mVideoHeight));
+                                getChannelId(), getServiceId(), getTimestamp(), mVideoWidth,
+                                mVideoHeight)*/);
             }
         }
 
@@ -218,22 +242,46 @@ public class ProgramsFragment extends VitamioVideoBaseFragment implements Loader
         }
     }
 
-    public void setVideoPath(String videoPath) {
-        VideoStreamApp.getInstance().getPlayerInfo().setVideoPath(videoPath);
+    @Override
+    public void onDestroyView() {
+        LoaderManager manager = getLoaderManager();
+
+        for (int loaderId = LoaderConstants.LOAD_PROGRAMS_LOADER_ID; loaderId < LoaderConstants
+                .LOAD_PROGRAMS_LOADER_ID + mCountDays; loaderId++) {
+            manager.destroyLoader(loaderId);
+        }
+
+        if (mRetriever != null) {
+            mRetriever.release();
+            mRetriever = null;
+        }
+        super.onDestroyView();
+    }
+
+    public void setVideoPath(String videoPath, long timeSeek) {
+        //timeSeek = 0;
+        PlayerInfo playerInfo = VideoStreamApp.getInstance().getPlayerInfo();
+        if (videoPath.equals(mFirstProgramUrl.getUrl())) {
+            videoPath = getPath();
+        }
+        playerInfo.setVideoPath(videoPath);
         VideoView videoView = getVideoView();
         if (videoView != null) {
             Map<String, String> headers = new HashMap<>();
             OkHttpClientRunnable.populateHeaders(headers);
             videoView.setVideoURI(Uri.parse(videoPath), headers);
+            seekTo = timeSeek;
             videoView.requestFocus();
             videoView.start();
         } else {
-            PlayerInfo playerInfo = VideoStreamApp.getInstance().getPlayerInfo();
+            playerInfo.setPlayerPosition(timeSeek);
             MainActivity.startFragment(getActivity(), VitamioVideoFragment.newInstance
                     (playerInfo.getVideoPath(), getChannelId(), getServiceId(), getTimestamp(),
                             mVideoWidth, mVideoHeight));
         }
     }
+
+    private long seekTo;
 
     @Override
     public VideoView getVideoView() {
@@ -247,6 +295,10 @@ public class ProgramsFragment extends VitamioVideoBaseFragment implements Loader
     @Override
     public void onPrepared(MediaPlayer mediaPlayer) {
         super.onPrepared(mediaPlayer);
+        if (seekTo != 0) {
+            getVideoView().seekTo(seekTo);
+            seekTo = 0;
+        }
         mLoadVideoProgress.setVisibility(View.GONE);
         SparseArray<MediaFormat> audioFormats = getAudioFormats();
         if (audioFormats.size() > 1) {
@@ -334,10 +386,85 @@ public class ProgramsFragment extends VitamioVideoBaseFragment implements Loader
             }
 
             if (mCountLoaded == mCountDays) {
-                mPager.setAdapter(new ProgramsPagerAdapter(mPrograms, mDayNames, this,
-                        getChannelId()));
-                mPager.setCurrentItem(mDayNames.size() - 1);
-                mTabStrip.setTabIndicatorColorResource(R.color.color_login);
+                new AsyncTask<Void, Void, Void>() {
+
+                    private OpenWorldApi1 mApi;
+                    private GetUrlItem getUrlItem;
+                    private GetUrlItem getUrlItem2;
+                    private ProgramItem mSecondItem;
+
+                    @Override
+                    protected void onPreExecute() {
+                        super.onPreExecute();
+                        ParcelableArray<ProgramItem> firstDayPrograms = mPrograms.valueAt(0);
+                        mFirstProgramItem = firstDayPrograms.get(1);
+                        mSecondItem = firstDayPrograms.get(2);
+                        mApi = VideoStreamApp.getInstance().getApi1();
+                    }
+
+                    @Override
+                    protected Void doInBackground(Void... params) {
+                        mApi.macGetArchiveUrlRunnable(getChannelId(), mFirstProgramItem.getTimestamp()
+                                , new OpenWorldApi1.ResultListener() {
+                            @Override
+                            public void onResult(Object res) {
+                                if (res != null) {
+                                    getUrlItem = (GetUrlItem) res;
+                                }
+                            }
+
+                            @Override
+                            public void onError(String result) {
+
+                            }
+                        }).run();
+                        mApi.macGetArchiveUrlRunnable(getChannelId(), mSecondItem.getTimestamp()
+                                , new OpenWorldApi1.ResultListener() {
+                            @Override
+                            public void onResult(Object res) {
+                                if (res != null) {
+                                    getUrlItem2 = (GetUrlItem) res;
+                                }
+                            }
+
+                            @Override
+                            public void onError(String result) {
+
+                            }
+                        }).run();
+                        return null;
+                    }
+
+                    @Override
+                    protected void onPostExecute(Void aVoid) {
+                        super.onPostExecute(aVoid);
+                        mFirstProgramUrl = getUrlItem;
+                        if (mFirstProgramUrl != null) {
+                            onPostViewCreated();
+                        }
+                        /*MediaMetadataRetriever mRetriever = new MediaMetadataRetriever
+                                (getActivity());
+                        try {
+                            mRetriever.setDataSource(getUrlItem2.getUrl());
+                            String videoWidth = mRetriever.extractMetadata(MediaMetadataRetriever
+                                    .METADATA_KEY_VIDEO_WIDTH);
+                            String a = videoWidth + "asd";
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        } finally {
+                            mRetriever.release();
+                        }
+
+                        mRetriever = new MediaMetadataRetriever(getActivity());
+                        try {
+                            mRetriever.setDataSource(mFirstProgramUrl.getUrl());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        setRetriever(mRetriever);*/
+                        setAdapter(getUrlItem2);
+                    }
+                }.execute();
             }
         } else {
             switch (loader.getId()) {
@@ -345,6 +472,13 @@ public class ProgramsFragment extends VitamioVideoBaseFragment implements Loader
                     break;
             }
         }
+    }
+
+    private void setAdapter(GetUrlItem mSecondUrl) {
+        mPager.setAdapter(new ProgramsPagerAdapter(mPrograms, mDayNames, this,
+                getChannelId(), mFirstProgramItem, mFirstProgramUrl, mSecondUrl));
+        mPager.setCurrentItem(mDayNames.size() - 1);
+        mTabStrip.setTabIndicatorColorResource(R.color.color_login);
     }
 
     @Override
@@ -360,7 +494,7 @@ public class ProgramsFragment extends VitamioVideoBaseFragment implements Loader
         VideoView videoView = getVideoView();
         videoView.pause();
         long pos = videoView.getCurrentPosition();
-        if(mFirstLanguageSelect) {
+        if (mFirstLanguageSelect) {
             videoView.setAudioTrack(audioKey);
             videoView.seekTo(pos);
             videoView.start();
@@ -393,7 +527,7 @@ public class ProgramsFragment extends VitamioVideoBaseFragment implements Loader
             case MSG_DELAY_START_TRACK_NEW_LANG:
                 Pair<WeakReference<VideoView>, Pair<Integer, Long>> data =
                         (Pair<WeakReference<VideoView>,
-                        Pair<Integer, Long>>) msg.obj;
+                                Pair<Integer, Long>>) msg.obj;
                 VideoView videoView = data.first.get();
                 videoView.setAudioTrack(data.second.first);
                 //videoView.seekTo(data.second.second);

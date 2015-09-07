@@ -177,6 +177,8 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
         }
     }
 
+
+
     @Override
     public void onLoadFinished(Loader<String> loader, String data) {
         switch (loader.getId()) {
@@ -352,6 +354,7 @@ public class MenuFragment extends Fragment implements LoaderManager.LoaderCallba
     @Override
     public void onDestroyView() {
         mListener.onDestroyView();
+        getLoaderManager().destroyLoader(LoaderConstants.LOAD_MENU_LOADER_ID);
         super.onDestroyView();
     }
 

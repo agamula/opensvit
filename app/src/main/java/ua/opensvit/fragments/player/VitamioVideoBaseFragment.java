@@ -38,6 +38,7 @@ import io.vov.vitamio.widget.MediaController;
 import io.vov.vitamio.widget.VideoView;
 import ua.opensvit.R;
 import ua.opensvit.VideoStreamApp;
+import ua.opensvit.data.PlayerInfo;
 import ua.opensvit.http.OkHttpClientRunnable;
 import ua.opensvit.services.NextProgramNotifyService;
 import ua.opensvit.utils.DateUtils;
@@ -288,6 +289,11 @@ public abstract class VitamioVideoBaseFragment extends Fragment implements Media
         Map<String, String> headers = new HashMap<>();
         OkHttpClientRunnable.populateHeaders(headers);
         mVideoView.setVideoURI(Uri.parse(mPath), headers);
+        PlayerInfo playerInfo = VideoStreamApp.getInstance().getPlayerInfo();
+        if (playerInfo != null && playerInfo.getPlayerPosition() != 0) {
+            mVideoView.seekTo(playerInfo.getPlayerPosition());
+            playerInfo.setPlayerPosition(0);
+        }
         mVideoView.requestFocus();
         mShown = false;
     }

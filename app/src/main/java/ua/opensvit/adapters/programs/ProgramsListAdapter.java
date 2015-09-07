@@ -36,16 +36,18 @@ import ua.opensvit.widgets.RespondedLayout;
 public class ProgramsListAdapter extends BaseAdapter {
 
     private final List<ProgramItem> mPrograms;
-    private final List<GetUrlItem> mProgramUrls;
+    private final GetUrlItem mFirstProgramUrl;
     private final Activity mActivity;
     private final int mPagePosition;
+    private final ProgramItem mFirstProgramItem;
 
-    public ProgramsListAdapter(Activity activity, List<ProgramItem> mPrograms, List<GetUrlItem>
-            mProgramUrls, int mPagePosition) {
+    public ProgramsListAdapter(Activity activity, List<ProgramItem> mPrograms, GetUrlItem
+            mFirstProgramUrl, int mPagePosition, ProgramItem mFirstProgramItem) {
         this.mPrograms = mPrograms;
-        this.mProgramUrls = mProgramUrls;
+        this.mFirstProgramUrl = mFirstProgramUrl;
         this.mActivity = activity;
         this.mPagePosition = mPagePosition;
+        this.mFirstProgramItem = mFirstProgramItem;
     }
 
     @Override
@@ -55,7 +57,7 @@ public class ProgramsListAdapter extends BaseAdapter {
 
     @Override
     public Object getItem(int position) {
-        return new Pair<>(mPrograms.get(position), mProgramUrls.get(position));
+        return mPrograms.get(position);
     }
 
     @Override
@@ -67,7 +69,7 @@ public class ProgramsListAdapter extends BaseAdapter {
 
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
-        final Pair<ProgramItem, GetUrlItem> mDataObj = (Pair<ProgramItem, GetUrlItem>) getItem(position);
+        final ProgramItem mDataObj = (ProgramItem) getItem(position);
 
         if (convertView == null) {
             final View resView = LayoutInflater.from(mActivity).inflate(R.layout.layout_program,
@@ -242,7 +244,7 @@ public class ProgramsListAdapter extends BaseAdapter {
         return convertView;
     }
 
-    private void initContent(View resView, int position, Pair<ProgramItem, GetUrlItem> mDataObj) {
+    private void initContent(View resView, int position, ProgramItem mDataObj) {
         ImageView mProgramThumbnail = (ImageView) resView.findViewById(R.id
                 .program_thumbnail);
         /*
@@ -250,7 +252,7 @@ public class ProgramsListAdapter extends BaseAdapter {
         download(position, mDataObj.second.getUrl(), mDataObj.first.getTimestamp(),
                 mProgramThumbnail, mActivity);*/
 
-        ((TextView) resView.findViewById(R.id.program_name)).setText(mDataObj.first.getTitle());
+        ((TextView) resView.findViewById(R.id.program_name)).setText(mDataObj.getTitle());
     }
 
     private void download(int position, String url, long timestamp, ImageView imageView, Activity

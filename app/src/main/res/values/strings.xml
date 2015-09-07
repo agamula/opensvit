@@ -57,4 +57,6 @@
     <string name="today">Today</string>
     <string name="media_error_unknown">Unknown error:</string>
     <string name="media_error_not_valid_for_progressive">Not valid for progressive error:</string>
+
+    <string name="unknown">Unknown</string>
 </resources>

@@ -197,6 +197,7 @@ public class EpgFragment extends Fragment implements LoaderManager.LoaderCallbac
     @Override
     public void onDestroyView() {
         mPrograms.setOnItemClickListener(null);
+        getLoaderManager().destroyLoader(LoaderConstants.LOAD_EPG_LOADER_ID);
         super.onDestroyView();
     }
 
