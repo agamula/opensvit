@@ -190,12 +190,12 @@ public class ProgramsFragment extends VitamioVideoBaseFragment implements Loader
             PlayerInfo playerInfo = VideoStreamApp.getInstance().getPlayerInfo();
             playerInfo.setVideoPath(getPath());
             if (playerInfo.isPlaying() && playerInfo.isForceStart()) {
-                MainActivity.startFragment(getActivity(), FFMpegVideoFragment.newInstance
-                                (playerInfo.getVideoPath())
-                        /*VitamioVideoFragment.newInstance
+                MainActivity.startFragment(getActivity(), /*FFMpegVideoFragment.newInstance
+                                (playerInfo.getVideoPath())*/
+                        VitamioVideoFragment.newInstance
                         (playerInfo.getVideoPath(),
                                 getChannelId(), getServiceId(), getTimestamp(), mVideoWidth,
-                                mVideoHeight)*/);
+                                mVideoHeight));
             }
         }
 
@@ -255,6 +255,9 @@ public class ProgramsFragment extends VitamioVideoBaseFragment implements Loader
             mRetriever.release();
             mRetriever = null;
         }
+
+
+
         super.onDestroyView();
     }
 
@@ -274,7 +277,6 @@ public class ProgramsFragment extends VitamioVideoBaseFragment implements Loader
             videoView.requestFocus();
             videoView.start();
         } else {
-            playerInfo.setPlayerPosition(timeSeek);
             MainActivity.startFragment(getActivity(), VitamioVideoFragment.newInstance
                     (playerInfo.getVideoPath(), getChannelId(), getServiceId(), getTimestamp(),
                             mVideoWidth, mVideoHeight));

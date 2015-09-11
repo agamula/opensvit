@@ -13,6 +13,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.SystemClock;
 import android.support.v4.app.Fragment;
+import android.util.Pair;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -238,10 +239,6 @@ public abstract class VitamioVideoBaseFragment extends Fragment implements Media
 
         mVideoView = (VideoView) view.findViewById(R.id.surface_view);
 
-        if (mVideoView != null) {
-            mVideoView.setVisibility(View.GONE);
-        }
-
         onPreShowView(view);
 
         return view;
@@ -285,15 +282,12 @@ public abstract class VitamioVideoBaseFragment extends Fragment implements Media
         if (mVideoViewNotExist) {
             return;
         }
+
         mVideoView.setVisibility(View.VISIBLE);
+
         Map<String, String> headers = new HashMap<>();
         OkHttpClientRunnable.populateHeaders(headers);
         mVideoView.setVideoURI(Uri.parse(mPath), headers);
-        PlayerInfo playerInfo = VideoStreamApp.getInstance().getPlayerInfo();
-        if (playerInfo != null && playerInfo.getPlayerPosition() != 0) {
-            mVideoView.seekTo(playerInfo.getPlayerPosition());
-            playerInfo.setPlayerPosition(0);
-        }
         mVideoView.requestFocus();
         mShown = false;
     }
@@ -353,7 +347,6 @@ public abstract class VitamioVideoBaseFragment extends Fragment implements Media
             return;
         }
         VideoStreamApp mApp = VideoStreamApp.getInstance();
-        mApp.getPlayerInfo().setPlayerPosition(mVideoView.getCurrentPosition());
         mApp.getPlayerInfo().setPlaying(mVideoView.isPlaying());
         mVideoView.stopPlayback();
         super.onPause();
@@ -369,19 +362,14 @@ public abstract class VitamioVideoBaseFragment extends Fragment implements Media
 
         VideoStreamApp mApp = VideoStreamApp.getInstance();
 
-        long playerPosition = mApp.getPlayerInfo().getPlayerPosition();
-
-        boolean isPaused = playerPosition > 0;
-
-        if (isPaused) {
-            mVideoView.seekTo(playerPosition);
-            mApp.getPlayerInfo().setPlayerPosition(0);
-        }
         super.onResume();
 
         if (mApp.getPlayerInfo().isPlaying()) {
             mVideoView.start();
         }
+
+        boolean isPaused = true;
+
         scheduleAlarmShowNextProgram(isPaused);
         getActivity().getApplicationContext().registerReceiver(mReceiver, new IntentFilter
                 (NextProgramNotifyService.BROADCAST_NAME));
@@ -399,15 +387,6 @@ public abstract class VitamioVideoBaseFragment extends Fragment implements Media
     @Override
     public void onPrepared(MediaPlayer mediaPlayer) {
         mediaPlayer.setPlaybackSpeed(1.0f);
-        View videoParent = (View) mVideoView.getParent();
-        LinearLayout.LayoutParams pars = (LinearLayout.LayoutParams) videoParent.getLayoutParams();
-        ViewGroup.LayoutParams videoViewPars = mVideoView.getLayoutParams();
-        pars.width = videoViewPars.width;
-        pars.height = videoViewPars.height;
-        int screenWidth = WindowUtils.getScreenWidth();
-        if (screenWidth != pars.width) {
-            pars.leftMargin = pars.rightMargin = (screenWidth - pars.width) / 2;
-        }
         audioFormats = mVideoView.getAudioTrackMap("utf-8");
     }
 
@@ -428,7 +407,6 @@ public abstract class VitamioVideoBaseFragment extends Fragment implements Media
                 if (mCurrentTime != null) {
                     mCurrentTime.setVisibility(View.GONE);
                 }
-                mVideoView.setVideoLayout(VideoView.VIDEO_LAYOUT_ORIGIN, 0); //zoom = full screen
             } catch (Exception e) {
                 e.printStackTrace();
             }

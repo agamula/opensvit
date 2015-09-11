@@ -1,19 +1,10 @@
 package ua.opensvit.data;
 
 public class PlayerInfo {
-    private long playerPosition;
     private boolean isPlaying;
     private long notifyTime;
     private boolean mForceStart;
     private String videoPath;
-
-    public void setPlayerPosition(long playPosition) {
-        this.playerPosition = playPosition;
-    }
-
-    public long getPlayerPosition() {
-        return playerPosition;
-    }
 
     public void setPlaying(boolean isPlaying) {
         this.isPlaying = isPlaying;

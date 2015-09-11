@@ -34,8 +34,6 @@ public class VitamioVideoFragment extends VitamioVideoBaseFragment implements Me
         return fragment;
     }
 
-    private int mVideoWidth, mVideoHeight;
-
     private ProgressBar mProgress;
 
     @Override
@@ -45,13 +43,7 @@ public class VitamioVideoFragment extends VitamioVideoBaseFragment implements Me
         mProgress = (ProgressBar) view.findViewById(R.id.load_video_program_progress);
         mProgress.setVisibility(View.VISIBLE);
 
-        Bundle args = getArguments();
-
-        mVideoWidth = args.getInt(VIDEO_WIDTH);
-        mVideoHeight = args.getInt(VIDEO_HEIGHT);
-
         final VideoView mVideoView = getVideoView();
-        mVideoView.setVideoQuality(MediaPlayer.VIDEOQUALITY_HIGH);
 
         mVideoView.setOnBufferingUpdateListener(this);
         mVideoView.setOnCompletionListener(this);
@@ -63,32 +55,11 @@ public class VitamioVideoFragment extends VitamioVideoBaseFragment implements Me
             public void onLayoutHappened(RespondedLayout layout) {
                 final VideoView mVideoView = getVideoView();
                 mVideoView.setVideoQuality(MediaPlayer.VIDEOQUALITY_HIGH);
-                Pair<Integer, Integer> screenSizes = WindowUtils.getScreenSizes();
-                int width = screenSizes.first;
-                int scHeight = screenSizes.second;
-                int height = (int) ((float) (width * mVideoHeight) / mVideoWidth);
-                int margin = 0;
-                if (scHeight < height) {
-                    height = scHeight;
-                    if (!STRETCH) {
-                        width = (int) ((float) (height * mVideoWidth) / mVideoHeight);
-                        margin = (screenSizes.first - width) / 2;
-                    }
-                }
-                View parentView = (View) mVideoView.getParent();
-                LinearLayout.LayoutParams pars = (LinearLayout.LayoutParams) parentView.getLayoutParams();
-                pars.width = width;
-                pars.height = height;
-                if (margin != 0) {
-                    pars.leftMargin = pars.rightMargin = margin;
-                }
-                ViewGroup.LayoutParams parsVideoView = mVideoView.getLayoutParams();
-                parsVideoView.width = width;
-                parsVideoView.height = height;
                 layout.setReactOnLayout(false);
                 onPostViewCreated();
             }
         });
+
         respondedLayout.setReactOnLayout(true);
         respondedLayout.requestLayout();
     }
@@ -101,8 +72,6 @@ public class VitamioVideoFragment extends VitamioVideoBaseFragment implements Me
         }
         super.onResume();
     }
-
-    private static boolean STRETCH = false;
 
     @Override
     protected void onPreShowView(View view) {
@@ -150,8 +119,9 @@ public class VitamioVideoFragment extends VitamioVideoBaseFragment implements Me
     @Override
     public void onPrepared(MediaPlayer mediaPlayer) {
         super.onPrepared(mediaPlayer);
-        getVideoView().setVideoLayout(VideoView.VIDEO_LAYOUT_STRETCH, 0);
+        VideoView videoView = getVideoView();
+        videoView.setVideoLayout(VideoView.VIDEO_LAYOUT_ZOOM, 0);
         mProgress.setVisibility(View.GONE);
-        getVideoView().start();
+        videoView.start();
     }
 }
